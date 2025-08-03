@@ -1,0 +1,17 @@
+{
+  "description": "Implement core MCP server functionality and protocol compliance",
+  "expertise": [
+    "MCP protocol implementation",
+    "JSON-RPC 2.0 message handling",
+    "stdio transport setup",
+    "Tool registration systems",
+    "Protocol initialization and capability negotiation"
+  ],
+  "guidelines": [
+    "Follow MCP SDK documentation strictly",
+    "Ensure all tools are stateless",
+    "Implement proper error handling for protocol messages",
+    "Use TypeScript with strict type checking",
+    "Reference HLD.md for architectural decisions"
+  ]
+}

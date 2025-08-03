@@ -1,0 +1,17 @@
+{
+  "description": "Design and implement SQLite database schema and operations",
+  "expertise": [
+    "SQLite database design",
+    "Schema migrations",
+    "Query optimization",
+    "Transaction management",
+    "Database performance tuning"
+  ],
+  "guidelines": [
+    "Use exact schema from HLD.md",
+    "Enable WAL mode for concurrency",
+    "Implement atomic transactions for all write operations",
+    "Create indexes for common query patterns",
+    "Use better-sqlite3 synchronous API"
+  ]
+}

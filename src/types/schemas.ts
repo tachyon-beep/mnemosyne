@@ -1,0 +1,300 @@
+/**
+ * Zod schemas for tool validation in the MCP Persistence System
+ * 
+ * This file contains all the validation schemas used to validate tool inputs
+ * and ensure type safety throughout the system.
+ */
+
+import { z } from 'zod';
+
+/**
+ * Schema for message roles
+ */
+export const MessageRoleSchema = z.enum(['user', 'assistant', 'system']);
+
+/**
+ * Schema for export formats
+ */
+export const ExportFormatSchema = z.enum(['json', 'markdown', 'csv']);
+
+/**
+ * Schema for search match types
+ */
+export const MatchTypeSchema = z.enum(['fuzzy', 'exact', 'prefix']);
+
+/**
+ * Schema for log levels
+ */
+export const LogLevelSchema = z.enum(['debug', 'info', 'warn', 'error']);
+
+/**
+ * Schema for validating save_message tool input
+ */
+export const SaveMessageSchema = z.object({
+  /** Optional conversation ID - if not provided, a new conversation will be created */
+  conversationId: z.string().optional(),
+  /** Role of the message sender */
+  role: MessageRoleSchema,
+  /** Content of the message */
+  content: z.string().min(1, 'Message content cannot be empty'),
+  /** Optional parent message ID for threading */
+  parentMessageId: z.string().optional(),
+  /** Optional metadata as key-value pairs */
+  metadata: z.record(z.any()).optional()
+});
+
+/**
+ * Schema for validating search_messages tool input
+ */
+export const SearchMessagesSchema = z.object({
+  /** Search query string */
+  query: z.string().min(1, 'Search query cannot be empty'),
+  /** Optional conversation ID to limit search scope */
+  conversationId: z.string().optional(),
+  /** Maximum number of results to return */
+  limit: z.number().min(1).max(100).default(20),
+  /** Number of results to skip for pagination */
+  offset: z.number().min(0).default(0),
+  /** Start date for time-based filtering (ISO 8601 string) */
+  startDate: z.string().datetime().optional(),
+  /** End date for time-based filtering (ISO 8601 string) */
+  endDate: z.string().datetime().optional(),
+  /** Type of matching to perform */
+  matchType: MatchTypeSchema.default('fuzzy'),
+  /** Start marker for highlighting matches */
+  highlightStart: z.string().default('<mark>'),
+  /** End marker for highlighting matches */
+  highlightEnd: z.string().default('</mark>')
+});
+
+/**
+ * Schema for validating get_conversation tool input
+ */
+export const GetConversationSchema = z.object({
+  /** ID of the conversation to retrieve */
+  conversationId: z.string().min(1, 'Conversation ID cannot be empty'),
+  /** Whether to include messages in the response */
+  includeMessages: z.boolean().default(true),
+  /** Maximum number of messages to return */
+  messageLimit: z.number().min(1).max(1000).default(100),
+  /** Return messages before this message ID (for pagination) */
+  beforeMessageId: z.string().optional(),
+  /** Return messages after this message ID (for pagination) */
+  afterMessageId: z.string().optional()
+});
+
+/**
+ * Schema for validating get_conversations tool input
+ */
+export const GetConversationsSchema = z.object({
+  /** Maximum number of conversations to return */
+  limit: z.number().min(1).max(100).default(20),
+  /** Number of conversations to skip for pagination */
+  offset: z.number().min(0).default(0),
+  /** Start date for filtering conversations */
+  startDate: z.string().datetime().optional(),
+  /** End date for filtering conversations */
+  endDate: z.string().datetime().optional(),
+  /** Whether to include message counts for each conversation */
+  includeMessageCounts: z.boolean().default(false)
+});
+
+/**
+ * Schema for validating delete_conversation tool input
+ */
+export const DeleteConversationSchema = z.object({
+  /** ID of the conversation to delete */
+  conversationId: z.string().min(1, 'Conversation ID cannot be empty'),
+  /** Whether to permanently delete (vs soft delete) */
+  permanent: z.boolean().default(false)
+});
+
+/**
+ * Schema for validating delete_message tool input
+ */
+export const DeleteMessageSchema = z.object({
+  /** ID of the message to delete */
+  messageId: z.string().min(1, 'Message ID cannot be empty'),
+  /** Whether to permanently delete (vs soft delete) */
+  permanent: z.boolean().default(false)
+});
+
+/**
+ * Schema for validating update_conversation tool input
+ */
+export const UpdateConversationSchema = z.object({
+  /** ID of the conversation to update */
+  conversationId: z.string().min(1, 'Conversation ID cannot be empty'),
+  /** New title for the conversation */
+  title: z.string().optional(),
+  /** Metadata to merge with existing metadata */
+  metadata: z.record(z.any()).optional()
+});
+
+/**
+ * Schema for validating update_message tool input
+ */
+export const UpdateMessageSchema = z.object({
+  /** ID of the message to update */
+  messageId: z.string().min(1, 'Message ID cannot be empty'),
+  /** New content for the message */
+  content: z.string().min(1, 'Message content cannot be empty').optional(),
+  /** Metadata to merge with existing metadata */
+  metadata: z.record(z.any()).optional()
+});
+
+/**
+ * Schema for validating export_conversations tool input
+ */
+export const ExportConversationsSchema = z.object({
+  /** Format for the export */
+  format: ExportFormatSchema.default('json'),
+  /** Optional conversation IDs to include (if not specified, exports all) */
+  conversationIds: z.array(z.string()).optional(),
+  /** Start date for filtering conversations */
+  startDate: z.string().datetime().optional(),
+  /** End date for filtering conversations */
+  endDate: z.string().datetime().optional(),
+  /** Whether to include message metadata in the export */
+  includeMetadata: z.boolean().default(true)
+});
+
+/**
+ * Schema for validating import_conversations tool input
+ */
+export const ImportConversationsSchema = z.object({
+  /** JSON string or file path containing conversations to import */
+  data: z.string().min(1, 'Import data cannot be empty'),
+  /** Whether the data parameter is a file path (vs JSON string) */
+  isFilePath: z.boolean().default(false),
+  /** Whether to overwrite existing conversations with same IDs */
+  overwrite: z.boolean().default(false),
+  /** Whether to validate conversation structure before import */
+  validate: z.boolean().default(true)
+});
+
+/**
+ * Schema for validating get_database_stats tool input
+ */
+export const GetDatabaseStatsSchema = z.object({
+  /** Whether to include detailed breakdown by conversation */
+  includeDetails: z.boolean().default(false)
+});
+
+/**
+ * Schema for validating optimize_database tool input
+ */
+export const OptimizeDatabaseSchema = z.object({
+  /** Whether to run VACUUM operation */
+  vacuum: z.boolean().default(true),
+  /** Whether to run ANALYZE operation */
+  analyze: z.boolean().default(true),
+  /** Whether to optimize FTS indexes */
+  optimizeFTS: z.boolean().default(true)
+});
+
+/**
+ * Schema for validating set_retention_policy tool input
+ */
+export const SetRetentionPolicySchema = z.object({
+  /** Number of days to retain conversations */
+  retentionDays: z.number().min(1).max(3650), // Max ~10 years
+  /** Whether to apply the policy immediately */
+  applyImmediately: z.boolean().default(false)
+});
+
+/**
+ * Schema for validating generate_embeddings tool input
+ */
+export const GenerateEmbeddingsSchema = z.object({
+  /** Optional conversation ID to limit embedding generation */
+  conversationId: z.string().optional(),
+  /** Whether to regenerate existing embeddings */
+  force: z.boolean().default(false),
+  /** Maximum number of messages to process in this batch */
+  batchSize: z.number().min(1).max(1000).default(100)
+});
+
+/**
+ * Schema for conversation data structure (used in imports/exports)
+ */
+export const ConversationDataSchema = z.object({
+  id: z.string(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+  title: z.string().optional(),
+  metadata: z.record(z.any()),
+  messages: z.array(z.object({
+    id: z.string(),
+    conversationId: z.string(),
+    role: MessageRoleSchema,
+    content: z.string(),
+    createdAt: z.number(),
+    parentMessageId: z.string().optional(),
+    metadata: z.record(z.any()).optional()
+  })).optional()
+});
+
+/**
+ * Schema for server configuration
+ */
+export const PersistenceServerConfigSchema = z.object({
+  databasePath: z.string().min(1, 'Database path cannot be empty'),
+  maxDatabaseSizeMB: z.number().min(1).default(1000),
+  maxConversationAgeDays: z.number().min(1).default(365),
+  maxMessagesPerConversation: z.number().min(1).default(10000),
+  enableEmbeddings: z.boolean().default(false),
+  embeddingModel: z.string().optional(),
+  enableAutoSummarization: z.boolean().default(false),
+  vacuumInterval: z.number().min(60000).default(86400000), // Min 1 minute, default 1 day
+  checkpointInterval: z.number().min(30000).default(300000), // Min 30 seconds, default 5 minutes
+  encryptionEnabled: z.boolean().default(false),
+  defaultRetentionDays: z.number().min(1).default(90),
+  logLevel: LogLevelSchema.default('info')
+});
+
+// Export inferred types from schemas
+export type SaveMessageInput = z.infer<typeof SaveMessageSchema>;
+
+// For schemas with defaults, we need to handle the output type properly
+export type SearchMessagesInput = z.input<typeof SearchMessagesSchema>;
+
+export type GetConversationInput = z.infer<typeof GetConversationSchema>;
+
+export type GetConversationsInput = z.input<typeof GetConversationsSchema>;
+
+export type DeleteConversationInput = z.input<typeof DeleteConversationSchema>;
+
+export type DeleteMessageInput = z.infer<typeof DeleteMessageSchema>;
+export type UpdateConversationInput = z.infer<typeof UpdateConversationSchema>;
+export type UpdateMessageInput = z.infer<typeof UpdateMessageSchema>;
+export type ExportConversationsInput = z.infer<typeof ExportConversationsSchema>;
+export type ImportConversationsInput = z.infer<typeof ImportConversationsSchema>;
+export type GetDatabaseStatsInput = z.infer<typeof GetDatabaseStatsSchema>;
+export type OptimizeDatabaseInput = z.infer<typeof OptimizeDatabaseSchema>;
+export type SetRetentionPolicyInput = z.infer<typeof SetRetentionPolicySchema>;
+export type GenerateEmbeddingsInput = z.infer<typeof GenerateEmbeddingsSchema>;
+export type ConversationData = z.infer<typeof ConversationDataSchema>;
+export type PersistenceServerConfigInput = z.infer<typeof PersistenceServerConfigSchema>;
+
+/**
+ * Union type of all possible tool input schemas
+ */
+export const ToolInputSchema = z.union([
+  SaveMessageSchema,
+  SearchMessagesSchema,
+  GetConversationSchema,
+  GetConversationsSchema,
+  DeleteConversationSchema,
+  DeleteMessageSchema,
+  UpdateConversationSchema,
+  UpdateMessageSchema,
+  ExportConversationsSchema,
+  ImportConversationsSchema,
+  GetDatabaseStatsSchema,
+  OptimizeDatabaseSchema,
+  SetRetentionPolicySchema,
+  GenerateEmbeddingsSchema
+]);
+
+export type ToolInput = z.infer<typeof ToolInputSchema>;

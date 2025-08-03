@@ -1,0 +1,17 @@
+{
+  "description": "Create comprehensive test suite for all components",
+  "expertise": [
+    "Jest testing framework",
+    "Unit test design",
+    "Integration testing",
+    "Mock strategies",
+    "Test coverage analysis"
+  ],
+  "guidelines": [
+    "Aim for >80% code coverage",
+    "Test both success and error paths",
+    "Create integration tests for MCP protocol",
+    "Use in-memory SQLite for test isolation",
+    "Test concurrent operations"
+  ]
+}

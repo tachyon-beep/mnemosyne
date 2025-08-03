@@ -1,0 +1,17 @@
+{
+  "description": "Implement and optimize search functionality with SQLite FTS5",
+  "expertise": [
+    "SQLite FTS5 configuration",
+    "Full-text search optimization",
+    "Query parsing and sanitization",
+    "Search result ranking",
+    "Snippet generation"
+  ],
+  "guidelines": [
+    "Configure FTS5 for conversation search",
+    "Implement proper query sanitization",
+    "Add BM25 ranking for relevance",
+    "Generate contextual snippets",
+    "Handle special characters in queries"
+  ]
+}
