@@ -75,3 +75,5 @@ docs/.working-memory/
 # MCP specific
 mcp-persistence.db
 conversations.db
+.claude/conversations.db*
+.mcp.json
