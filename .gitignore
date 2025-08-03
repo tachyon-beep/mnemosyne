@@ -77,3 +77,6 @@ mcp-persistence.db
 conversations.db
 .claude/conversations.db*
 .mcp.json
+
+#Ignore vscode AI rules
+.github/copilot-instructions.md
