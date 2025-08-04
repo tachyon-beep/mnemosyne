@@ -6,6 +6,7 @@
  */
 
 import { EmbeddingManager } from '../../src/search/EmbeddingManager';
+import { MockEmbeddingManager } from '../utils/MockEmbeddingManager';
 import { DatabaseManager } from '../../src/storage/Database';
 import { existsSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
@@ -25,11 +26,28 @@ describe('Embedding Integration Tests', () => {
     // Initialize database manager with in-memory database
     dbManager = new DatabaseManager({ databasePath: ':memory:' });
     await dbManager.initialize();
+  });
 
-    // Set up enhanced search schema
+  beforeEach(async () => {
+    // Set up enhanced search schema for each test
     const db = dbManager.getConnection();
+    
+    // Drop and recreate enhanced search components
+    try {
+      db.exec('DROP TRIGGER IF EXISTS messages_fts_insert');
+      db.exec('DROP TRIGGER IF EXISTS messages_fts_delete');
+      db.exec('DROP TRIGGER IF EXISTS messages_fts_update');
+      db.exec('DROP INDEX IF EXISTS idx_messages_conversation_time');
+      db.exec('DROP INDEX IF EXISTS idx_messages_embedding');
+      db.exec('DROP INDEX IF EXISTS idx_search_metrics_time');
+      db.exec('DROP TABLE IF EXISTS messages_fts');
+      db.exec('DROP TABLE IF EXISTS search_metrics');
+    } catch (e) {
+      // Ignore errors if they don't exist
+    }
+    
     db.exec(`
-      -- Core tables
+      -- Core tables (may already exist from DatabaseManager.initialize)
       CREATE TABLE IF NOT EXISTS conversations (
         id TEXT PRIMARY KEY,
         title TEXT,
@@ -83,7 +101,7 @@ describe('Embedding Integration Tests', () => {
       );
 
       -- Performance tracking
-      CREATE TABLE IF NOT EXISTS search_metrics (
+      CREATE TABLE search_metrics (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         query_type TEXT NOT NULL CHECK (query_type IN ('fts', 'semantic', 'hybrid')),
         query_text TEXT NOT NULL,
@@ -126,12 +144,19 @@ describe('Embedding Integration Tests', () => {
 
   beforeEach(() => {
     // Create fresh embedding manager for each test
-    embeddingManager = new EmbeddingManager(dbManager, {
+    const config = {
       cacheDir: testCacheDir,
       performanceTarget: 200, // More lenient for integration tests
       enableCache: true,
       maxCacheSize: 50
-    });
+    };
+
+    // Use mock embedding manager if configured to avoid network issues
+    if (process.env.USE_MOCK_EMBEDDINGS === 'true') {
+      embeddingManager = new MockEmbeddingManager(dbManager, config);
+    } else {
+      embeddingManager = new EmbeddingManager(dbManager, config);
+    }
   });
 
   afterEach(() => {

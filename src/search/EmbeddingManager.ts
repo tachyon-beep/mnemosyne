@@ -266,7 +266,10 @@ export class EmbeddingManager {
     if (this.config.cacheDir) {
       env.cacheDir = this.config.cacheDir;
     }
-    env.allowRemoteModels = true; // Allow downloading from Hugging Face
+    // Only allow remote models if not explicitly disabled
+    if (env.allowRemoteModels !== false) {
+      env.allowRemoteModels = true; // Allow downloading from Hugging Face
+    }
     env.allowLocalModels = true;  // Also allow local models
   }
 

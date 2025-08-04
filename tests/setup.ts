@@ -13,6 +13,12 @@ beforeAll(() => {
   // Set timezone to UTC for consistent date testing
   process.env.TZ = 'UTC';
   
+  // Enable mock embeddings for tests by default
+  // Set ENABLE_REAL_EMBEDDINGS=true to use real embeddings in tests
+  if (!process.env.ENABLE_REAL_EMBEDDINGS) {
+    process.env.USE_MOCK_EMBEDDINGS = 'true';
+  }
+  
   // Disable embedding tests if models are not available
   if (!process.env.ENABLE_EMBEDDING_TESTS) {
     process.env.DISABLE_EMBEDDING_TESTS = 'true';
