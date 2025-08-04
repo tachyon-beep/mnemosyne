@@ -6,7 +6,7 @@
  */
 
 // Base repository
-export { BaseRepository } from './BaseRepository';
+export { BaseRepository } from './BaseRepository.js';
 
 // Conversation repository
 export { 
@@ -14,20 +14,20 @@ export {
   type CreateConversationParams,
   type UpdateConversationParams,
   type ConversationStats
-} from './ConversationRepository';
+} from './ConversationRepository.js';
 
 // Message repository
 export { 
   MessageRepository,
   type CreateMessageParams,
   type UpdateMessageParams
-} from './MessageRepository';
+} from './MessageRepository.js';
 
 // State repository
 export { 
   StateRepository,
   type BatchStateOperation
-} from './StateRepository';
+} from './StateRepository.js';
 
 // Re-export relevant types from interfaces
 export type {
@@ -37,4 +37,4 @@ export type {
   PaginatedResult,
   SearchOptions,
   SearchResult
-} from '../../types/interfaces';
+} from '../../types/interfaces.js';

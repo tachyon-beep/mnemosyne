@@ -6,33 +6,33 @@
  */
 
 // Main server class and factory
-export { MCPServer, createMCPServer, ServerStatus } from './MCPServer';
+export { MCPServer, createMCPServer, ServerStatus } from './MCPServer.js';
 export type { 
   MCPServerConfig, 
   HealthCheckResult
-} from './MCPServer';
+} from './MCPServer.js';
 export type { 
   MCPServerConfig as ServerConfig, 
   HealthCheckResult as HealthCheck 
-} from './MCPServer';
+} from './MCPServer.js';
 
 // Simple server for demonstration
-export { SimpleMCPServer, createSimpleMCPServer } from './SimpleMCPServer';
-export type { SimpleMCPServerConfig } from './SimpleMCPServer';
+export { SimpleMCPServer, createSimpleMCPServer } from './SimpleMCPServer.js';
+export type { SimpleMCPServerConfig } from './SimpleMCPServer.js';
 
 // Tool registry for server
-export { ToolRegistry, createToolRegistry, isValidToolName, createServerToolContext } from './ToolRegistry';
+export { ToolRegistry, createToolRegistry, isValidToolName, createServerToolContext } from './ToolRegistry.js';
 export type { 
   ToolRegistryDependencies, 
   ServerToolContext, 
   ToolExecutionResult 
-} from './ToolRegistry';
+} from './ToolRegistry.js';
 
 // Re-export commonly used types from other modules for convenience
-export type { PersistenceServerConfig } from '../types';
-export type { ToolName, MCPTool, MCPToolResult } from '../types/mcp';
+export type { PersistenceServerConfig } from '../types/index.js';
+export type { ToolName, MCPTool, MCPToolResult } from '../types/mcp.js';
 
-import { MCPServer, MCPServerConfig, createMCPServer, ServerStatus } from './MCPServer';
+import { MCPServer, MCPServerConfig, createMCPServer, ServerStatus } from './MCPServer.js';
 
 /**
  * Server factory function with full dependency injection

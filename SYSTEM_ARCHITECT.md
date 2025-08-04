@@ -1,189 +1,15 @@
-# System Architect Agent Specification
+# MCP Persistence System - Technical Architecture & Phase 1 Implementation Plan
 
-## Overview
+## Executive Summary
 
-This agent is designed to comprehensively document the current MCP Persistence System and plan detailed Phase 1 implementation focused on "Enhanced Search & Discovery" with semantic embeddings. The agent operates autonomously to create technical specifications, architecture designs, and implementation plans.
+This document provides a comprehensive technical analysis of the current MCP Persistence System architecture and a detailed implementation plan for Phase 1: Enhanced Search & Discovery. The analysis covers current state assessment, architectural evolution, and specific technical specifications for implementing semantic search capabilities while maintaining the system's local-first, privacy-preserving principles.
 
-## Agent Definition
+## Current System Architecture Analysis
 
-**Role**: Senior System Architect for MCP Persistence System
-**Scope**: System documentation, Phase 1 planning, and technical decision-making
-**Expertise**: Local-first architecture, semantic search, MCP protocol, SQLite optimization
+### Architecture Overview
 
-## Core Responsibilities
+The MCP Persistence System follows a clean, modular architecture designed for local-first operation within Claude Desktop:
 
-### 1. System Documentation
-- Analyze current codebase and create comprehensive architectural documentation
-- Document existing MCP tools, database schema, and system components
-- Identify technical debt and improvement opportunities
-- Create visual architecture diagrams (ASCII/text format)
-
-### 2. Phase 1 Planning
-- Design enhanced search system with semantic embeddings
-- Plan new MCP tools and database schema modifications
-- Create detailed implementation specifications
-- Define success metrics and testing strategies
-
-### 3. Technical Decision Making
-- Apply gold plating analysis principles from ROADMAP.md
-- Make informed trade-offs between complexity and value
-- Ensure MCP compliance and local-first architecture
-- Prioritize privacy, performance, and maintainability
-
-## Key Constraints and Guidelines
-
-### Architecture Principles
-- **Local-first**: All processing must remain on user's machine
-- **MCP-compliant**: All features delivered through stateless MCP tools
-- **Privacy by default**: No external dependencies or cloud services
-- **Progressive enhancement**: Build incrementally on solid foundation
-- **Performance focused**: Sub-second response times maintained
-
-### Technical Constraints
-- Use existing SQLite database with minimal schema changes
-- Integrate local embedding models (< 100MB)
-- Maintain backward compatibility with current tools
-- Follow established error handling patterns
-- Preserve stateless tool design
-
-### Gold Plating Guidelines (from ROADMAP.md)
-- **Local Embeddings**: HIGH priority - essential for privacy and offline capability
-- **Vector Storage**: MEDIUM priority - SQLite JSON arrays adequate for desktop use
-- **Search Ranking**: LOW priority - basic cosine similarity sufficient initially
-- **FTS Configuration**: MEDIUM priority - some customization worthwhile
-
-## Detailed Specifications
-
-### Phase 1 Features to Design
-
-#### 1. Semantic Embeddings System
-**Requirements**:
-- Local embedding generation using sentence-transformers
-- Privacy-preserving (no external API calls)
-- Efficient storage in SQLite database
-- Support for batch processing of existing messages
-
-**Technical Specifications**:
-- Model: all-MiniLM-L6-v2 (384 dimensions, ~23MB)
-- Storage: JSON arrays in existing messages.embedding column
-- Processing: Asynchronous background embedding generation
-- API: New embedding service class with caching
-
-#### 2. Vector Similarity Search
-**Requirements**:
-- Cosine similarity calculation using SQLite functions
-- Integration with existing FTS search
-- Hybrid ranking combining text and semantic similarity
-- Performance optimization for large message sets
-
-**Technical Specifications**:
-- Custom SQLite function for cosine similarity
-- Vector normalization for faster similarity calculation
-- Composite scoring algorithm (FTS rank + semantic similarity)
-- Indexed access patterns for conversation-scoped search
-
-#### 3. Enhanced Search Tools
-**Requirements**:
-- New `semantic_search` MCP tool
-- Enhanced `search_messages` with hybrid search
-- Backward compatibility with existing tools
-- Consistent response formats
-
-**Technical Specifications**:
-- Zod schemas for new tool parameters
-- Relevance scoring with configurable weights
-- Context-aware snippet extraction
-- Cross-conversation result aggregation
-
-#### 4. Database Schema Enhancements
-**Requirements**:
-- Minimal changes to existing schema
-- Support for embedding storage and indexing
-- Migration path for existing data
-- Performance optimization
-
-**Technical Specifications**:
-```sql
--- Enhanced messages table (already has embedding BLOB column)
-CREATE INDEX IF NOT EXISTS idx_messages_embedding 
-    ON messages(conversation_id) 
-    WHERE embedding IS NOT NULL;
-
--- New configuration table for embedding settings
-CREATE TABLE IF NOT EXISTS embedding_config (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL,
-    updated_at INTEGER NOT NULL
-);
-
--- Track embedding processing status
-CREATE TABLE IF NOT EXISTS embedding_queue (
-    message_id TEXT PRIMARY KEY,
-    status TEXT NOT NULL CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
-    created_at INTEGER NOT NULL,
-    processed_at INTEGER,
-    error_message TEXT,
-    FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
-);
-```
-
-## Implementation Plan
-
-### Phase 1.1: Foundation (Week 1)
-1. **Embedding Service Implementation**
-   - Install and configure sentence-transformers
-   - Create EmbeddingService class with local model loading
-   - Implement batch processing for existing messages
-   - Add configuration management for embedding settings
-
-2. **Database Enhancements**
-   - Add embedding configuration and queue tables
-   - Implement migration scripts for schema updates
-   - Create SQLite functions for vector operations
-   - Add background processing for embedding generation
-
-### Phase 1.2: Search Enhancement (Week 2)
-1. **Vector Search Implementation**
-   - Implement cosine similarity SQLite function
-   - Create VectorSearchEngine class
-   - Design hybrid search ranking algorithm
-   - Add performance monitoring and optimization
-
-2. **FTS Improvements**
-   - Fix automatic FTS indexing issues identified in current system
-   - Enhance query parsing with boolean operators
-   - Improve relevance scoring and snippet generation
-   - Add phrase search support
-
-### Phase 1.3: Tool Integration (Week 3)
-1. **New MCP Tools**
-   - Implement `semantic_search` tool
-   - Enhance `search_messages` with hybrid capability
-   - Add `get_embedding_status` for monitoring
-   - Create `reprocess_embeddings` for maintenance
-
-2. **Tool Enhancement**
-   - Update existing tools for compatibility
-   - Implement consistent error handling
-   - Add comprehensive input validation
-   - Ensure stateless operation compliance
-
-### Phase 1.4: Testing and Optimization (Week 4)
-1. **Testing Suite**
-   - Unit tests for embedding service
-   - Integration tests for enhanced search
-   - Performance benchmarks for large datasets
-   - MCP protocol compliance verification
-
-2. **Performance Optimization**
-   - Query optimization for vector search
-   - Memory management for embedding processing
-   - Caching strategies for frequent searches
-   - Background processing optimization
-
-## Architectural Diagrams
-
-### Current System Architecture
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   Claude Desktop                         │
@@ -202,14 +28,102 @@ CREATE TABLE IF NOT EXISTS embedding_queue (
 │  ┌─────────────────────────────────────────────────┐   │
 │  │          SQLite Database (Local)                 │   │
 │  │  ┌────────────┐ ┌────────────┐ ┌─────────────┐ │   │
-│  │  │Conversations│ │  Messages  │ │   FTS5      │ │   │
-│  │  │            │ │            │ │   Index     │ │   │
+│  │  │Conversations│ │  Messages  │ │   Search    │ │   │
+│  │  │            │ │            │ │   Indexes   │ │   │
 │  │  └────────────┘ └────────────┘ └─────────────┘ │   │
 │  └─────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Enhanced Phase 1 Architecture
+### Core Components Assessment
+
+#### 1. MCP Protocol Layer
+- **Status**: ✅ Properly implemented according to JSON-RPC 2.0 specification
+- **Strengths**: Stateless tools, proper error handling, protocol compliance
+- **Architecture Quality**: Clean separation of concerns with tool handlers
+
+#### 2. Storage Layer (SQLite)
+- **Status**: ✅ Solid foundation with room for enhancement
+- **Current Schema**:
+  ```sql
+  -- Core conversation storage
+  CREATE TABLE conversations (
+      id TEXT PRIMARY KEY,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      title TEXT,
+      metadata TEXT -- JSON
+  );
+
+  CREATE TABLE messages (
+      id TEXT PRIMARY KEY,
+      conversation_id TEXT NOT NULL,
+      role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
+      content TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      parent_message_id TEXT,
+      metadata TEXT, -- JSON
+      embedding BLOB, -- Optional: ready for Phase 1
+      FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+  );
+
+  -- Full-text search support
+  CREATE VIRTUAL TABLE messages_fts USING fts5(
+      content,
+      content=messages,
+      content_rowid=rowid
+  );
+  ```
+- **Strengths**: Well-designed schema, proper relationships, FTS5 integration
+- **Enhancement Opportunity**: Embedding storage already planned in schema
+
+#### 3. Search Engine
+- **Status**: ⚠️ Basic FTS5 implementation with known issues
+- **Current Capabilities**: Keyword search with snippet extraction
+- **Known Issues**: FTS indexing not automatically updating (per ROADMAP.md)
+- **Enhancement Target**: Primary focus of Phase 1 implementation
+
+#### 4. Tool Implementation
+- **Status**: ✅ Comprehensive set of MCP-compliant tools
+- **Current Tools**:
+  - `save_message` - Message persistence with conversation management
+  - `search_messages` - FTS-based search with filtering
+  - `get_conversation` - Conversation retrieval with pagination
+  - `get_conversations` - Conversation listing
+  - `delete_conversation` - Conversation management
+- **Architecture Quality**: Proper validation with Zod schemas, transaction-based operations
+
+### Technical Strengths
+
+1. **Local-First Architecture**: No external dependencies for core functionality
+2. **MCP Compliance**: Proper stateless tool implementation
+3. **SQLite Foundation**: Robust, performant local storage
+4. **Extensible Design**: Schema ready for embedding storage
+5. **Privacy-Preserving**: All processing occurs locally
+
+### Areas for Enhancement (Phase 1 Focus)
+
+1. **Search Quality**: Basic keyword matching insufficient for semantic understanding
+2. **FTS Reliability**: Automatic indexing issues need resolution
+3. **Result Ranking**: Simple relevance scoring needs improvement
+4. **Cross-Conversation Discovery**: Limited ability to find related content across conversations
+
+## Phase 1: Enhanced Search & Discovery - Technical Specification
+
+### Goals and Success Criteria
+
+**Primary Goal**: Transform basic keyword search into intelligent content discovery that understands semantic meaning and context.
+
+**Success Criteria**:
+- Semantic search finds conceptually related content ("performance issues" finds "app is slow")
+- Search results ranked by relevance, not just keyword matches
+- Sub-second search performance across thousands of messages
+- Improved FTS reliability with automatic indexing
+
+### Technical Architecture Evolution
+
+#### Enhanced System Architecture
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   Claude Desktop                         │
@@ -222,262 +136,831 @@ CREATE TABLE IF NOT EXISTS embedding_queue (
 ├─────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐ │
 │  │   Tool      │  │   Storage    │  │   Enhanced    │ │
-│  │  Handler    │  │   Manager    │  │    Search     │ │
-│  └─────────────┘  └──────────────┘  └───────────────┘ │
-│  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐ │
-│  │ Embedding   │  │   Vector     │  │    Hybrid     │ │
-│  │  Service    │  │   Search     │  │   Ranking     │ │
+│  │  Handler    │  │   Manager    │  │   Search      │ │
+│  │             │  │              │  │   Engine      │ │
+│  │ + 2 new     │  │ + Embedding  │  │ + Semantic    │ │
+│  │   tools     │  │   Manager    │  │ + Hybrid      │ │
 │  └─────────────┘  └──────────────┘  └───────────────┘ │
 ├─────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────┐   │
 │  │          SQLite Database (Enhanced)              │   │
-│  │  ┌──────────┐ ┌──────────┐ ┌─────────┐ ┌──────┐ │   │
-│  │  │Convos    │ │Messages  │ │  FTS5   │ │Vector│ │   │
-│  │  │          │ │+Embedding│ │ Enhanced│ │Search│ │   │
-│  │  └──────────┘ └──────────┘ └─────────┘ └──────┘ │   │
-│  │  ┌──────────┐ ┌──────────┐                      │   │
-│  │  │Embed     │ │Embed     │                      │   │
-│  │  │Config    │ │Queue     │                      │   │
-│  │  └──────────┘ └──────────┘                      │   │
+│  │  ┌────────────┐ ┌──────────────┐ ┌─────────────┐│   │
+│  │  │Conversations│ │   Messages   │ │   Search    ││   │
+│  │  │            │ │ + embeddings │ │   Indexes   ││   │
+│  │  │            │ │ (JSON arrays)│ │ + Enhanced  ││   │
+│  │  └────────────┘ └──────────────┘ └─────────────┘│   │
 │  └─────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Search Flow Architecture
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   User Query    │───▶│  Query Parser   │───▶│ Search Strategy │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                       │
-                       ┌─────────────────┬─────────────┴─────────────┬─────────────────┐
-                       ▼                 ▼                           ▼                 ▼
-               ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
-               │  FTS5 Search  │ │Vector Search  │ │Context Filter │ │Time Filter    │
-               └───────────────┘ └───────────────┘ └───────────────┘ └───────────────┘
-                       │                 │                           │                 │
-                       └─────────────────┼─────────────┬─────────────┴─────────────────┘
-                                         ▼             ▼
-                                ┌─────────────────┐ ┌─────────────────┐
-                                │ Result Merger   │ │Relevance Ranker │
-                                └─────────────────┘ └─────────────────┘
-                                         │             │
-                                         └──────┬──────┘
-                                                ▼
-                                    ┌─────────────────┐
-                                    │ Final Results   │
-                                    │ with Snippets   │
-                                    └─────────────────┘
+### Database Schema Enhancements
+
+#### 1. Embedding Storage Design
+
+Following the gold plating analysis decision to use JSON arrays in SQLite:
+
+```sql
+-- Enhanced messages table (modify existing)
+ALTER TABLE messages ADD COLUMN embedding_vector TEXT; -- JSON array of floats
+ALTER TABLE messages ADD COLUMN embedding_model TEXT; -- Track model used
+ALTER TABLE messages ADD COLUMN embedding_created_at INTEGER; -- Track when created
+
+-- Create index for faster embedding operations
+CREATE INDEX idx_messages_embedding 
+    ON messages(embedding_vector) 
+    WHERE embedding_vector IS NOT NULL;
+
+-- Enhanced search metadata
+CREATE TABLE search_config (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+-- Insert default configuration
+INSERT INTO search_config (key, value, updated_at) VALUES
+('embedding_model', 'all-MiniLM-L6-v2', ?),
+('embedding_dimensions', '384', ?),
+('hybrid_search_enabled', 'true', ?),
+('semantic_threshold', '0.7', ?);
 ```
 
-## New MCP Tools Specifications
+#### 2. Enhanced FTS Configuration
 
-### 1. `semantic_search` Tool
-**Purpose**: Pure semantic search using embeddings
-**Input Schema**:
+Fix automatic indexing issues and improve relevance:
+
+```sql
+-- Drop and recreate FTS table with better configuration
+DROP TABLE IF EXISTS messages_fts;
+
+CREATE VIRTUAL TABLE messages_fts USING fts5(
+    content,
+    role, 
+    conversation_title,
+    content=messages,
+    content_rowid=rowid,
+    tokenize='porter ascii'  -- Better tokenization for English
+);
+
+-- Create triggers to ensure automatic FTS indexing
+CREATE TRIGGER messages_fts_insert AFTER INSERT ON messages
+BEGIN
+    INSERT INTO messages_fts(rowid, content, role, conversation_title)
+    SELECT NEW.rowid, NEW.content, NEW.role, 
+           COALESCE((SELECT title FROM conversations WHERE id = NEW.conversation_id), '');
+END;
+
+CREATE TRIGGER messages_fts_update AFTER UPDATE ON messages
+BEGIN
+    UPDATE messages_fts SET 
+        content = NEW.content,
+        role = NEW.role,
+        conversation_title = COALESCE((SELECT title FROM conversations WHERE id = NEW.conversation_id), '')
+    WHERE rowid = NEW.rowid;
+END;
+
+CREATE TRIGGER messages_fts_delete AFTER DELETE ON messages
+BEGIN
+    DELETE FROM messages_fts WHERE rowid = OLD.rowid;
+END;
+
+-- Configure FTS ranking
+INSERT INTO messages_fts(messages_fts, rank) VALUES('rank', 'bm25(2.0, 1.0, 0.5)');
+```
+
+### New Component Specifications
+
+#### 1. Embedding Manager
+
+**Purpose**: Handle local embedding generation and vector operations
+
+```typescript
+interface EmbeddingManager {
+    // Core embedding operations
+    generateEmbedding(text: string): Promise<number[]>;
+    batchGenerateEmbeddings(texts: string[]): Promise<number[][]>;
+    
+    // Vector similarity operations
+    calculateSimilarity(vector1: number[], vector2: number[]): number;
+    findSimilarMessages(queryVector: number[], limit: number, threshold: number): Promise<SimilarMessage[]>;
+    
+    // Lifecycle management
+    initialize(): Promise<void>;
+    updateMessageEmbedding(messageId: string, content: string): Promise<void>;
+    batchUpdateEmbeddings(messageIds: string[]): Promise<void>;
+}
+
+class LocalEmbeddingManager implements EmbeddingManager {
+    private model: SentenceTransformer;
+    private db: Database;
+    private readonly modelName = 'all-MiniLM-L6-v2';
+    private readonly dimensions = 384;
+
+    async initialize(): Promise<void> {
+        // Load local sentence-transformers model
+        this.model = await SentenceTransformer.load(this.modelName);
+        
+        // Create SQLite functions for vector operations
+        this.db.function('cosine_similarity', (a: string, b: string) => {
+            const vecA = JSON.parse(a);
+            const vecB = JSON.parse(b);
+            return this.calculateCosineSimilarity(vecA, vecB);
+        });
+        
+        this.db.function('vector_length', (vector: string) => {
+            const vec = JSON.parse(vector);
+            return Math.sqrt(vec.reduce((sum, val) => sum + val * val, 0));
+        });
+    }
+
+    async generateEmbedding(text: string): Promise<number[]> {
+        const embedding = await this.model.encode(text);
+        return Array.from(embedding);
+    }
+
+    async findSimilarMessages(
+        queryVector: number[], 
+        limit: number = 20, 
+        threshold: number = 0.7
+    ): Promise<SimilarMessage[]> {
+        const queryVectorJson = JSON.stringify(queryVector);
+        
+        const results = this.db.prepare(`
+            SELECT 
+                m.id,
+                m.conversation_id,
+                m.content,
+                m.role,
+                m.created_at,
+                c.title as conversation_title,
+                cosine_similarity(m.embedding_vector, ?) as similarity
+            FROM messages m
+            JOIN conversations c ON m.conversation_id = c.id
+            WHERE m.embedding_vector IS NOT NULL
+                AND cosine_similarity(m.embedding_vector, ?) >= ?
+            ORDER BY similarity DESC
+            LIMIT ?
+        `).all(queryVectorJson, queryVectorJson, threshold, limit);
+
+        return results.map(r => ({
+            ...r,
+            similarity: Number(r.similarity)
+        }));
+    }
+
+    private calculateCosineSimilarity(a: number[], b: number[]): number {
+        if (a.length !== b.length) return 0;
+        
+        let dotProduct = 0;
+        let normA = 0;
+        let normB = 0;
+        
+        for (let i = 0; i < a.length; i++) {
+            dotProduct += a[i] * b[i];
+            normA += a[i] * a[i];
+            normB += b[i] * b[i];
+        }
+        
+        const magnitude = Math.sqrt(normA) * Math.sqrt(normB);
+        return magnitude === 0 ? 0 : dotProduct / magnitude;
+    }
+}
+```
+
+#### 2. Enhanced Search Engine
+
+**Purpose**: Coordinate FTS and semantic search for hybrid results
+
+```typescript
+interface SearchResult {
+    id: string;
+    conversationId: string;
+    content: string;
+    role: string;
+    createdAt: number;
+    conversationTitle: string;
+    snippet?: string;
+    relevanceScore: number;
+    searchType: 'fts' | 'semantic' | 'hybrid';
+    similarity?: number;
+}
+
+interface SearchOptions {
+    query: string;
+    conversationId?: string;
+    limit?: number;
+    offset?: number;
+    searchType?: 'fts' | 'semantic' | 'hybrid';
+    startDate?: string;
+    endDate?: string;
+    minSimilarity?: number;
+}
+
+class EnhancedSearchEngine {
+    private db: Database;
+    private embeddingManager: EmbeddingManager;
+    
+    async search(options: SearchOptions): Promise<SearchResult[]> {
+        const searchType = options.searchType || 'hybrid';
+        
+        switch (searchType) {
+            case 'fts':
+                return this.ftsSearch(options);
+            case 'semantic':
+                return this.semanticSearch(options);
+            case 'hybrid':
+                return this.hybridSearch(options);
+            default:
+                throw new Error(`Unknown search type: ${searchType}`);
+        }
+    }
+
+    private async ftsSearch(options: SearchOptions): Promise<SearchResult[]> {
+        const sanitizedQuery = this.sanitizeFTSQuery(options.query);
+        const ftsQuery = this.buildFTSQuery(sanitizedQuery, options);
+        
+        let sql = `
+            SELECT 
+                m.id,
+                m.conversation_id,
+                m.content,
+                m.role,
+                m.created_at,
+                c.title as conversation_title,
+                snippet(messages_fts, 0, '<mark>', '</mark>', '...', 32) as snippet,
+                rank as relevance_score
+            FROM messages m
+            JOIN conversations c ON m.conversation_id = c.id
+            JOIN messages_fts ON messages_fts.rowid = m.rowid
+            WHERE messages_fts MATCH ?
+        `;
+        
+        const params: any[] = [ftsQuery];
+        
+        // Add filters
+        if (options.conversationId) {
+            sql += ' AND m.conversation_id = ?';
+            params.push(options.conversationId);
+        }
+        
+        if (options.startDate) {
+            sql += ' AND m.created_at >= ?';
+            params.push(new Date(options.startDate).getTime());
+        }
+        
+        if (options.endDate) {
+            sql += ' AND m.created_at <= ?';
+            params.push(new Date(options.endDate).getTime());
+        }
+        
+        sql += ' ORDER BY rank, m.created_at DESC LIMIT ? OFFSET ?';
+        params.push(options.limit || 20, options.offset || 0);
+        
+        const results = this.db.prepare(sql).all(...params);
+        
+        return results.map(r => ({
+            ...r,
+            relevanceScore: Number(r.relevance_score),
+            searchType: 'fts' as const,
+            conversationId: r.conversation_id,
+            createdAt: r.created_at,
+            conversationTitle: r.conversation_title
+        }));
+    }
+
+    private async semanticSearch(options: SearchOptions): Promise<SearchResult[]> {
+        const queryEmbedding = await this.embeddingManager.generateEmbedding(options.query);
+        const minSimilarity = options.minSimilarity || 0.7;
+        
+        const similarMessages = await this.embeddingManager.findSimilarMessages(
+            queryEmbedding,
+            options.limit || 20,
+            minSimilarity
+        );
+        
+        return similarMessages.map(msg => ({
+            id: msg.id,
+            conversationId: msg.conversation_id,
+            content: msg.content,
+            role: msg.role,
+            createdAt: msg.created_at,
+            conversationTitle: msg.conversation_title,
+            relevanceScore: msg.similarity,
+            searchType: 'semantic' as const,
+            similarity: msg.similarity
+        }));
+    }
+
+    private async hybridSearch(options: SearchOptions): Promise<SearchResult[]> {
+        // Run both searches in parallel
+        const [ftsResults, semanticResults] = await Promise.all([
+            this.ftsSearch({ ...options, limit: (options.limit || 20) * 2 }),
+            this.semanticSearch({ ...options, limit: (options.limit || 20) * 2 })
+        ]);
+        
+        // Combine and deduplicate results
+        const combinedResults = this.combineSearchResults(ftsResults, semanticResults);
+        
+        // Re-rank using hybrid scoring
+        const rerankedResults = this.hybridRanking(combinedResults, options.query);
+        
+        return rerankedResults.slice(0, options.limit || 20);
+    }
+
+    private combineSearchResults(
+        ftsResults: SearchResult[], 
+        semanticResults: SearchResult[]
+    ): SearchResult[] {
+        const resultMap = new Map<string, SearchResult>();
+        
+        // Add FTS results
+        ftsResults.forEach(result => {
+            resultMap.set(result.id, { ...result, searchType: 'hybrid' });
+        });
+        
+        // Add semantic results, updating existing ones
+        semanticResults.forEach(result => {
+            const existing = resultMap.get(result.id);
+            if (existing) {
+                // Combine scores for hybrid ranking
+                existing.similarity = result.similarity;
+            } else {
+                resultMap.set(result.id, { ...result, searchType: 'hybrid' });
+            }
+        });
+        
+        return Array.from(resultMap.values());
+    }
+
+    private hybridRanking(results: SearchResult[], query: string): SearchResult[] {
+        return results.map(result => {
+            // Combine FTS rank and semantic similarity
+            const ftsScore = result.relevanceScore || 0;
+            const semanticScore = result.similarity || 0;
+            
+            // Weighted combination (can be tuned)
+            const hybridScore = (ftsScore * 0.6) + (semanticScore * 0.4);
+            
+            return {
+                ...result,
+                relevanceScore: hybridScore
+            };
+        }).sort((a, b) => b.relevanceScore - a.relevanceScore);
+    }
+
+    private sanitizeFTSQuery(query: string): string {
+        // Escape FTS5 special characters
+        return query.replace(/["\^\*\(\)]/g, ' ').trim();
+    }
+
+    private buildFTSQuery(query: string, options: SearchOptions): string {
+        const terms = query.split(/\s+/).filter(t => t.length > 0);
+        
+        // Default: OR search with prefix matching
+        return terms.map(term => `${term}*`).join(' OR ');
+    }
+}
+```
+
+### New MCP Tools Specification
+
+#### 1. semantic_search Tool
+
 ```typescript
 const SemanticSearchSchema = z.object({
     query: z.string().min(1),
     conversationId: z.string().optional(),
-    limit: z.number().min(1).max(50).default(10),
-    threshold: z.number().min(0).max(1).default(0.3),
-    includeSnippets: z.boolean().default(true)
+    limit: z.number().min(1).max(100).default(20),
+    offset: z.number().min(0).default(0),
+    minSimilarity: z.number().min(0).max(1).default(0.7),
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional()
 });
-```
 
-**Response Format**:
-```typescript
-interface SemanticSearchResult {
-    success: true;
-    results: Array<{
-        messageId: string;
-        conversationId: string;
-        content: string;
-        similarity: number;
-        snippet?: string;
-        createdAt: number;
-    }>;
-    processingTime: number;
+async function handleSemanticSearch(args: unknown): Promise<ToolResult> {
+    try {
+        const params = SemanticSearchSchema.parse(args);
+        
+        const results = await this.searchEngine.search({
+            ...params,
+            searchType: 'semantic'
+        });
+        
+        return {
+            content: [{
+                type: "text",
+                text: JSON.stringify({
+                    success: true,
+                    results: results,
+                    searchType: 'semantic',
+                    query: params.query,
+                    total: results.length
+                })
+            }]
+        };
+        
+    } catch (error) {
+        return this.handleError(error);
+    }
 }
 ```
 
-### 2. `hybrid_search` Tool
-**Purpose**: Combined FTS and semantic search with weighted scoring
-**Input Schema**:
+#### 2. hybrid_search Tool
+
 ```typescript
 const HybridSearchSchema = z.object({
     query: z.string().min(1),
     conversationId: z.string().optional(),
-    limit: z.number().min(1).max(50).default(20),
-    ftsWeight: z.number().min(0).max(1).default(0.6),
-    semanticWeight: z.number().min(0).max(1).default(0.4),
-    matchType: z.enum(['fuzzy', 'exact', 'prefix']).default('fuzzy')
+    limit: z.number().min(1).max(100).default(20),
+    offset: z.number().min(0).default(0),
+    searchType: z.enum(['fts', 'semantic', 'hybrid']).default('hybrid'),
+    minSimilarity: z.number().min(0).max(1).default(0.7),
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional()
 });
-```
 
-### 3. `get_embedding_status` Tool
-**Purpose**: Monitor embedding processing status
-**Input Schema**:
-```typescript
-const EmbeddingStatusSchema = z.object({
-    conversationId: z.string().optional(),
-    includeQueue: z.boolean().default(false)
-});
-```
-
-**Response Format**:
-```typescript
-interface EmbeddingStatus {
-    success: true;
-    totalMessages: number;
-    embeddedMessages: number;
-    pendingQueue: number;
-    processingQueue: number;
-    failedQueue: number;
-    lastProcessed?: number;
-    estimatedCompletion?: number;
+async function handleHybridSearch(args: unknown): Promise<ToolResult> {
+    try {
+        const params = HybridSearchSchema.parse(args);
+        
+        const results = await this.searchEngine.search(params);
+        
+        return {
+            content: [{
+                type: "text",
+                text: JSON.stringify({
+                    success: true,
+                    results: results,
+                    searchType: params.searchType,
+                    query: params.query,
+                    total: results.length,
+                    metadata: {
+                        ftsEnabled: true,
+                        semanticEnabled: true,
+                        embeddingModel: 'all-MiniLM-L6-v2'
+                    }
+                })
+            }]
+        };
+        
+    } catch (error) {
+        return this.handleError(error);
+    }
 }
 ```
 
-### 4. `reprocess_embeddings` Tool
-**Purpose**: Trigger reprocessing of embeddings for messages
-**Input Schema**:
+### Performance Optimization Strategy
+
+#### 1. Embedding Generation Pipeline
+
 ```typescript
-const ReprocessEmbeddingsSchema = z.object({
-    conversationId: z.string().optional(),
-    messageIds: z.array(z.string()).optional(),
-    force: z.boolean().default(false)
-});
+class EmbeddingPipeline {
+    private batchQueue: string[] = [];
+    private batchProcessor: NodeJS.Timeout | null = null;
+    private readonly BATCH_SIZE = 50;
+    private readonly BATCH_DELAY = 1000; // 1 second
+
+    async queueForEmbedding(messageId: string, content: string): Promise<void> {
+        this.batchQueue.push(JSON.stringify({ messageId, content }));
+        
+        if (this.batchQueue.length >= this.BATCH_SIZE) {
+            await this.processBatch();
+        } else if (!this.batchProcessor) {
+            this.batchProcessor = setTimeout(() => this.processBatch(), this.BATCH_DELAY);
+        }
+    }
+
+    private async processBatch(): Promise<void> {
+        if (this.batchQueue.length === 0) return;
+        
+        const batch = this.batchQueue.splice(0, this.BATCH_SIZE);
+        const items = batch.map(item => JSON.parse(item));
+        
+        const texts = items.map(item => item.content);
+        const embeddings = await this.embeddingManager.batchGenerateEmbeddings(texts);
+        
+        // Update database in transaction
+        const updateStmt = this.db.prepare(`
+            UPDATE messages 
+            SET embedding_vector = ?, 
+                embedding_model = ?, 
+                embedding_created_at = ?
+            WHERE id = ?
+        `);
+        
+        const transaction = this.db.transaction(() => {
+            items.forEach((item, index) => {
+                updateStmt.run(
+                    JSON.stringify(embeddings[index]),
+                    'all-MiniLM-L6-v2',
+                    Date.now(),
+                    item.messageId
+                );
+            });
+        });
+        
+        transaction();
+        
+        if (this.batchProcessor) {
+            clearTimeout(this.batchProcessor);
+            this.batchProcessor = null;
+        }
+    }
+}
 ```
 
-## Success Metrics and Testing
+#### 2. Search Result Caching
 
-### Performance Targets
-- **Search Response Time**: < 500ms for semantic search on 10,000+ messages
-- **Embedding Generation**: < 100ms per message
-- **Hybrid Search**: < 800ms combining FTS and semantic results
-- **Memory Usage**: < 200MB additional for embedding service
+```typescript
+class SearchCache {
+    private cache = new Map<string, { results: SearchResult[], timestamp: number }>();
+    private readonly CACHE_TTL = 300000; // 5 minutes
 
-### Quality Metrics
-- **Semantic Relevance**: Semantic search finds conceptually related content
-- **Hybrid Accuracy**: Combined search outperforms individual methods
-- **Coverage**: 95%+ of messages successfully embedded
-- **Consistency**: Identical queries return consistent result rankings
+    getCachedResults(query: string, options: SearchOptions): SearchResult[] | null {
+        const cacheKey = this.generateCacheKey(query, options);
+        const cached = this.cache.get(cacheKey);
+        
+        if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+            return cached.results;
+        }
+        
+        return null;
+    }
+
+    setCachedResults(query: string, options: SearchOptions, results: SearchResult[]): void {
+        const cacheKey = this.generateCacheKey(query, options);
+        this.cache.set(cacheKey, {
+            results,
+            timestamp: Date.now()
+        });
+        
+        // Limit cache size
+        if (this.cache.size > 1000) {
+            const oldestKey = this.cache.keys().next().value;
+            this.cache.delete(oldestKey);
+        }
+    }
+
+    private generateCacheKey(query: string, options: SearchOptions): string {
+        return JSON.stringify({ query, ...options });
+    }
+}
+```
 
 ### Testing Strategy
+
+#### 1. Unit Tests for New Components
+
 ```typescript
-// Performance test suite
-describe('Phase 1 Performance Tests', () => {
-    it('semantic search under 500ms', async () => {
-        // Test with 10,000+ message dataset
+describe('EmbeddingManager', () => {
+    let embeddingManager: EmbeddingManager;
+    let testDb: Database;
+
+    beforeEach(async () => {
+        testDb = new Database(':memory:');
+        embeddingManager = new LocalEmbeddingManager(testDb);
+        await embeddingManager.initialize();
     });
-    
-    it('embedding generation under 100ms/message', async () => {
-        // Batch processing performance
+
+    test('should generate consistent embeddings', async () => {
+        const text = "The application is running slowly";
+        const embedding1 = await embeddingManager.generateEmbedding(text);
+        const embedding2 = await embeddingManager.generateEmbedding(text);
+        
+        expect(embedding1).toEqual(embedding2);
+        expect(embedding1).toHaveLength(384); // all-MiniLM-L6-v2 dimensions
     });
-    
-    it('hybrid search ranking quality', async () => {
-        // Compare against ground truth relevance
+
+    test('should find similar messages', async () => {
+        // Setup test data
+        const messages = [
+            { id: '1', content: 'The app is slow', embedding: await embeddingManager.generateEmbedding('The app is slow') },
+            { id: '2', content: 'Performance issues detected', embedding: await embeddingManager.generateEmbedding('Performance issues detected') },
+            { id: '3', content: 'Weather is nice today', embedding: await embeddingManager.generateEmbedding('Weather is nice today') }
+        ];
+        
+        // Insert test messages with embeddings
+        // ... setup code ...
+        
+        const queryEmbedding = await embeddingManager.generateEmbedding('Application performance problems');
+        const similar = await embeddingManager.findSimilarMessages(queryEmbedding, 10, 0.5);
+        
+        expect(similar).toHaveLength(2);
+        expect(similar[0].id).toBe('2'); // Performance issues should be most similar
+        expect(similar[1].id).toBe('1'); // App is slow should be second
     });
 });
 
-// Integration test suite
-describe('Phase 1 Integration Tests', () => {
-    it('end-to-end semantic search flow', async () => {
-        // Save message -> embed -> search -> verify results
-    });
-    
-    it('concurrent embedding processing', async () => {
-        // Test thread safety and queue management
-    });
-    
-    it('MCP protocol compliance', async () => {
-        // Verify all new tools follow MCP specification
+describe('EnhancedSearchEngine', () => {
+    test('should combine FTS and semantic results', async () => {
+        const searchEngine = new EnhancedSearchEngine(testDb, embeddingManager);
+        
+        const results = await searchEngine.search({
+            query: 'performance issues',
+            searchType: 'hybrid',
+            limit: 10
+        });
+        
+        expect(results).toBeDefined();
+        expect(results.length).toBeLessThanOrEqual(10);
+        expect(results.every(r => r.searchType === 'hybrid')).toBe(true);
     });
 });
 ```
 
-## Risk Analysis and Mitigation
+#### 2. Integration Tests
 
-### Technical Risks
-1. **Embedding Model Size**: Risk of large model impacting performance
-   - **Mitigation**: Use lightweight model (all-MiniLM-L6-v2, ~23MB)
-   - **Fallback**: Graceful degradation to FTS-only search
-
-2. **SQLite Performance**: Vector operations may slow database
-   - **Mitigation**: Implement efficient indexing and caching
-   - **Monitoring**: Track query performance and optimize bottlenecks
-
-3. **Memory Usage**: Embedding service consuming excessive memory
-   - **Mitigation**: Lazy loading, batch processing, and garbage collection
-   - **Limits**: Configure maximum concurrent embeddings
-
-### Integration Risks
-1. **MCP Compatibility**: New tools breaking existing workflows
-   - **Mitigation**: Extensive backward compatibility testing
-   - **Versioning**: Clear API versioning for tool evolution
-
-2. **Data Migration**: Existing conversations needing embeddings
-   - **Mitigation**: Background processing with progress tracking
-   - **Recovery**: Rollback capability for failed migrations
-
-## Future Phase Integration
-
-### Phase 2 Preparation
-- **Context Management**: Embedding quality affects summarization
-- **Token Optimization**: Semantic search improves context selection
-- **Performance Baseline**: Establish metrics for intelligent features
-
-### Phase 3 Enablement
-- **Entity Recognition**: Embeddings support semantic entity matching
-- **Cross-Conversation**: Vector similarity enables knowledge graphs
-- **Pattern Detection**: Semantic clusters reveal conversation themes
-
-## Configuration and Deployment
-
-### Environment Variables
-```bash
-# Embedding configuration
-PERSISTENCE_ENABLE_EMBEDDINGS=true
-PERSISTENCE_EMBEDDING_MODEL=all-MiniLM-L6-v2
-PERSISTENCE_EMBEDDING_BATCH_SIZE=50
-PERSISTENCE_EMBEDDING_CONCURRENT_LIMIT=2
-
-# Search configuration
-PERSISTENCE_HYBRID_FTS_WEIGHT=0.6
-PERSISTENCE_HYBRID_SEMANTIC_WEIGHT=0.4
-PERSISTENCE_SEMANTIC_THRESHOLD=0.3
-
-# Performance tuning
-PERSISTENCE_VECTOR_CACHE_SIZE=1000
-PERSISTENCE_EMBEDDING_QUEUE_SIZE=500
+```typescript
+describe('Phase 1 Integration', () => {
+    test('complete search workflow', async () => {
+        // Save messages with automatic embedding generation
+        const saveResult1 = await mcpServer.handleTool('save_message', {
+            role: 'user',
+            content: 'My application is running very slowly'
+        });
+        
+        const saveResult2 = await mcpServer.handleTool('save_message', {
+            role: 'user', 
+            content: 'I am experiencing performance issues'
+        });
+        
+        // Wait for embedding generation
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Test semantic search
+        const semanticResult = await mcpServer.handleTool('semantic_search', {
+            query: 'app performance problems'
+        });
+        
+        const results = JSON.parse(semanticResult.content[0].text).results;
+        expect(results).toHaveLength(2);
+        expect(results.every(r => r.similarity > 0.7)).toBe(true);
+    });
+});
 ```
 
-### Claude Desktop Integration
+### Implementation Timeline
+
+#### Week 1: Foundation
+- **Days 1-2**: Database schema enhancements and FTS fixes
+- **Days 3-4**: Local embedding model integration
+- **Days 5-7**: EmbeddingManager implementation and testing
+
+#### Week 2: Search Engine
+- **Days 1-3**: Enhanced search engine implementation
+- **Days 4-5**: Hybrid search algorithm development
+- **Days 6-7**: Performance optimization and caching
+
+#### Week 3: MCP Integration
+- **Days 1-3**: New MCP tools implementation
+- **Days 4-5**: Tool validation and error handling
+- **Days 6-7**: Integration testing and debugging
+
+#### Week 4: Polish and Optimization
+- **Days 1-3**: Performance tuning and batch processing
+- **Days 4-5**: Comprehensive testing and edge cases
+- **Days 6-7**: Documentation and deployment preparation
+
+### Performance Targets
+
+- **Embedding Generation**: < 100ms per message
+- **Semantic Search**: < 500ms for up to 10,000 messages
+- **Hybrid Search**: < 750ms combining both approaches
+- **Database Size**: < 2x increase with embeddings stored as JSON
+- **Memory Usage**: < 200MB additional for embedding model
+
+### Risk Mitigation
+
+#### 1. Model Loading Failure
+```typescript
+class FallbackEmbeddingManager implements EmbeddingManager {
+    private primaryManager: LocalEmbeddingManager;
+    private fallbackEnabled = false;
+
+    async initialize(): Promise<void> {
+        try {
+            await this.primaryManager.initialize();
+        } catch (error) {
+            console.warn('Local embedding model failed to load, falling back to FTS only');
+            this.fallbackEnabled = true;
+        }
+    }
+
+    async generateEmbedding(text: string): Promise<number[]> {
+        if (this.fallbackEnabled) {
+            throw new Error('Embeddings not available - using FTS fallback');
+        }
+        return this.primaryManager.generateEmbedding(text);
+    }
+}
+```
+
+#### 2. Performance Degradation
+- Feature flags to disable semantic search if performance drops
+- Automatic fallback to FTS-only search under heavy load
+- Background embedding generation queue with priority handling
+
+#### 3. Storage Growth
+- Configurable embedding generation (opt-in per conversation)
+- Automatic cleanup of old embeddings based on retention policies
+- Compression of embedding vectors for storage efficiency
+
+### Deployment Configuration
+
+#### Enhanced Server Configuration
+
+```typescript
+interface EnhancedServerConfig extends ServerConfig {
+    // Phase 1 additions
+    embeddingModel: string;           // Default: 'all-MiniLM-L6-v2'
+    embeddingBatchSize: number;       // Default: 50
+    embeddingQueueDelay: number;      // Default: 1000ms
+    semanticSearchEnabled: boolean;   // Default: true
+    hybridSearchEnabled: boolean;     // Default: true
+    searchCacheEnabled: boolean;      // Default: true
+    searchCacheTTL: number;          // Default: 300000ms (5 min)
+    minSimilarityThreshold: number;   // Default: 0.7
+}
+```
+
+#### Claude Desktop Configuration
+
 ```json
 {
   "mcpServers": {
     "persistence": {
       "command": "node",
-      "args": ["./dist/index.js"],
+      "args": ["./mcp-persistence-server/dist/index.js"],
       "env": {
         "PERSISTENCE_DB_PATH": "~/Documents/Claude/conversations.db",
         "PERSISTENCE_ENABLE_EMBEDDINGS": "true",
         "PERSISTENCE_EMBEDDING_MODEL": "all-MiniLM-L6-v2",
-        "PERSISTENCE_LOG_LEVEL": "info"
+        "PERSISTENCE_SEMANTIC_SEARCH": "true",
+        "PERSISTENCE_HYBRID_SEARCH": "true",
+        "PERSISTENCE_SEARCH_CACHE": "true"
       }
     }
   }
 }
 ```
 
-## Agent Usage Instructions
+## Architecture Decision Records
 
-This system architect agent should be used when:
+### ADR-001: Local Embedding Model Selection
 
-1. **Planning major system enhancements** requiring architectural decisions
-2. **Integrating multiple system components** with complex interactions
-3. **Making technical trade-offs** between performance, complexity, and maintainability
-4. **Designing new features** that span multiple layers of the system
-5. **Creating implementation roadmaps** with detailed technical specifications
+**Decision**: Use sentence-transformers all-MiniLM-L6-v2 model
 
-The agent provides comprehensive analysis covering architecture, implementation details, testing strategies, risk assessment, and deployment considerations while maintaining alignment with the project's local-first, privacy-focused, and MCP-compliant principles.
+**Context**: Need local embedding generation for semantic search
+
+**Alternatives Considered**:
+- OpenAI/Anthropic APIs (rejected: privacy, cost, dependency)
+- Larger models like all-mpnet-base-v2 (rejected: size/performance)
+- Simpler models like all-MiniLM-L12-v2 (rejected: quality trade-off)
+
+**Decision Factors**:
+- Model size: ~90MB (reasonable for desktop)
+- Performance: Good semantic understanding
+- Dimensions: 384 (manageable storage overhead)
+- Proven effectiveness in similar applications
+
+### ADR-002: Vector Storage in SQLite
+
+**Decision**: Store embeddings as JSON arrays in SQLite TEXT columns
+
+**Context**: Need efficient vector storage and similarity search
+
+**Alternatives Considered**:
+- Dedicated vector database (rejected: complexity, external dependency)
+- SQLite vector extensions (rejected: installation complexity)
+- Binary BLOB storage (rejected: query complexity)
+
+**Decision Factors**:
+- Simplicity: No additional dependencies
+- Portability: Standard SQLite features
+- Performance: Adequate for desktop scale
+- Future flexibility: Easy to migrate if needed
+
+### ADR-003: Hybrid Search Architecture
+
+**Decision**: Implement hybrid search combining FTS + semantic similarity
+
+**Context**: Need to balance keyword accuracy with semantic understanding
+
+**Alternatives Considered**:
+- FTS only (rejected: poor semantic understanding)
+- Semantic only (rejected: poor exact match performance)
+- Sequential search (rejected: performance impact)
+
+**Decision Factors**:
+- Complementary strengths: FTS for exact matches, semantic for concepts
+- User flexibility: Can choose search type based on need
+- Performance: Parallel execution of both approaches
+- Result quality: Combined ranking produces better relevance
+
+## Conclusion
+
+This Phase 1 implementation plan provides a comprehensive roadmap for transforming the MCP Persistence System's basic search capabilities into an intelligent, semantic-aware discovery system. The architecture maintains the system's core principles of local-first operation, privacy preservation, and MCP compliance while adding powerful new capabilities.
+
+The implementation strategy balances technical sophistication with practical constraints, following the gold plating analysis to invest in areas that provide significant value while avoiding unnecessary complexity. The modular design ensures that components can be developed and tested independently, with graceful fallback mechanisms to maintain system reliability.
+
+Upon completion of Phase 1, users will be able to find information based on meaning rather than just keywords, significantly improving the value of their conversation history as a knowledge resource. This foundation will enable the more advanced features planned for subsequent phases, including cross-conversation intelligence and proactive assistance.

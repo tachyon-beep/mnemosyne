@@ -6,9 +6,9 @@
  */
 
 // Import functions we need for internal use
-import { DatabaseError, normalizeError } from './errors';
-import { getLogger, initializeLogger, type LoggerConfig, type LogContext } from './logger';
-import { initializeErrorHandler, type ErrorHandlerConfig } from './errorHandler';
+import { DatabaseError, normalizeError } from './errors.js';
+import { getLogger, initializeLogger, type LoggerConfig, type LogContext } from './logger.js';
+import { initializeErrorHandler, type ErrorHandlerConfig } from './errorHandler.js';
 
 // Error classes and utilities
 export {
@@ -36,7 +36,7 @@ export {
   extractErrorInfo,
   normalizeError,
   ErrorUtils
-} from './errors';
+} from './errors.js';
 
 // Logger classes and utilities
 export {
@@ -59,7 +59,7 @@ export {
   type LogContext,
   type LoggerConfig,
   type PerformanceMetrics
-} from './logger';
+} from './logger.js';
 
 // Error handler
 export {
@@ -84,7 +84,7 @@ export {
   
   // Types
   type ErrorHandlerConfig
-} from './errorHandler';
+} from './errorHandler.js';
 
 /**
  * Initialize all utilities with environment-based configuration

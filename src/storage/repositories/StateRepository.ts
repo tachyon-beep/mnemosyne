@@ -9,8 +9,8 @@
  * - Timestamp tracking for state changes
  */
 
-import { PersistenceState } from '../../types/interfaces';
-import { BaseRepository } from './BaseRepository';
+import { PersistenceState } from '../../types/interfaces.js';
+import { BaseRepository } from './BaseRepository.js';
 
 /**
  * Interface for batch state operations

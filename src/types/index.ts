@@ -22,7 +22,7 @@ export type {
   ErrorResponse,
   SuccessResponse,
   ApiResponse
-} from './interfaces';
+} from './interfaces.js';
 
 // Zod schemas and their inferred types
 export {
@@ -54,7 +54,7 @@ export {
   
   // Union schemas
   ToolInputSchema
-} from './schemas';
+} from './schemas.js';
 
 // Inferred types from schemas
 export type {
@@ -75,7 +75,7 @@ export type {
   ConversationData,
   PersistenceServerConfigInput,
   ToolInput
-} from './schemas';
+} from './schemas.js';
 
 // MCP protocol types
 export type {
@@ -93,7 +93,7 @@ export type {
   MCPTransportConfig,
   MCPRequestType,
   MCPResponseType
-} from './mcp';
+} from './mcp.js';
 
 // MCP constants and tools
 export {
@@ -108,4 +108,4 @@ export {
   AllTools,
   MCPRequestSchema,
   MCPResponseSchema
-} from './mcp';
+} from './mcp.js';

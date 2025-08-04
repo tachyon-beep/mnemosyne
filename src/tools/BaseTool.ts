@@ -6,8 +6,8 @@
  */
 
 import { z } from 'zod';
-import { MCPTool, MCPToolResult } from '../types/mcp';
-import { SuccessResponse, ErrorResponse } from '../types/interfaces';
+import { MCPTool, MCPToolResult } from '../types/mcp.js';
+import { SuccessResponse, ErrorResponse } from '../types/interfaces.js';
 
 /**
  * Tool execution context passed to all tools

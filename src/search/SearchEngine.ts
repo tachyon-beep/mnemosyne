@@ -12,10 +12,10 @@
  * - Pagination support
  */
 
-import { MessageRepository } from '../storage/repositories/MessageRepository';
-import { SearchOptions, SearchResult, PaginatedResult } from '../types/interfaces';
-import { QueryParser, ParsedQuery } from './QueryParser';
-import { SearchResultFormatter, FormattedSearchResult, SnippetOptions } from './SearchResultFormatter';
+import { MessageRepository } from '../storage/repositories/MessageRepository.js';
+import { SearchOptions, SearchResult, PaginatedResult } from '../types/interfaces.js';
+import { QueryParser, ParsedQuery } from './QueryParser.js';
+import { SearchResultFormatter, FormattedSearchResult, SnippetOptions } from './SearchResultFormatter.js';
 
 export interface SearchEngineOptions {
   /** Default maximum number of results per page */

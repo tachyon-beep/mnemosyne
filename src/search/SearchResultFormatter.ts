@@ -10,7 +10,7 @@
  * - Multiple highlight styles support
  */
 
-import { SearchResult } from '../types/interfaces';
+import { SearchResult } from '../types/interfaces.js';
 
 export interface SnippetOptions {
   /** Maximum length of the snippet in characters */

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "MCP-compliant persistence server for Claude Desktop conversation history",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
@@ -10,10 +11,17 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:enhanced-search": "jest tests/unit/search/EnhancedSearchEngine.test.ts tests/unit/tools/SemanticSearchTool.test.ts tests/unit/tools/HybridSearchTool.test.ts",
+    "test:integration": "jest tests/integration/enhanced-search-integration.test.ts",
+    "test:performance": "jest tests/performance/search-performance.test.ts --runInBand",
+    "test:stress": "jest tests/stress/search-stress.test.ts --runInBand",
+    "test:all-search": "jest tests/unit/search tests/unit/tools tests/integration/enhanced-search-integration.test.ts --runInBand",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist coverage"
+    "clean": "rm -rf dist coverage",
+    "init:models": "tsx src/scripts/init-models.ts",
+    "benchmark": "tsx src/scripts/benchmark-embeddings.ts"
   },
   "keywords": [
     "mcp",
@@ -26,6 +34,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
+    "@huggingface/transformers": "^3.7.0",
     "better-sqlite3": "^11.0.0",
     "zod": "^3.23.0"
   },

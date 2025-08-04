@@ -5,8 +5,9 @@
  * Migrations are exported in an array and must be ordered by version number.
  */
 
-import { Migration } from './Migration';
-import { initialSchemaMigration } from './001_initial_schema';
+import { Migration } from './Migration.js';
+import { initialSchemaMigration } from './001_initial_schema.js';
+import { enhancedSearchMigration } from './002_enhanced_search.js';
 
 /**
  * All available migrations in order
@@ -18,7 +19,8 @@ import { initialSchemaMigration } from './001_initial_schema';
  * 4. Ensure version numbers are sequential and unique
  */
 export const migrations: Migration[] = [
-  initialSchemaMigration
+  initialSchemaMigration,
+  enhancedSearchMigration
 ];
 
 /**

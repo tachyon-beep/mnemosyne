@@ -281,7 +281,7 @@ describe('Database Layer', () => {
 
       it('should run initial migrations', () => {
         const version = dbManager.getSchemaVersion();
-        expect(version).toBe(1); // Should be at latest migration version
+        expect(version).toBe(2); // Should be at latest migration version
 
         // Verify tables were created
         const db = dbManager.getConnection();

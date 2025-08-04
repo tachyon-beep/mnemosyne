@@ -5,11 +5,11 @@
  * and returns message snippets with highlighted matches.
  */
 
-import { SearchMessagesTool as SearchMessagesToolDef } from '../types/mcp';
-import { SearchMessagesSchema, SearchMessagesInput } from '../types/schemas';
-import { BaseTool, ToolContext, ValidationError, wrapDatabaseOperation } from './BaseTool';
-import { SearchEngine } from '../search/SearchEngine';
-import { SearchResult, SearchOptions } from '../types/interfaces';
+import { SearchMessagesTool as SearchMessagesToolDef } from '../types/mcp.js';
+import { SearchMessagesSchema, SearchMessagesInput } from '../types/schemas.js';
+import { BaseTool, ToolContext, ValidationError, wrapDatabaseOperation } from './BaseTool.js';
+import { SearchEngine } from '../search/SearchEngine.js';
+import { SearchResult, SearchOptions } from '../types/interfaces.js';
 
 /**
  * Enhanced search result with additional metadata

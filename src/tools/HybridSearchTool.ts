@@ -7,12 +7,12 @@
  */
 
 import { z } from 'zod';
-import { BaseTool, ToolContext } from './BaseTool';
-import { ToolError, normalizeError, extractErrorInfo } from '../utils/errors';
-import { EnhancedSearchEngine } from '../search/EnhancedSearchEngine';
-import { QueryParser } from '../search/QueryParser';
-import { SearchUtils } from '../search/index';
-import { HybridSearchTool as HybridSearchToolDef } from '../types/mcp';
+import { BaseTool, ToolContext } from './BaseTool.js';
+import { ToolError, extractErrorInfo } from '../utils/errors.js';
+import { EnhancedSearchEngine } from '../search/EnhancedSearchEngine.js';
+import { QueryParser } from '../search/QueryParser.js';
+import { SearchUtils } from '../search/index.js';
+import { HybridSearchTool as HybridSearchToolDef } from '../types/mcp.js';
 
 const hybridSearchSchema = z.object({
   query: z.string()

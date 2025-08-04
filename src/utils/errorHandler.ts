@@ -6,8 +6,8 @@
  * ensuring proper logging and sanitization.
  */
 
-import { MCPToolResult } from '../types/mcp';
-import { ErrorResponse } from '../types/interfaces';
+import { MCPToolResult } from '../types/mcp.js';
+import { ErrorResponse } from '../types/interfaces.js';
 import { 
   AppError, 
   ValidationError, 
@@ -24,8 +24,8 @@ import {
   ConfigurationError,
   getErrorCategory,
   normalizeError
-} from './errors';
-import { getLogger, LogContext } from './logger';
+} from './errors.js';
+import { getLogger, LogContext } from './logger.js';
 
 /**
  * Error handling configuration

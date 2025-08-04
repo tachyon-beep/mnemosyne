@@ -11,37 +11,37 @@
  */
 
 // Core search engine
-export { SearchEngine } from './SearchEngine';
+export { SearchEngine } from './SearchEngine.js';
 export type {
   SearchEngineOptions,
   SearchStats,
   EnhancedSearchResult
-} from './SearchEngine';
+} from './SearchEngine.js';
 
 // Query parsing
-export { QueryParser } from './QueryParser';
-export type { ParsedQuery } from './QueryParser';
+export { QueryParser } from './QueryParser.js';
+export type { ParsedQuery } from './QueryParser.js';
 
 // Result formatting
-export { SearchResultFormatter } from './SearchResultFormatter';
+export { SearchResultFormatter } from './SearchResultFormatter.js';
 export type {
   SnippetOptions,
   FormattedSearchResult
-} from './SearchResultFormatter';
+} from './SearchResultFormatter.js';
 
 // Re-export relevant types from the main types module for convenience
 export type {
   SearchOptions,
   SearchResult,
   PaginatedResult
-} from '../types/interfaces';
+} from '../types/interfaces.js';
 
 /**
  * Factory function to create a configured search engine instance
  */
-import { MessageRepository } from '../storage/repositories/MessageRepository';
-import { SearchEngine, SearchEngineOptions } from './SearchEngine';
-import { SearchOptions, SearchResult } from '../types/interfaces';
+import { MessageRepository } from '../storage/repositories/MessageRepository.js';
+import { SearchEngine, SearchEngineOptions } from './SearchEngine.js';
+import { SearchOptions, SearchResult } from '../types/interfaces.js';
 
 export function createSearchEngine(
   messageRepository: MessageRepository,

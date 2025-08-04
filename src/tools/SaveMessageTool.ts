@@ -5,12 +5,12 @@
  * it creates a new conversation. It also updates the full-text search index.
  */
 
-import { SaveMessageTool as SaveMessageToolDef } from '../types/mcp';
-import { SaveMessageSchema, SaveMessageInput } from '../types/schemas';
-import { BaseTool, ToolContext, NotFoundError, ValidationError, wrapDatabaseOperation } from './BaseTool';
-import { ConversationRepository, MessageRepository } from '../storage/repositories';
-import { Conversation, Message } from '../types/interfaces';
-import { SearchEngine } from '../search/SearchEngine';
+import { SaveMessageTool as SaveMessageToolDef } from '../types/mcp.js';
+import { SaveMessageSchema, SaveMessageInput } from '../types/schemas.js';
+import { BaseTool, ToolContext, NotFoundError, ValidationError, wrapDatabaseOperation } from './BaseTool.js';
+import { ConversationRepository, MessageRepository } from '../storage/repositories/index.js';
+import { Conversation, Message } from '../types/interfaces.js';
+import { SearchEngine } from '../search/SearchEngine.js';
 
 /**
  * Response interface for save_message tool

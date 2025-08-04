@@ -404,6 +404,161 @@ export const GetDatabaseStatsTool: MCPTool = {
 };
 
 /**
+ * Tool definition for semantic_search
+ */
+export const SemanticSearchTool: MCPTool = {
+  name: 'semantic_search',
+  description: 'Search messages using semantic similarity to find conceptually related content.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'Search query for semantic matching',
+        minLength: 1,
+        maxLength: 1000
+      },
+      limit: {
+        type: 'number',
+        description: 'Maximum results to return',
+        minimum: 1,
+        maximum: 100,
+        default: 20
+      },
+      offset: {
+        type: 'number',
+        description: 'Number of results to skip for pagination',
+        minimum: 0,
+        default: 0
+      },
+      conversationId: {
+        type: 'string',
+        description: 'Limit search to specific conversation'
+      },
+      startDate: {
+        type: 'string',
+        format: 'date-time',
+        description: 'Filter by start date (ISO 8601 format)'
+      },
+      endDate: {
+        type: 'string',
+        format: 'date-time',
+        description: 'Filter by end date (ISO 8601 format)'
+      },
+      threshold: {
+        type: 'number',
+        description: 'Minimum similarity threshold (0-1)',
+        minimum: 0,
+        maximum: 1,
+        default: 0.7
+      },
+      explainResults: {
+        type: 'boolean',
+        description: 'Include explanations for why results were selected',
+        default: false
+      }
+    },
+    required: ['query'],
+    additionalProperties: false
+  }
+};
+
+/**
+ * Tool definition for hybrid_search
+ */
+export const HybridSearchTool: MCPTool = {
+  name: 'hybrid_search',
+  description: 'Advanced search combining semantic similarity and keyword matching for optimal results.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'Search query for hybrid matching',
+        minLength: 1,
+        maxLength: 1000
+      },
+      limit: {
+        type: 'number',
+        description: 'Maximum results to return',
+        minimum: 1,
+        maximum: 100,
+        default: 20
+      },
+      offset: {
+        type: 'number',
+        description: 'Number of results to skip for pagination',
+        minimum: 0,
+        default: 0
+      },
+      conversationId: {
+        type: 'string',
+        description: 'Limit search to specific conversation'
+      },
+      startDate: {
+        type: 'string',
+        format: 'date-time',
+        description: 'Filter by start date (ISO 8601 format)'
+      },
+      endDate: {
+        type: 'string',
+        format: 'date-time',
+        description: 'Filter by end date (ISO 8601 format)'
+      },
+      strategy: {
+        type: 'string',
+        enum: ['auto', 'semantic', 'fts', 'hybrid'],
+        default: 'auto',
+        description: 'Search strategy: auto-select, semantic-only, FTS-only, or hybrid'
+      },
+      weights: {
+        type: 'object',
+        properties: {
+          semantic: {
+            type: 'number',
+            minimum: 0,
+            maximum: 1,
+            default: 0.6
+          },
+          fts: {
+            type: 'number',
+            minimum: 0,
+            maximum: 1,
+            default: 0.4
+          }
+        },
+        description: 'Relative weights for semantic vs FTS scores in hybrid mode'
+      },
+      semanticThreshold: {
+        type: 'number',
+        description: 'Minimum semantic similarity threshold',
+        minimum: 0,
+        maximum: 1,
+        default: 0.6
+      },
+      matchType: {
+        type: 'string',
+        enum: ['fuzzy', 'exact', 'prefix'],
+        default: 'fuzzy',
+        description: 'FTS matching type: fuzzy, exact phrases, or prefix matching'
+      },
+      explainResults: {
+        type: 'boolean',
+        description: 'Include detailed explanations for result ranking',
+        default: false
+      },
+      includeMetrics: {
+        type: 'boolean',
+        description: 'Include detailed performance metrics in response',
+        default: false
+      }
+    },
+    required: ['query'],
+    additionalProperties: false
+  }
+};
+
+/**
  * All available tools in the persistence system
  */
 export const AllTools: MCPTool[] = [
@@ -413,7 +568,9 @@ export const AllTools: MCPTool[] = [
   GetConversationsTool,
   DeleteConversationTool,
   ExportConversationsTool,
-  GetDatabaseStatsTool
+  GetDatabaseStatsTool,
+  SemanticSearchTool,
+  HybridSearchTool
 ];
 
 /**
@@ -426,7 +583,9 @@ export type ToolName =
   | 'get_conversations'
   | 'delete_conversation'
   | 'export_conversations'
-  | 'get_database_stats';
+  | 'get_database_stats'
+  | 'semantic_search'
+  | 'hybrid_search';
 
 /**
  * MCP transport types

@@ -19,12 +19,14 @@ import {
   ListResourcesRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
 
-import { DatabaseManager, createDatabaseManager } from '../storage/Database';
-import { ConversationRepository, MessageRepository } from '../storage/repositories';
-import { SearchEngine } from '../search/SearchEngine';
-import { ToolRegistry } from './ToolRegistry';
-import { PersistenceServerConfig } from '../types';
-import { isValidToolName } from '../tools';
+import { DatabaseManager, createDatabaseManager } from '../storage/Database.js';
+import { ConversationRepository, MessageRepository } from '../storage/repositories/index.js';
+import { SearchEngine } from '../search/SearchEngine.js';
+import { EnhancedSearchEngine } from '../search/EnhancedSearchEngine.js';
+import { EmbeddingManager } from '../search/EmbeddingManager.js';
+import { ToolRegistry } from './ToolRegistry.js';
+import { PersistenceServerConfig } from '../types/index.js';
+import { isValidToolName } from '../tools/index.js';
 
 /**
  * Configuration options for the MCP server
@@ -73,6 +75,8 @@ export class MCPServer {
   private transport: StdioServerTransport | null = null;
   private database: DatabaseManager;
   private toolRegistry: ToolRegistry | null = null;
+  private enhancedSearchEngine: EnhancedSearchEngine | null = null;
+  private embeddingManager: EmbeddingManager | null = null;
   private config: MCPServerConfig;
   private status: ServerStatus = ServerStatus.STOPPED;
   private startTime: number | null = null;
@@ -170,6 +174,21 @@ export class MCPServer {
         }
       }
 
+      // Close embedding manager if initialized
+      if (this.embeddingManager) {
+        try {
+          // Embedding manager cleanup if needed
+          this.embeddingManager = null;
+        } catch (error) {
+          this.log('error', `Error closing embedding manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      // Close enhanced search engine
+      if (this.enhancedSearchEngine) {
+        this.enhancedSearchEngine = null;
+      }
+
       // Close database connection
       if (this.database) {
         this.database.close();
@@ -232,9 +251,24 @@ export class MCPServer {
         checks.tools = 'error';
       }
 
-      // Check search (basic functionality)
+      // Check search (enhanced or basic functionality)
       if (this.toolRegistry) {
-        checks.search = 'ok';
+        try {
+          // Test basic search functionality
+          const tools = this.toolRegistry.getAllTools();
+          const hasSearchTools = tools.some(tool => {
+            const name = (tool as any).getName?.();
+            return name === 'search_messages' || name === 'semantic_search' || name === 'hybrid_search';
+          });
+          
+          if (hasSearchTools) {
+            checks.search = 'ok';
+          } else {
+            checks.search = 'error';
+          }
+        } catch (err) {
+          checks.search = 'error';
+        }
       } else {
         checks.search = 'error';
       }
@@ -264,8 +298,32 @@ export class MCPServer {
     const dbStats = this.database?.isConnected() ? await this.database.getStats() : null;
     const toolStats = this.toolRegistry ? {
       totalTools: this.toolRegistry.getAllTools().length,
-      toolNames: this.toolRegistry.getToolNames()
+      toolNames: this.toolRegistry.getToolNames(),
+      enhancedSearchEnabled: this.enhancedSearchEngine !== null,
+      executionStats: this.toolRegistry.getToolStatistics()
     } : null;
+
+    // Get embedding statistics if available
+    let embeddingStats = null;
+    if (this.embeddingManager) {
+      try {
+        embeddingStats = {
+          enabled: true,
+          model: 'local',
+          lastIndex: dbStats?.lastEmbeddingIndex || 0
+        };
+      } catch (error) {
+        embeddingStats = {
+          enabled: false,
+          error: 'Failed to get embedding stats'
+        };
+      }
+    } else {
+      embeddingStats = {
+        enabled: false,
+        reason: 'Embedding manager not initialized'
+      };
+    }
 
     return {
       server: {
@@ -276,7 +334,13 @@ export class MCPServer {
         health: health.status
       },
       database: dbStats,
-      tools: toolStats
+      tools: toolStats,
+      embeddings: embeddingStats,
+      search: {
+        enhancedSearchAvailable: this.enhancedSearchEngine !== null,
+        semanticSearchAvailable: this.toolRegistry?.hasTool('semantic_search') || false,
+        hybridSearchAvailable: this.toolRegistry?.hasTool('hybrid_search') || false
+      }
     };
   }
 
@@ -300,8 +364,29 @@ export class MCPServer {
   private async initializeServices(): Promise<void> {
     this.log('info', 'Initializing services...');
     
-    // Services are initialized when creating the tool registry
-    // This method can be extended for additional service initialization
+    try {
+      // Initialize embedding manager (may fail gracefully)
+      this.embeddingManager = new EmbeddingManager(this.database);
+      await this.embeddingManager.initialize();
+      
+      // Initialize enhanced search engine with embedding support
+      const messageRepository = new MessageRepository(this.database);
+      const searchEngine = new SearchEngine(messageRepository);
+      
+      this.enhancedSearchEngine = new EnhancedSearchEngine(
+        this.database,
+        this.embeddingManager,
+        searchEngine
+      );
+      
+      this.log('info', 'Enhanced search engine initialized successfully');
+    } catch (error) {
+      // Enhanced search is optional - log warning but continue
+      this.log('warn', `Enhanced search initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log('warn', 'Continuing with basic search functionality only');
+      this.enhancedSearchEngine = null;
+      this.embeddingManager = null;
+    }
   }
 
   /**
@@ -318,14 +403,17 @@ export class MCPServer {
       // Create search engine
       const searchEngine = new SearchEngine(messageRepository);
       
-      // Create tool registry
+      // Create tool registry with enhanced search if available
       this.toolRegistry = new ToolRegistry({
         conversationRepository,
         messageRepository,
-        searchEngine
+        searchEngine,
+        enhancedSearchEngine: this.enhancedSearchEngine || undefined
       });
 
-      this.log('info', `Registered ${this.toolRegistry.getAllTools().length} tools`);
+      const toolCount = this.toolRegistry.getAllTools().length;
+      const enhancedStatus = this.enhancedSearchEngine ? 'with enhanced search' : 'basic search only';
+      this.log('info', `Registered ${toolCount} tools (${enhancedStatus})`);
       
     } catch (error) {
       throw new Error(`Tool initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -372,6 +460,10 @@ export class MCPServer {
       
       this.log('debug', `Executing tool: ${name}`, args);
 
+      // Track search tool performance
+      const isSearchTool = ['search_messages', 'semantic_search', 'hybrid_search'].includes(name);
+      const searchStartTime = isSearchTool ? Date.now() : null;
+
       try {
         // Validate tool name
         if (!isValidToolName(name)) {
@@ -394,6 +486,18 @@ export class MCPServer {
         );
 
         if (result.success) {
+          // Log search performance if this was a search tool
+          if (isSearchTool && searchStartTime) {
+            const searchDuration = Date.now() - searchStartTime;
+            const resultCount = result.result?.results?.length || result.result?.data?.results?.length || 0;
+            this.log('info', `Search tool '${name}' completed in ${searchDuration}ms, returned ${resultCount} results`);
+            
+            // Log enhanced search specific metrics
+            if (name === 'semantic_search' || name === 'hybrid_search') {
+              this.log('debug', `Enhanced search metrics: strategy=${result.result?.metadata?.strategy || 'unknown'}, embeddings=${this.embeddingManager ? 'enabled' : 'disabled'}`);
+            }
+          }
+
           return {
             content: [{
               type: 'text' as const,

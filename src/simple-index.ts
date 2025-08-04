@@ -7,7 +7,7 @@
  * without complex tool dependencies.
  */
 
-import { createSimpleMCPServer } from './server/SimpleMCPServer';
+import { createSimpleMCPServer } from './server/SimpleMCPServer.js';
 
 async function main(): Promise<void> {
   try {
@@ -41,9 +41,15 @@ async function main(): Promise<void> {
   }
 }
 
-if (require.main === module) {
+// For ES modules, we can use import.meta.url to detect if this is the main module
+const isMainModule = process.argv[1] && new URL(process.argv[1], 'file://').href === import.meta.url;
+
+if (isMainModule) {
   main().catch(error => {
     console.error('[ERROR] Unexpected error:', error);
     process.exit(1);
   });
 }
+
+// Export main function for module use
+export { main };

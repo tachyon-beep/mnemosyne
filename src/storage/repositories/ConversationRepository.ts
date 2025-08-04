@@ -9,8 +9,8 @@
  * - Pagination support
  */
 
-import { Conversation, PaginatedResult } from '../../types/interfaces';
-import { BaseRepository } from './BaseRepository';
+import { Conversation, PaginatedResult } from '../../types/interfaces.js';
+import { BaseRepository } from './BaseRepository.js';
 
 /**
  * Interface for conversation creation parameters

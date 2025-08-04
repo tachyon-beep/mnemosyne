@@ -263,6 +263,22 @@ export class ConfigurationError extends AppError {
 }
 
 /**
+ * Tool execution errors (400) - MCP tool execution failures
+ */
+export class ToolError extends AppError {
+  constructor(
+    toolName: string,
+    message: string,
+    details?: any
+  ) {
+    super(`Tool '${toolName}' failed: ${message}`, 'TOOL_ERROR', 400, {
+      toolName,
+      ...details
+    });
+  }
+}
+
+/**
  * Type guard to check if an error is an AppError
  */
 export function isAppError(error: unknown): error is AppError {

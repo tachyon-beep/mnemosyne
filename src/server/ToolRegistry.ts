@@ -8,17 +8,20 @@
  * - Integration with database repositories and search engine
  */
 
-import { BaseTool, ToolContext } from '../tools/BaseTool';
-import { ConversationRepository, MessageRepository } from '../storage/repositories';
-import { SearchEngine } from '../search/SearchEngine';
-import { ToolName, MCPTool } from '../types/mcp';
+import { BaseTool, ToolContext } from '../tools/BaseTool.js';
+import { ConversationRepository, MessageRepository } from '../storage/repositories/index.js';
+import { SearchEngine } from '../search/SearchEngine.js';
+import { EnhancedSearchEngine } from '../search/EnhancedSearchEngine.js';
+import { ToolName, MCPTool } from '../types/mcp.js';
 import { 
   SaveMessageTool,
   SearchMessagesTool,
   GetConversationTool,
   GetConversationsTool,
-  DeleteConversationTool
-} from '../tools';
+  DeleteConversationTool,
+  SemanticSearchTool,
+  HybridSearchTool
+} from '../tools/index.js';
 
 /**
  * Dependencies required by the server tool registry
@@ -27,6 +30,7 @@ export interface ToolRegistryDependencies {
   conversationRepository: ConversationRepository;
   messageRepository: MessageRepository;
   searchEngine: SearchEngine;
+  enhancedSearchEngine?: EnhancedSearchEngine; // Optional for enhanced search features
 }
 
 /**
@@ -117,6 +121,15 @@ export class ToolRegistry {
       messageRepository: this.dependencies.messageRepository,
       searchEngine: this.dependencies.searchEngine
     }), registrationTime);
+
+    // Register enhanced search tools if available
+    if (this.dependencies.enhancedSearchEngine) {
+      const semanticSearchTool = new SemanticSearchTool(this.dependencies.enhancedSearchEngine);
+      const hybridSearchTool = new HybridSearchTool(this.dependencies.enhancedSearchEngine);
+      
+      this.registerTool('semantic_search', semanticSearchTool, registrationTime);
+      this.registerTool('hybrid_search', hybridSearchTool, registrationTime);
+    }
   }
 
   /**
@@ -462,7 +475,9 @@ export function isValidToolName(name: string): name is ToolName {
     'search_messages',
     'get_conversation',
     'get_conversations',
-    'delete_conversation'
+    'delete_conversation',
+    'semantic_search',
+    'hybrid_search'
   ];
   return validNames.includes(name as ToolName);
 }

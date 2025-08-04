@@ -6,8 +6,8 @@
  */
 
 // Base tool classes and utilities
-export { BaseTool } from './BaseTool';
-export type { ToolContext } from './BaseTool';
+export { BaseTool } from './BaseTool.js';
+export type { ToolContext } from './BaseTool.js';
 export {
   ValidationError,
   NotFoundError,
@@ -15,41 +15,44 @@ export {
   DatabaseError,
   isKnownError,
   wrapDatabaseOperation
-} from './BaseTool';
+} from './BaseTool.js';
 
 // Tool implementations
-export { SaveMessageTool } from './SaveMessageTool';
+export { SaveMessageTool } from './SaveMessageTool.js';
 export type {
   SaveMessageResponse,
   SaveMessageDependencies
-} from './SaveMessageTool';
+} from './SaveMessageTool.js';
 
-export { SearchMessagesTool } from './SearchMessagesTool';
+export { SearchMessagesTool } from './SearchMessagesTool.js';
 export type {
   SearchMessagesResponse,
   SearchMessagesDependencies,
   EnhancedSearchResult
-} from './SearchMessagesTool';
+} from './SearchMessagesTool.js';
 
-export { GetConversationTool } from './GetConversationTool';
+export { GetConversationTool } from './GetConversationTool.js';
 export type {
   GetConversationResponse,
   GetConversationDependencies,
   MessageWithContext
-} from './GetConversationTool';
+} from './GetConversationTool.js';
 
-export { GetConversationsTool } from './GetConversationsTool';
+export { GetConversationsTool } from './GetConversationsTool.js';
 export type {
   GetConversationsResponse,
   GetConversationsDependencies,
   ConversationWithMetadata
-} from './GetConversationsTool';
+} from './GetConversationsTool.js';
 
-export { DeleteConversationTool } from './DeleteConversationTool';
+export { DeleteConversationTool } from './DeleteConversationTool.js';
 export type {
   DeleteConversationResponse,
   DeleteConversationDependencies
-} from './DeleteConversationTool';
+} from './DeleteConversationTool.js';
+
+export { SemanticSearchTool } from './SemanticSearchTool.js';
+export { HybridSearchTool } from './HybridSearchTool.js';
 
 // Re-export tool schemas and types for convenience
 export type {
@@ -58,7 +61,7 @@ export type {
   GetConversationInput,
   GetConversationsInput,
   DeleteConversationInput
-} from '../types/schemas';
+} from '../types/schemas.js';
 
 // Re-export MCP tool definitions
 export {
@@ -71,18 +74,21 @@ export {
   type MCPTool,
   type MCPToolResult,
   type ToolName
-} from '../types/mcp';
+} from '../types/mcp.js';
 
 // Import required dependencies for the registry
-import { ConversationRepository, MessageRepository } from '../storage/repositories';
-import { SearchEngine } from '../search/SearchEngine';
-import { SaveMessageTool } from './SaveMessageTool';
-import { SearchMessagesTool } from './SearchMessagesTool';
-import { GetConversationTool } from './GetConversationTool';
-import { GetConversationsTool } from './GetConversationsTool';
-import { DeleteConversationTool } from './DeleteConversationTool';
-import { ToolName } from '../types/mcp';
-import { BaseTool, ToolContext } from './BaseTool';
+import { ConversationRepository, MessageRepository } from '../storage/repositories/index.js';
+import { SearchEngine } from '../search/SearchEngine.js';
+import { EnhancedSearchEngine } from '../search/EnhancedSearchEngine.js';
+import { SaveMessageTool } from './SaveMessageTool.js';
+import { SearchMessagesTool } from './SearchMessagesTool.js';
+import { GetConversationTool } from './GetConversationTool.js';
+import { GetConversationsTool } from './GetConversationsTool.js';
+import { DeleteConversationTool } from './DeleteConversationTool.js';
+import { SemanticSearchTool } from './SemanticSearchTool.js';
+import { HybridSearchTool } from './HybridSearchTool.js';
+import { ToolName } from '../types/mcp.js';
+import { BaseTool, ToolContext } from './BaseTool.js';
 
 /**
  * Dependencies required by the tool registry
@@ -91,6 +97,7 @@ export interface ToolRegistryDependencies {
   conversationRepository: ConversationRepository;
   messageRepository: MessageRepository;
   searchEngine: SearchEngine;
+  enhancedSearchEngine?: EnhancedSearchEngine; // Optional for enhanced search features
 }
 
 /**
@@ -137,12 +144,21 @@ export class ToolRegistry {
       searchEngine: this.dependencies.searchEngine
     });
 
-    // Register tools by name
+    // Register core tools
     this.tools.set('save_message', saveMessageTool);
     this.tools.set('search_messages', searchMessagesTool);
     this.tools.set('get_conversation', getConversationTool);
     this.tools.set('get_conversations', getConversationsTool);
     this.tools.set('delete_conversation', deleteConversationTool);
+
+    // Register enhanced search tools if available
+    if (this.dependencies.enhancedSearchEngine) {
+      const semanticSearchTool = new SemanticSearchTool(this.dependencies.enhancedSearchEngine);
+      const hybridSearchTool = new HybridSearchTool(this.dependencies.enhancedSearchEngine);
+      
+      this.tools.set('semantic_search', semanticSearchTool);
+      this.tools.set('hybrid_search', hybridSearchTool);
+    }
   }
 
   /**
@@ -244,7 +260,9 @@ export function isValidToolName(name: string): name is ToolName {
     'search_messages',
     'get_conversation',
     'get_conversations',
-    'delete_conversation'
+    'delete_conversation',
+    'semantic_search',
+    'hybrid_search'
   ];
   return validNames.includes(name as ToolName);
 }

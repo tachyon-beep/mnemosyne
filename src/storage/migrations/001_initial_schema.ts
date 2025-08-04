@@ -9,7 +9,7 @@
  * - Indexes for optimal query performance
  */
 
-import { Migration } from './Migration';
+import { Migration } from './Migration.js';
 
 export const initialSchemaMigration: Migration = {
   version: 1,
@@ -78,8 +78,8 @@ export const initialSchemaMigration: Migration = {
       INSERT INTO messages_fts(rowid, content) VALUES (new.rowid, new.content);
     END`,
 
-    // Trigger to update FTS when messages are updated
-    `CREATE TRIGGER messages_fts_update AFTER UPDATE ON messages BEGIN
+    // Trigger to update FTS when messages are updated (specifically when content changes)
+    `CREATE TRIGGER messages_fts_update AFTER UPDATE OF content ON messages BEGIN
       INSERT INTO messages_fts(messages_fts, rowid, content) VALUES('delete', old.rowid, old.content);
       INSERT INTO messages_fts(rowid, content) VALUES (new.rowid, new.content);
     END`,

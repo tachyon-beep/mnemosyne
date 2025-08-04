@@ -12,9 +12,9 @@
 import Database from 'better-sqlite3';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { DatabaseStats, PersistenceServerConfig } from '../types';
-import { MigrationRunner } from './migrations/Migration';
-import { migrations } from './migrations';
+import { DatabaseStats, PersistenceServerConfig } from '../types/index.js';
+import { MigrationRunner } from './migrations/Migration.js';
+import { migrations } from './migrations/index.js';
 
 export interface DatabaseOptions {
   /** Path to the SQLite database file */

@@ -5,12 +5,12 @@
  * soft deletion (marking as deleted) and permanent deletion.
  */
 
-import { DeleteConversationTool as DeleteConversationToolDef } from '../types/mcp';
-import { DeleteConversationSchema, DeleteConversationInput } from '../types/schemas';
-import { BaseTool, ToolContext, NotFoundError, ValidationError, wrapDatabaseOperation } from './BaseTool';
-import { ConversationRepository, MessageRepository } from '../storage/repositories';
-import { SearchEngine } from '../search/SearchEngine';
-import { Conversation, Message } from '../types/interfaces';
+import { DeleteConversationTool as DeleteConversationToolDef } from '../types/mcp.js';
+import { DeleteConversationSchema, DeleteConversationInput } from '../types/schemas.js';
+import { BaseTool, ToolContext, NotFoundError, ValidationError, wrapDatabaseOperation } from './BaseTool.js';
+import { ConversationRepository, MessageRepository } from '../storage/repositories/index.js';
+import { SearchEngine } from '../search/SearchEngine.js';
+import { Conversation, Message } from '../types/interfaces.js';
 
 /**
  * Response interface for delete_conversation tool

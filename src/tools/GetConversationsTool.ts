@@ -5,11 +5,11 @@
  * providing metadata and optional message counts.
  */
 
-import { GetConversationsTool as GetConversationsToolDef } from '../types/mcp';
-import { GetConversationsSchema, GetConversationsInput } from '../types/schemas';
-import { BaseTool, ToolContext, ValidationError, wrapDatabaseOperation } from './BaseTool';
-import { ConversationRepository, MessageRepository } from '../storage/repositories';
-import { Conversation } from '../types/interfaces';
+import { GetConversationsTool as GetConversationsToolDef } from '../types/mcp.js';
+import { GetConversationsSchema, GetConversationsInput } from '../types/schemas.js';
+import { BaseTool, ToolContext, ValidationError, wrapDatabaseOperation } from './BaseTool.js';
+import { ConversationRepository, MessageRepository } from '../storage/repositories/index.js';
+import { Conversation } from '../types/interfaces.js';
 
 /**
  * Enhanced conversation with additional metadata

@@ -14,8 +14,8 @@ import {
   ListResourcesRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
 
-import { DatabaseManager, createDatabaseManager } from '../storage/Database';
-import { PersistenceServerConfig } from '../types';
+import { DatabaseManager, createDatabaseManager } from '../storage/Database.js';
+import { PersistenceServerConfig } from '../types/index.js';
 
 /**
  * Simple server configuration

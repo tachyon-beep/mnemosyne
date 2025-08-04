@@ -8,7 +8,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { extractErrorInfo } from './errors';
+import { extractErrorInfo } from './errors.js';
 
 /**
  * Log levels in order of severity

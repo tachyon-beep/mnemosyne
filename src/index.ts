@@ -13,13 +13,22 @@
  * - PERSISTENCE_MAX_DB_SIZE_MB: Maximum database size in MB (default: 1000)
  * - PERSISTENCE_DEBUG: Enable debug mode (default: false)
  * - PERSISTENCE_TOOL_TIMEOUT_MS: Tool execution timeout in ms (default: 30000)
+ * - PERSISTENCE_EMBEDDINGS_ENABLED: Enable semantic search features (default: true)
+ * - PERSISTENCE_EMBEDDINGS_BATCH_SIZE: Batch size for embedding generation (default: 100)
  * 
  * Usage:
  *   node dist/index.js                    # Start server with default config
  *   PERSISTENCE_DEBUG=true node dist/index.js   # Start with debug logging
  */
 
-import { MCPServer, MCPServerConfig, createMCPServer } from './server/MCPServer';
+import { MCPServer, MCPServerConfig, createMCPServer } from './server/MCPServer.js';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
  * Load configuration from environment variables
@@ -118,11 +127,13 @@ Options:
   --health-check   Perform a health check and exit
 
 Environment Variables:
-  PERSISTENCE_DB_PATH           Database file path (default: ./conversations.db)
-  PERSISTENCE_LOG_LEVEL         Log level: debug|info|warn|error (default: info)
-  PERSISTENCE_MAX_DB_SIZE_MB    Maximum database size in MB (default: 1000)
-  PERSISTENCE_DEBUG             Enable debug mode: true|false (default: false)
-  PERSISTENCE_TOOL_TIMEOUT_MS   Tool execution timeout in ms (default: 30000)
+  PERSISTENCE_DB_PATH               Database file path (default: ./conversations.db)
+  PERSISTENCE_LOG_LEVEL             Log level: debug|info|warn|error (default: info)
+  PERSISTENCE_MAX_DB_SIZE_MB        Maximum database size in MB (default: 1000)
+  PERSISTENCE_DEBUG                 Enable debug mode: true|false (default: false)
+  PERSISTENCE_TOOL_TIMEOUT_MS       Tool execution timeout in ms (default: 30000)
+  PERSISTENCE_EMBEDDINGS_ENABLED    Enable semantic search features: true|false (default: true)
+  PERSISTENCE_EMBEDDINGS_BATCH_SIZE Batch size for embedding generation (default: 100)
 
 Examples:
   node dist/index.js
@@ -133,8 +144,13 @@ Examples:
   }
 
   if (args.includes('--version')) {
-    const packageJson = require('../package.json');
-    console.log(`${packageJson.name} v${packageJson.version}`);
+    try {
+      const packageJsonPath = join(__dirname, '../package.json');
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+      console.log(`${packageJson.name} v${packageJson.version}`);
+    } catch (error) {
+      console.log('mcp-persistence-server v1.0.0');
+    }
     process.exit(0);
   }
 }
@@ -213,18 +229,21 @@ async function main(): Promise<void> {
 /**
  * Handle startup in different environments
  */
-if (require.main === module) {
+// For ES modules, we can use import.meta.url to detect if this is the main module
+const isMainModule = process.argv[1] && new URL(process.argv[1], 'file://').href === import.meta.url;
+
+if (isMainModule) {
   // Only run main() if this file is executed directly
   main().catch(error => {
     console.error('[ERROR] Unexpected error in main():', error);
     process.exit(1);
   });
-} else {
-  // If required as a module, export the main function and utilities
-  module.exports = {
-    main,
-    loadConfigFromEnvironment,
-    validateConfig,
-    createMCPServer
-  };
 }
+
+// Export functions for module use
+export {
+  main,
+  loadConfigFromEnvironment,
+  validateConfig,
+  createMCPServer
+};

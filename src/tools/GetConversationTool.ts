@@ -5,11 +5,11 @@
  * pagination and optional message filtering.
  */
 
-import { GetConversationTool as GetConversationToolDef } from '../types/mcp';
-import { GetConversationSchema, GetConversationInput } from '../types/schemas';
-import { BaseTool, ToolContext, NotFoundError, ValidationError, wrapDatabaseOperation } from './BaseTool';
-import { ConversationRepository, MessageRepository } from '../storage/repositories';
-import { Conversation, Message } from '../types/interfaces';
+import { GetConversationTool as GetConversationToolDef } from '../types/mcp.js';
+import { GetConversationSchema, GetConversationInput } from '../types/schemas.js';
+import { BaseTool, ToolContext, NotFoundError, ValidationError, wrapDatabaseOperation } from './BaseTool.js';
+import { ConversationRepository, MessageRepository } from '../storage/repositories/index.js';
+import { Conversation, Message } from '../types/interfaces.js';
 
 /**
  * Message with pagination context

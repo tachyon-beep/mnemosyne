@@ -10,8 +10,8 @@
  * - Conversation timestamp updates
  */
 
-import { Message, PaginatedResult, SearchOptions, SearchResult } from '../../types/interfaces';
-import { BaseRepository } from './BaseRepository';
+import { Message, PaginatedResult, SearchOptions, SearchResult } from '../../types/interfaces.js';
+import { BaseRepository } from './BaseRepository.js';
 
 /**
  * Interface for message creation parameters

@@ -10,7 +10,7 @@
  */
 
 import Database from 'better-sqlite3';
-import { DatabaseManager } from '../Database';
+import { DatabaseManager } from '../Database.js';
 
 /**
  * Base repository class with common database operations
