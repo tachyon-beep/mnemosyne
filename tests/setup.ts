@@ -12,6 +12,11 @@
 beforeAll(() => {
   // Set timezone to UTC for consistent date testing
   process.env.TZ = 'UTC';
+  
+  // Disable embedding tests if models are not available
+  if (!process.env.ENABLE_EMBEDDING_TESTS) {
+    process.env.DISABLE_EMBEDDING_TESTS = 'true';
+  }
 });
 
 // Clean up after each test

@@ -1,7 +1,7 @@
 {
   "name": "mcp-persistence-server",
-  "version": "1.0.0",
-  "description": "MCP-compliant persistence server for Claude Desktop conversation history",
+  "version": "2.0.0",
+  "description": "High-performance MCP-compliant persistence server for Claude Desktop with semantic search",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -25,13 +25,27 @@
   },
   "keywords": [
     "mcp",
+    "model-context-protocol",
     "claude",
+    "claude-desktop",
     "persistence",
     "conversation",
-    "sqlite"
+    "sqlite",
+    "semantic-search",
+    "embeddings",
+    "full-text-search",
+    "fts5"
   ],
-  "author": "",
+  "author": "MCP Persistence Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/mcp-persistence-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/mcp-persistence-server/issues"
+  },
+  "homepage": "https://github.com/yourusername/mcp-persistence-server#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
     "@huggingface/transformers": "^3.7.0",
@@ -54,6 +68,15 @@
     "typescript": "^5.4.5"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
   }
 }

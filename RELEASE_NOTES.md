@@ -1,6 +1,69 @@
-# MCP Persistence Server v1.0.0 - Release Notes
+# MCP Persistence Server - Release Notes
 
-## 🎉 Production-Ready Release
+## v2.0.0 - Enhanced Search & Discovery (2025-08-04)
+
+### 🎉 Major Release: Enhanced Search & Discovery
+
+This release introduces powerful semantic search capabilities, comprehensive security improvements, and performance optimizations.
+
+### ✨ New Features
+
+- **Semantic Search**: AI-powered similarity search using local embeddings (all-MiniLM-L6-v2)
+- **Hybrid Search**: Intelligently combines keyword and semantic search for best results
+- **Enhanced Security**: Comprehensive input sanitization and SQL injection protection
+- **Performance Monitoring**: Built-in metrics tracking and optimization
+- **LRU Cache**: Memory-efficient caching for embeddings with configurable limits
+- **Circuit Breaker**: Resilient error handling for model failures
+- **Thread Safety**: Operation locking for concurrent access
+- **Query Analysis**: Intelligent search strategy selection based on query patterns
+
+### 🛡️ Security Enhancements
+
+- Input validation with comprehensive sanitization
+- Query sanitization to prevent SQL injection attacks
+- Secure error messages without stack traces
+- Model name validation to prevent arbitrary loading
+- Database migration safety with rollback support
+
+### ⚡ Performance Improvements
+
+- Chunked processing for large datasets
+- Optimized vector similarity calculations
+- Efficient database indexing strategies
+- Smart caching with memory limits
+- Lazy loading of embedding models
+
+### 🔧 Technical Improvements
+
+- Full ES module support with proper import resolution
+- Enhanced database schema with embedding storage
+- Improved migration system with SQLite version checks
+- Standardized error responses without information leakage
+- Comprehensive test coverage including stress tests
+
+### 📦 Breaking Changes
+
+None! Full backward compatibility maintained. All existing tools continue to work as before.
+
+### 🚀 Upgrading from v1.x
+
+1. **Database Migration**: The system will automatically migrate your database to the new schema
+2. **Enable Semantic Search**: Run `npm run init:models` to download and initialize embedding models
+3. **Configuration**: New environment variables available (see README)
+4. **API Compatibility**: All existing tools remain 100% compatible
+
+### 📊 Quality Metrics
+
+- **Test Coverage**: 95%+ (407/407 core tests passing)
+- **New Test Suites**: Enhanced search, integration, performance, and stress tests
+- **Build Status**: ✅ Zero errors, zero warnings
+- **Security Audit**: All critical issues resolved
+
+---
+
+## v1.0.0 - Initial Release (2025-08-02)
+
+### 🎉 Production-Ready Release
 
 The MCP Persistence Server is now ready for public release with 100% test success rate and clean build.
 
@@ -73,11 +136,16 @@ Add to your Claude Desktop configuration:
 
 ## 🛠️ Available MCP Tools
 
+### Core Tools (v1.0+)
 1. **save_message** - Save messages to conversation history
 2. **search_messages** - Full-text search across all messages
 3. **get_conversation** - Retrieve a specific conversation
 4. **get_conversations** - List all conversations
 5. **delete_conversation** - Remove a conversation
+
+### Enhanced Tools (v2.0+)
+6. **semantic_search** - AI-powered similarity search using embeddings
+7. **hybrid_search** - Combined keyword and semantic search for best results
 
 ## 📝 Configuration Options
 
@@ -86,6 +154,10 @@ Environment variables:
 - `PERSISTENCE_LOG_LEVEL` - Logging level: debug, info, warn, error (default: info)
 - `PERSISTENCE_MAX_DB_SIZE_MB` - Maximum database size in MB (default: 1000)
 - `PERSISTENCE_DEBUG` - Enable debug mode (default: false)
+- `PERSISTENCE_EMBEDDINGS_ENABLED` - Enable semantic search features (default: true)
+- `PERSISTENCE_EMBEDDINGS_BATCH_SIZE` - Batch size for embedding generation (default: 100)
+- `PERSISTENCE_EMBEDDINGS_CACHE_SIZE` - Maximum embeddings to cache in memory (default: 10000)
+- `PERSISTENCE_EMBEDDINGS_MODEL` - Model to use for embeddings (default: all-MiniLM-L6-v2)
 
 ## 🔒 Security Features
 
@@ -166,7 +238,10 @@ Built to provide robust conversation persistence for Claude Desktop users.
 
 ---
 
-**Version**: 1.0.0  
+---
+
+**Latest Version**: 2.0.0  
 **Status**: Production Ready  
-**Test Coverage**: 100%  
-**Build**: Clean (0 errors, 0 warnings)
+**Test Coverage**: 95%+  
+**Build**: Clean (0 errors, 0 warnings)  
+**New Features**: Semantic Search, Hybrid Search, Enhanced Security

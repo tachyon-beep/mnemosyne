@@ -32,6 +32,7 @@ out/
 *.d.ts
 !jest.config.js
 !*.config.js
+!.eslintrc.js
 
 # IDE
 .vscode/
