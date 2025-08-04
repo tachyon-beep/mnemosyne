@@ -59,6 +59,10 @@ logs/
 *.sqlite
 *.sqlite3
 !test/*.db
+*.db-shm
+*.db-wal
+*.db.backup-*
+conversations.db.backup-*
 
 # Coverage
 coverage/

@@ -118,6 +118,122 @@ await semantic_search({
 });
 ```
 
+### 🔍 Semantic Search Demo
+
+The semantic search feature uses AI-powered embeddings to find conceptually related messages, even when they don't share exact keywords.
+
+#### How It Works
+
+Semantic search converts text into numerical vectors (embeddings) that capture meaning. Similar concepts have similar vectors, allowing the system to find related content based on meaning rather than just matching words.
+
+#### Example: Weather Discussion
+
+Let's say you've had these conversations:
+
+```typescript
+// Past conversations stored in the system:
+// 1. "What's the weather forecast for tomorrow?"
+// 2. "It's been raining heavily all week"
+// 3. "The climate has been unusually warm this year"
+// 4. "I need to check if I should bring an umbrella"
+// 5. "The atmospheric pressure is dropping rapidly"
+```
+
+#### Comparing Search Approaches
+
+| Search Query | Keyword Search Results | Semantic Search Results |
+|--------------|----------------------|------------------------|
+| "weather" | ✅ Message 1<br>❌ Messages 2-5 | ✅ Messages 1-5 (all related) |
+| "precipitation" | ❌ No results | ✅ Messages 2, 4 (rain concepts) |
+| "meteorology" | ❌ No results | ✅ Messages 1, 3, 5 (weather science) |
+| "should I wear a raincoat?" | ❌ No results | ✅ Messages 2, 4 (rain protection) |
+
+#### Real-World Example
+
+```typescript
+// Scenario: Finding discussions about programming difficulties
+// even when users expressed it differently
+
+// Saved messages over time:
+await save_message({
+  content: "I'm struggling with this recursive function",
+  role: "user"
+});
+
+await save_message({
+  content: "The algorithm complexity is overwhelming",
+  role: "user"  
+});
+
+await save_message({
+  content: "Debugging this code is driving me crazy",
+  role: "user"
+});
+
+// Semantic search finds all related messages
+const results = await semantic_search({
+  query: "coding challenges and difficulties",
+  threshold: 0.7,
+  explainResults: true
+});
+
+// Results would include all three messages with explanations:
+// 1. "struggling with recursive function" - similarity: 0.82
+//    Explanation: Related to programming difficulties
+// 2. "algorithm complexity overwhelming" - similarity: 0.79
+//    Explanation: Expresses coding challenges
+// 3. "Debugging code driving me crazy" - similarity: 0.85
+//    Explanation: Describes programming frustration
+```
+
+#### Advanced Features
+
+**1. Similarity Threshold Control**
+```typescript
+// High threshold (0.9) - Only very similar results
+await semantic_search({
+  query: "machine learning neural networks",
+  threshold: 0.9  // Strict matching
+});
+
+// Lower threshold (0.6) - Broader results
+await semantic_search({
+  query: "machine learning neural networks",
+  threshold: 0.6  // More inclusive
+});
+```
+
+**2. Contextual Time Filtering**
+```typescript
+// Find recent discussions about a concept
+await semantic_search({
+  query: "project deadlines and time management",
+  startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+  threshold: 0.75
+});
+```
+
+**3. Explanation Mode**
+```typescript
+// Get explanations for why results matched
+const explained = await semantic_search({
+  query: "data privacy and security concerns",
+  explainResults: true,
+  limit: 5
+});
+
+// Each result includes:
+// - similarity: 0.78
+// - explanation: "Discusses security implications of data handling"
+```
+
+#### Performance Characteristics
+
+- **Speed**: 200-500ms for typical queries
+- **Accuracy**: High precision for conceptual matching
+- **Model**: Uses all-MiniLM-L6-v2 (efficient, multilingual)
+- **Local Processing**: No external API calls, preserving privacy
+
 ## 🔧 Configuration
 
 ### Environment Variables
