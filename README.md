@@ -8,7 +8,7 @@ A high-performance, MCP-compliant persistence server for Claude Desktop that pro
 
 ## 🌟 Features
 
-### Core Capabilities
+### Core Capabilities (Phase 1)
 - **📝 Conversation Persistence**: Store and retrieve conversation history with full message threading
 - **🔍 Full-Text Search**: Fast keyword search across all conversations using SQLite FTS5
 - **🧠 Semantic Search** *(Enhanced)*: AI-powered similarity search using local embeddings
@@ -16,12 +16,20 @@ A high-performance, MCP-compliant persistence server for Claude Desktop that pro
 - **🗂️ Conversation Management**: List, filter, and manage conversations with rich metadata
 - **🛡️ Privacy-First**: All data stored locally, no external API calls
 
+### Intelligent Context Management (Phase 2)
+- **📊 Hierarchical Summarization**: Multi-level summaries (brief/standard/detailed) for conversations
+- **🎯 Smart Context Assembly**: Relevance-based snippet selection with token budget management
+- **🔄 Progressive Detail Retrieval**: Dynamically load conversation context based on needs
+- **🤖 LLM Provider Support**: Flexible provider system (Ollama local, OpenAI API) for summarization
+- **⚡ Context Caching**: Intelligent caching system for fast context retrieval
+- **📈 Quality Scoring**: Automated quality assessment for generated summaries
+
 ### Technical Excellence
 - **⚡ High Performance**: Sub-second response times with optimized database operations
 - **🔒 Enterprise Security**: Input sanitization, SQL injection protection, secure error handling
 - **🎯 MCP Compliant**: Fully stateless tools following Model Context Protocol standards
 - **📊 Rich Analytics**: Conversation statistics, message counts, role distribution
-- **♻️ Graceful Degradation**: Falls back to basic search if enhanced features unavailable
+- **♻️ Graceful Degradation**: Falls back to basic features if enhanced capabilities unavailable
 
 ## 🚀 Quick Start
 
@@ -77,9 +85,14 @@ Once configured, the following MCP tools are available in Claude Desktop:
 - **`search_messages`**: Search messages using full-text search
 - **`delete_conversation`**: Delete a conversation (soft or permanent)
 
-### Enhanced Tools (with embedding model)
+### Enhanced Search Tools (with embedding model)
 - **`semantic_search`**: Search using AI-powered similarity matching
 - **`hybrid_search`**: Combine keyword and semantic search for best results
+
+### Context Management Tools (Phase 2)
+- **`get_relevant_snippets`**: Retrieve contextually relevant message snippets
+- **`get_progressive_detail`**: Get conversation summaries at different detail levels
+- **`configure_llm_provider`**: Configure LLM providers for summarization
 
 ### Example Usage
 

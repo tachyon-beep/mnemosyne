@@ -86,6 +86,16 @@ export {
   type ErrorHandlerConfig
 } from './errorHandler.js';
 
+// Cryptographic utilities
+export {
+  encrypt,
+  decrypt,
+  secureCompare,
+  generateEncryptionKey,
+  isEncryptionConfigured,
+  isValidEncryptedData
+} from './crypto.js';
+
 /**
  * Initialize all utilities with environment-based configuration
  */

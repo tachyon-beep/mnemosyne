@@ -240,3 +240,113 @@ export interface SuccessResponse<T = any> {
  * Generic response type
  */
 export type ApiResponse<T = any> = SuccessResponse<T> | ErrorResponse;
+
+/**
+ * Conversation summary for intelligent context management
+ */
+export interface ConversationSummary {
+  /** Unique identifier for the summary */
+  id: string;
+  /** ID of the conversation this summary belongs to */
+  conversationId: string;
+  /** Level of detail in the summary */
+  level: 'brief' | 'standard' | 'detailed';
+  /** The summary text content */
+  summaryText: string;
+  /** Token count of the summary */
+  tokenCount: number;
+  /** Provider used to generate the summary */
+  provider: string;
+  /** Model used to generate the summary */
+  model: string;
+  /** Timestamp when the summary was generated */
+  generatedAt: number;
+  /** Number of messages summarized */
+  messageCount: number;
+  /** ID of the first message in the summarized range */
+  startMessageId?: string;
+  /** ID of the last message in the summarized range */
+  endMessageId?: string;
+  /** Additional metadata for the summary */
+  metadata?: Record<string, any>;
+  /** Quality score of the summary (0-1) */
+  qualityScore?: number;
+}
+
+/**
+ * LLM provider configuration
+ */
+export interface LLMProvider {
+  /** Unique identifier for the provider */
+  id: string;
+  /** Human-readable name */
+  name: string;
+  /** Type of provider */
+  type: 'local' | 'external';
+  /** API endpoint URL */
+  endpoint?: string;
+  /** Environment variable name containing API key */
+  apiKeyEnv?: string;
+  /** Model name to use */
+  modelName: string;
+  /** Maximum tokens the model can handle */
+  maxTokens: number;
+  /** Temperature setting for generation */
+  temperature: number;
+  /** Whether this provider is currently active */
+  isActive: boolean;
+  /** Priority order (higher numbers = higher priority) */
+  priority: number;
+  /** Cost per 1K tokens */
+  costPer1kTokens?: number;
+  /** Additional provider metadata */
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Cache entry for assembled summaries
+ */
+export interface SummaryCache {
+  /** Unique identifier for the cache entry */
+  id: string;
+  /** Cache key for lookup */
+  cacheKey: string;
+  /** Comma-separated list of summary IDs */
+  summaryIds: string;
+  /** Assembled context text */
+  assembledContext: string;
+  /** Token count of the assembled context */
+  tokenCount: number;
+  /** Timestamp when the cache entry was created */
+  createdAt: number;
+  /** Timestamp when the cache entry was last accessed */
+  accessedAt: number;
+  /** Number of times this cache entry has been accessed */
+  accessCount: number;
+}
+
+/**
+ * Summary generation history for tracking and monitoring
+ */
+export interface SummaryHistory {
+  /** Unique identifier for the history entry */
+  id: string;
+  /** ID of the summary being generated */
+  summaryId: string;
+  /** ID of the provider used */
+  providerId: string;
+  /** Timestamp when generation started */
+  startedAt: number;
+  /** Timestamp when generation completed */
+  completedAt?: number;
+  /** Current status of the generation */
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  /** Error message if generation failed */
+  errorMessage?: string;
+  /** Number of input tokens */
+  inputTokens?: number;
+  /** Number of output tokens */
+  outputTokens?: number;
+  /** Cost of the generation */
+  cost?: number;
+}

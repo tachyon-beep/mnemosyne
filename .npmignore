@@ -1,9 +1,11 @@
 # Source files
 src/
 tests/
+__tests__/
 scripts/
 docs/
 config/
+examples/
 
 # Development files
 *.ts
@@ -16,7 +18,12 @@ babel.config.mjs
 # Build artifacts
 coverage/
 *.log
+
+# Database files
 *.db
+*.db-journal
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
 
@@ -34,12 +41,28 @@ venv/
 __pycache__/
 *.py
 
+# Development scripts and test files
+test-*.ts
+test-*.js
+test-*.cjs
+dogfood-*.cjs
+dogfood-*.json
+debug-*.ts
+start-offline.js
+run-dogfood.sh
+
+# Models directory (large files)
+models/
+
 # Documentation source
 DEPLOYMENT_STATUS.md
 QUICKSTART.md
 RELEASE_NOTES.md
 ROADMAP.md
 CLAUDE.md
+CONTEXT_ARCHITECT.md
+SYSTEM_ARCHITECT.md
+CONTRIBUTING.md
 docs/
 
 # Keep only compiled files and essential docs

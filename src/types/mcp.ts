@@ -559,6 +559,197 @@ export const HybridSearchTool: MCPTool = {
 };
 
 /**
+ * Tool definition for get_relevant_snippets
+ */
+export const GetRelevantSnippetsTool: MCPTool = {
+  name: 'get_relevant_snippets',
+  description: 'Retrieve context-aware snippets based on queries using intelligent context assembly.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'Query to find relevant snippets for',
+        minLength: 1
+      },
+      maxTokens: {
+        type: 'number',
+        description: 'Maximum token budget for selected snippets',
+        minimum: 50,
+        maximum: 16000,
+        default: 4000
+      },
+      strategy: {
+        type: 'string',
+        enum: ['temporal', 'topical', 'entity-centric', 'hybrid'],
+        default: 'hybrid',
+        description: 'Assembly strategy to use for context selection'
+      },
+      conversationIds: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Optional conversation IDs to limit search scope'
+      },
+      minRelevance: {
+        type: 'number',
+        minimum: 0,
+        maximum: 1,
+        default: 0.3,
+        description: 'Minimum relevance threshold (0-1)'
+      },
+      includeRecent: {
+        type: 'boolean',
+        default: true,
+        description: 'Include recent messages regardless of relevance'
+      },
+      focusEntities: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Entity names to focus on'
+      },
+      timeWindow: {
+        type: 'number',
+        minimum: 0,
+        description: 'Time window for context in milliseconds'
+      },
+      model: {
+        type: 'string',
+        default: 'gpt-3.5-turbo',
+        description: 'Model name for token counting'
+      }
+    },
+    required: ['query'],
+    additionalProperties: false
+  }
+};
+
+/**
+ * Tool definition for configure_llm_provider
+ */
+export const ConfigureLLMProviderTool: MCPTool = {
+  name: 'configure_llm_provider',
+  description: 'Manage LLM provider configurations at runtime for context generation and summarization.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      operation: {
+        type: 'string',
+        enum: ['add', 'update', 'remove', 'list'],
+        description: 'Operation to perform on provider configurations'
+      },
+      config: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Provider ID (required for update/remove operations)'
+          },
+          name: {
+            type: 'string',
+            minLength: 1,
+            description: 'Provider name'
+          },
+          type: {
+            type: 'string',
+            enum: ['local', 'external'],
+            description: 'Provider type'
+          },
+          endpoint: {
+            type: 'string',
+            format: 'uri',
+            description: 'API endpoint URL'
+          },
+          apiKeyEnv: {
+            type: 'string',
+            description: 'Environment variable name for API key'
+          },
+          modelName: {
+            type: 'string',
+            minLength: 1,
+            description: 'Model name to use'
+          },
+          maxTokens: {
+            type: 'number',
+            minimum: 1,
+            description: 'Maximum tokens for the model'
+          },
+          temperature: {
+            type: 'number',
+            minimum: 0,
+            maximum: 2,
+            description: 'Temperature setting (0-2)'
+          },
+          isActive: {
+            type: 'boolean',
+            description: 'Whether the provider is active'
+          },
+          priority: {
+            type: 'number',
+            description: 'Priority for provider selection (higher = preferred)'
+          },
+          costPer1kTokens: {
+            type: 'number',
+            minimum: 0,
+            description: 'Cost per 1000 tokens'
+          },
+          metadata: {
+            type: 'object',
+            description: 'Additional metadata',
+            additionalProperties: true
+          }
+        },
+        additionalProperties: false,
+        description: 'Provider configuration (required for add/update operations)'
+      }
+    },
+    required: ['operation'],
+    additionalProperties: false
+  }
+};
+
+/**
+ * Tool definition for get_progressive_detail
+ */
+export const GetProgressiveDetailTool: MCPTool = {
+  name: 'get_progressive_detail',
+  description: 'Retrieve conversation details progressively, starting with summaries and drilling down to full messages.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      conversationId: {
+        type: 'string',
+        format: 'uuid',
+        description: 'ID of the conversation to retrieve'
+      },
+      level: {
+        type: 'string',
+        enum: ['brief', 'standard', 'detailed', 'full'],
+        description: 'Detail level to retrieve (default: brief)'
+      },
+      maxTokens: {
+        type: 'number',
+        minimum: 100,
+        maximum: 16000,
+        default: 2000,
+        description: 'Maximum tokens to return'
+      },
+      focusMessageId: {
+        type: 'string',
+        format: 'uuid',
+        description: 'Message ID to focus on for key message selection'
+      },
+      expandContext: {
+        type: 'boolean',
+        default: false,
+        description: 'Whether to expand context for detailed/full levels'
+      }
+    },
+    required: ['conversationId'],
+    additionalProperties: false
+  }
+};
+
+/**
  * All available tools in the persistence system
  */
 export const AllTools: MCPTool[] = [
@@ -570,7 +761,10 @@ export const AllTools: MCPTool[] = [
   ExportConversationsTool,
   GetDatabaseStatsTool,
   SemanticSearchTool,
-  HybridSearchTool
+  HybridSearchTool,
+  GetRelevantSnippetsTool,
+  ConfigureLLMProviderTool,
+  GetProgressiveDetailTool
 ];
 
 /**
@@ -587,7 +781,9 @@ export type ToolName =
   | 'semantic_search'
   | 'hybrid_search'
   | 'get_context_summary'
-  | 'configure_llm_provider';
+  | 'get_relevant_snippets'
+  | 'configure_llm_provider'
+  | 'get_progressive_detail';
 
 /**
  * MCP transport types

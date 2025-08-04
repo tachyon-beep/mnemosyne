@@ -80,7 +80,7 @@ export class SearchEngine {
         maxHighlights: 10
       },
       enableEnhancedFormatting: true,
-      minScoreThreshold: 0.01,
+      minScoreThreshold: -10.0, // Allow negative BM25 scores from SQLite FTS5
       ...options
     };
     this.queryCache = new Map();

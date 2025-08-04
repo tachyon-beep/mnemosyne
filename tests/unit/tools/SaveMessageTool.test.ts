@@ -602,4 +602,155 @@ describe('SaveMessageTool', () => {
       expect(response.error).toBe('DatabaseError');
     });
   });
+
+  describe('FTS Integration Tests', () => {
+    test('should validate messages are immediately searchable after saving', async () => {
+      const mockConversation: Conversation = {
+        id: 'conv-123',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        metadata: {}
+      };
+
+      const mockMessage: Message = {
+        id: 'msg-123',
+        conversationId: 'conv-123',
+        role: 'user',
+        content: 'This is a searchable test message about artificial intelligence',
+        createdAt: Date.now()
+      };
+
+      const mockSearchResult = {
+        data: [{
+          message: mockMessage,
+          score: 0.85,
+          snippet: 'This is a <mark>searchable</mark> test message...'
+        }],
+        hasMore: false
+      };
+
+      mockConversationRepo.findById.mockResolvedValue(mockConversation);
+      mockMessageRepo.create.mockResolvedValue(mockMessage);
+      mockConversationRepo.updateTimestamp.mockResolvedValue(undefined);
+      mockSearchEngine.indexMessage.mockResolvedValue(undefined);
+      mockMessageRepo.search.mockResolvedValue(mockSearchResult);
+
+      const input: SaveMessageInput = {
+        conversationId: 'conv-123',
+        role: 'user',
+        content: 'This is a searchable test message about artificial intelligence'
+      };
+
+      const context = BaseTool.createContext();
+      const result = await saveMessageTool.execute(input, context);
+
+      expect(result.isError).toBeUndefined();
+      
+      // Verify search engine was called to index the message
+      expect(mockSearchEngine.indexMessage).toHaveBeenCalledWith(mockMessage);
+      
+      // Simulate immediate search to verify message is searchable
+      const searchOptions = {
+        query: 'searchable',
+        limit: 10
+      };
+      
+      const searchResult = await mockMessageRepo.search(searchOptions);
+      expect(searchResult.data.length).toBeGreaterThan(0);
+      expect(searchResult.data[0].message.id).toBe(mockMessage.id);
+    });
+
+    test('should handle FTS indexing failures gracefully', async () => {
+      const mockConversation: Conversation = {
+        id: 'conv-123',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        metadata: {}
+      };
+
+      const mockMessage: Message = {
+        id: 'msg-123',
+        conversationId: 'conv-123',
+        role: 'user',
+        content: 'Test message',
+        createdAt: Date.now()
+      };
+
+      mockConversationRepo.findById.mockResolvedValue(mockConversation);
+      mockMessageRepo.create.mockResolvedValue(mockMessage);
+      mockConversationRepo.updateTimestamp.mockResolvedValue(undefined);
+      mockSearchEngine.indexMessage.mockRejectedValue(new Error('FTS index is corrupted'));
+
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      const input: SaveMessageInput = {
+        conversationId: 'conv-123',
+        role: 'user',
+        content: 'Test message'
+      };
+
+      const context = BaseTool.createContext();
+      const result = await saveMessageTool.execute(input, context);
+
+      // Should still succeed even if search indexing fails
+      expect(result.isError).toBeUndefined();
+      const response = JSON.parse(result.content[0].text!) as { success: boolean; data: SaveMessageResponse };
+      expect(response.success).toBe(true);
+      
+      // Should log the warning
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to update search index'),
+        expect.any(Error)
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    test('should support different message types in search index', async () => {
+      const testCases = [
+        { role: 'user', content: 'How do I implement a binary search algorithm?' },
+        { role: 'assistant', content: 'Here is a binary search implementation in Python:\n```python\ndef binary_search(arr, target):\n    left, right = 0, len(arr) - 1\n    ...' },
+        { role: 'system', content: 'Please provide code examples with explanations.' }
+      ];
+
+      const mockConversation: Conversation = {
+        id: 'conv-123',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        metadata: {}
+      };
+
+      mockConversationRepo.findById.mockResolvedValue(mockConversation);
+      mockConversationRepo.updateTimestamp.mockResolvedValue(undefined);
+      mockSearchEngine.indexMessage.mockResolvedValue(undefined);
+
+      for (let i = 0; i < testCases.length; i++) {
+        const testCase = testCases[i];
+        const mockMessage: Message = {
+          id: `msg-${i}`,
+          conversationId: 'conv-123',
+          role: testCase.role as 'user' | 'assistant' | 'system',
+          content: testCase.content,
+          createdAt: Date.now() + i
+        };
+
+        mockMessageRepo.create.mockResolvedValue(mockMessage);
+
+        const input: SaveMessageInput = {
+          conversationId: 'conv-123',
+          role: testCase.role as 'user' | 'assistant' | 'system',
+          content: testCase.content
+        };
+
+        const context = BaseTool.createContext();
+        const result = await saveMessageTool.execute(input, context);
+
+        expect(result.isError).toBeUndefined();
+        expect(mockSearchEngine.indexMessage).toHaveBeenCalledWith(mockMessage);
+      }
+
+      // All message types should be indexed
+      expect(mockSearchEngine.indexMessage).toHaveBeenCalledTimes(testCases.length);
+    });
+  });
 });

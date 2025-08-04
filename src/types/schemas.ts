@@ -216,6 +216,100 @@ export const GenerateEmbeddingsSchema = z.object({
 });
 
 /**
+ * Schema for assembly strategy types
+ */
+export const AssemblyStrategySchema = z.enum(['temporal', 'topical', 'entity-centric', 'hybrid']);
+
+/**
+ * Schema for validating get_relevant_snippets tool input
+ */
+export const GetRelevantSnippetsSchema = z.object({
+  /** Query to find relevant snippets for */
+  query: z.string().min(1, 'Query cannot be empty'),
+  /** Maximum token budget for selected snippets */
+  maxTokens: z.number().min(50).max(16000).default(4000),
+  /** Assembly strategy to use for context selection */
+  strategy: AssemblyStrategySchema.default('hybrid'),
+  /** Optional conversation IDs to limit search scope */
+  conversationIds: z.array(z.string()).optional(),
+  /** Minimum relevance threshold (0-1) */
+  minRelevance: z.number().min(0).max(1).default(0.3),
+  /** Include recent messages regardless of relevance */
+  includeRecent: z.boolean().default(true),
+  /** Entity names to focus on */
+  focusEntities: z.array(z.string()).optional(),
+  /** Time window for context in milliseconds */
+  timeWindow: z.number().min(0).optional(),
+  /** Model name for token counting */
+  model: z.string().default('gpt-3.5-turbo')
+});
+
+/**
+ * Schema for provider operation types
+ */
+export const ProviderOperationSchema = z.enum(['add', 'update', 'remove', 'list']);
+
+/**
+ * Schema for provider types
+ */
+export const ProviderTypeSchema = z.enum(['local', 'external']);
+
+/**
+ * Schema for provider configuration
+ */
+export const ProviderConfigSchema = z.object({
+  /** Provider ID (required for update/remove operations) */
+  id: z.string().optional(),
+  /** Provider name */
+  name: z.string().min(1).optional(),
+  /** Provider type */
+  type: ProviderTypeSchema.optional(),
+  /** API endpoint URL */
+  endpoint: z.string().url().optional(),
+  /** Environment variable name for API key */
+  apiKeyEnv: z.string().optional(),
+  /** Model name to use */
+  modelName: z.string().min(1).optional(),
+  /** Maximum tokens for the model */
+  maxTokens: z.number().min(1).optional(),
+  /** Temperature setting (0-2) */
+  temperature: z.number().min(0).max(2).optional(),
+  /** Whether the provider is active */
+  isActive: z.boolean().optional(),
+  /** Priority for provider selection (higher = preferred) */
+  priority: z.number().optional(),
+  /** Cost per 1000 tokens */
+  costPer1kTokens: z.number().min(0).optional(),
+  /** Additional metadata */
+  metadata: z.record(z.any()).optional()
+});
+
+/**
+ * Schema for validating configure_llm_provider tool input
+ */
+export const ConfigureLLMProviderSchema = z.object({
+  /** Operation to perform */
+  operation: ProviderOperationSchema,
+  /** Provider configuration (required for add/update operations) */
+  config: ProviderConfigSchema.optional()
+}).refine(
+  (data) => {
+    // For add/update operations, config is required
+    if ((data.operation === 'add' || data.operation === 'update') && !data.config) {
+      return false;
+    }
+    // For update/remove operations, config.id is required
+    if ((data.operation === 'update' || data.operation === 'remove') && (!data.config || !data.config.id)) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: 'Config is required for add/update operations, and config.id is required for update/remove operations'
+  }
+);
+
+/**
  * Schema for conversation data structure (used in imports/exports)
  */
 export const ConversationDataSchema = z.object({
@@ -274,6 +368,25 @@ export type GetDatabaseStatsInput = z.infer<typeof GetDatabaseStatsSchema>;
 export type OptimizeDatabaseInput = z.infer<typeof OptimizeDatabaseSchema>;
 export type SetRetentionPolicyInput = z.infer<typeof SetRetentionPolicySchema>;
 export type GenerateEmbeddingsInput = z.infer<typeof GenerateEmbeddingsSchema>;
+export type GetRelevantSnippetsInput = z.infer<typeof GetRelevantSnippetsSchema>;
+export type ConfigureLLMProviderInput = z.infer<typeof ConfigureLLMProviderSchema>;
+
+/**
+ * Schema for get_progressive_detail tool input
+ */
+export const GetProgressiveDetailSchema = z.object({
+  conversationId: z.string().uuid('Invalid conversation ID format'),
+  level: z.enum(['brief', 'standard', 'detailed', 'full']).optional()
+    .describe('Detail level to retrieve'),
+  maxTokens: z.number().int().min(100).max(16000).optional()
+    .describe('Maximum tokens to return'),
+  focusMessageId: z.string().uuid().optional()
+    .describe('Message ID to focus on for key message selection'),
+  expandContext: z.boolean().optional()
+    .describe('Whether to expand context for detailed/full levels')
+});
+
+export type GetProgressiveDetailInput = z.input<typeof GetProgressiveDetailSchema>;
 export type ConversationData = z.infer<typeof ConversationDataSchema>;
 export type PersistenceServerConfigInput = z.infer<typeof PersistenceServerConfigSchema>;
 
@@ -294,7 +407,10 @@ export const ToolInputSchema = z.union([
   GetDatabaseStatsSchema,
   OptimizeDatabaseSchema,
   SetRetentionPolicySchema,
-  GenerateEmbeddingsSchema
+  GenerateEmbeddingsSchema,
+  GetRelevantSnippetsSchema,
+  ConfigureLLMProviderSchema,
+  GetProgressiveDetailSchema
 ]);
 
 export type ToolInput = z.infer<typeof ToolInputSchema>;

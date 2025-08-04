@@ -75,6 +75,7 @@ export class MCPServer {
   private transport: StdioServerTransport | null = null;
   private database: DatabaseManager;
   private toolRegistry: ToolRegistry | null = null;
+  private basicSearchEngine: SearchEngine | null = null;
   private enhancedSearchEngine: EnhancedSearchEngine | null = null;
   private embeddingManager: EmbeddingManager | null = null;
   private config: MCPServerConfig;
@@ -137,7 +138,7 @@ export class MCPServer {
       await this.initializeServices();
 
       // Register tools
-      this.initializeTools();
+      await this.initializeTools();
 
       // Start transport
       await this.startTransport();
@@ -184,7 +185,12 @@ export class MCPServer {
         }
       }
 
-      // Close enhanced search engine
+      // Close search engines
+      if (this.basicSearchEngine) {
+        this.basicSearchEngine.destroy();
+        this.basicSearchEngine = null;
+      }
+      
       if (this.enhancedSearchEngine) {
         this.enhancedSearchEngine = null;
       }
@@ -371,12 +377,12 @@ export class MCPServer {
       
       // Initialize enhanced search engine with embedding support
       const messageRepository = new MessageRepository(this.database);
-      const searchEngine = new SearchEngine(messageRepository);
+      this.basicSearchEngine = new SearchEngine(messageRepository);
       
       this.enhancedSearchEngine = new EnhancedSearchEngine(
         this.database,
         this.embeddingManager,
-        searchEngine
+        this.basicSearchEngine
       );
       
       this.log('info', 'Enhanced search engine initialized successfully');
@@ -384,6 +390,7 @@ export class MCPServer {
       // Enhanced search is optional - log warning but continue
       this.log('warn', `Enhanced search initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       this.log('warn', 'Continuing with basic search functionality only');
+      this.basicSearchEngine = null;
       this.enhancedSearchEngine = null;
       this.embeddingManager = null;
     }
@@ -392,26 +399,55 @@ export class MCPServer {
   /**
    * Initialize and register tools
    */
-  private initializeTools(): void {
+  private async initializeTools(): Promise<void> {
     this.log('info', 'Initializing tools...');
     
     try {
       // Create repositories
       const conversationRepository = new ConversationRepository(this.database);
       const messageRepository = new MessageRepository(this.database);
+      const { SummaryRepository, ProviderConfigRepository } = await import('../storage/repositories/index.js');
+      const summaryRepository = new SummaryRepository(this.database);
+      const providerConfigRepository = new ProviderConfigRepository(this.database);
       
-      // Create search engine
-      const searchEngine = new SearchEngine(messageRepository);
+      // Use existing search engine or create a new one if enhanced search failed
+      const searchEngine = this.basicSearchEngine || new SearchEngine(messageRepository);
       
-      // Create tool registry with enhanced search if available
-      this.toolRegistry = new ToolRegistry({
+      // Create context management components if available
+      let providerManager;
+      let contextAssembler;
+      
+      if (this.embeddingManager) {
+        const { ProviderManager } = await import('../context/ProviderManager.js');
+        const { ContextAssembler } = await import('../context/ContextAssembler.js');
+        
+        providerManager = new ProviderManager({
+          defaultStrategy: 'fallback',
+          maxRetries: 3,
+          retryDelay: 1000,
+          healthCheckInterval: 300000
+        });
+        contextAssembler = new ContextAssembler(
+          this.embeddingManager,
+          messageRepository,
+          summaryRepository
+        );
+      }
+      
+      // Create tool registry with all dependencies
+      this.toolRegistry = await ToolRegistry.create({
         conversationRepository,
         messageRepository,
         searchEngine,
-        enhancedSearchEngine: this.enhancedSearchEngine || undefined
+        enhancedSearchEngine: this.enhancedSearchEngine || undefined,
+        providerManager,
+        providerConfigRepository,
+        summaryRepository,
+        embeddingManager: this.embeddingManager || undefined,
+        contextAssembler
       });
 
-      const toolCount = this.toolRegistry.getAllTools().length;
+      const toolCount = this.toolRegistry ? this.toolRegistry.getAllTools().length : 0;
       const enhancedStatus = this.enhancedSearchEngine ? 'with enhanced search' : 'basic search only';
       this.log('info', `Registered ${toolCount} tools (${enhancedStatus})`);
       

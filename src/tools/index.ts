@@ -54,6 +54,16 @@ export type {
 export { SemanticSearchTool } from './SemanticSearchTool.js';
 export { HybridSearchTool } from './HybridSearchTool.js';
 export { GetContextSummaryTool } from './GetContextSummaryTool.js';
+export { GetRelevantSnippetsTool } from './GetRelevantSnippetsTool.js';
+export type {
+  GetRelevantSnippetsResponse,
+  GetRelevantSnippetsDependencies
+} from './GetRelevantSnippetsTool.js';
+export { ConfigureLLMProviderTool } from './ConfigureLLMProviderTool.js';
+export type {
+  ConfigureLLMProviderResponse,
+  ConfigureLLMProviderDependencies
+} from './ConfigureLLMProviderTool.js';
 
 // Re-export tool schemas and types for convenience
 export type {
@@ -61,7 +71,9 @@ export type {
   SearchMessagesInput,
   GetConversationInput,
   GetConversationsInput,
-  DeleteConversationInput
+  DeleteConversationInput,
+  GetRelevantSnippetsInput,
+  ConfigureLLMProviderInput
 } from '../types/schemas.js';
 
 // Re-export MCP tool definitions
@@ -71,6 +83,9 @@ export {
   GetConversationTool as GetConversationToolDef,
   GetConversationsTool as GetConversationsToolDef,
   DeleteConversationTool as DeleteConversationToolDef,
+  GetRelevantSnippetsTool as GetRelevantSnippetsToolDef,
+  ConfigureLLMProviderTool as ConfigureLLMProviderToolDef,
+  GetProgressiveDetailTool as GetProgressiveDetailToolDef,
   AllTools,
   type MCPTool,
   type MCPToolResult,
@@ -88,6 +103,10 @@ import { GetConversationsTool } from './GetConversationsTool.js';
 import { DeleteConversationTool } from './DeleteConversationTool.js';
 import { SemanticSearchTool } from './SemanticSearchTool.js';
 import { HybridSearchTool } from './HybridSearchTool.js';
+// Import tools that are registered dynamically in the ToolRegistry
+import { GetRelevantSnippetsTool as _GetRelevantSnippetsTool } from './GetRelevantSnippetsTool.js';
+import { ConfigureLLMProviderTool as _ConfigureLLMProviderTool } from './ConfigureLLMProviderTool.js';
+import { GetProgressiveDetailTool as _GetProgressiveDetailTool } from './GetProgressiveDetailTool.js';
 import { ToolName } from '../types/mcp.js';
 import { BaseTool, ToolContext } from './BaseTool.js';
 
@@ -263,7 +282,11 @@ export function isValidToolName(name: string): name is ToolName {
     'get_conversations',
     'delete_conversation',
     'semantic_search',
-    'hybrid_search'
+    'hybrid_search',
+    'get_context_summary',
+    'get_relevant_snippets',
+    'configure_llm_provider',
+    'get_progressive_detail'
   ];
   return validNames.includes(name as ToolName);
 }

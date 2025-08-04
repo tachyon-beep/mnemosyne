@@ -5,6 +5,35 @@ All notable changes to the MCP Persistence Server will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-01-04
+
+### 🎉 Phase 2 Complete: Intelligent Context Management
+
+This release completes Phase 2 of the roadmap, adding sophisticated context management capabilities for conversation summarization and intelligent snippet retrieval.
+
+### Added
+- **Hierarchical Summarization**: Multi-level summaries (brief/standard/detailed) for conversations
+- **Smart Context Assembly**: Relevance-based snippet selection with token budget management
+- **Progressive Detail Retrieval**: Dynamically load conversation context based on needs
+- **LLM Provider Support**: Flexible provider system (Ollama local, OpenAI API) for summarization
+- **Context Caching**: Intelligent caching system for fast context retrieval
+- **Quality Scoring**: Automated quality assessment for generated summaries
+- **New MCP Tools**:
+  - `get_relevant_snippets`: Retrieve contextually relevant message snippets
+  - `get_progressive_detail`: Get conversation summaries at different detail levels
+  - `configure_llm_provider`: Configure LLM providers for summarization
+
+### Fixed
+- FTS indexing now works properly after server restart
+- Fixed SQL parameter ordering issues in MessageRepository
+- Adjusted search score threshold to handle negative BM25 scores correctly
+- Resolved module format errors in test files (ES modules vs CommonJS)
+
+### Changed
+- Enhanced search functionality now more robust with better error handling
+- Improved database migration system to support new context management tables
+- Updated tool registry to support async initialization
+
 ## [2.0.0] - 2025-08-04
 
 ### 🎉 Major Release: Enhanced Search & Discovery
@@ -127,9 +156,9 @@ This release introduces powerful semantic search capabilities, comprehensive sec
 ## Future Releases
 
 See [ROADMAP.md](ROADMAP.md) for planned features:
-- Phase 2: Intelligent Context Management
 - Phase 3: Cross-Conversation Intelligence
 - Phase 4: Proactive Assistance
+- Phase 5: External Integrations
 
 ---
 

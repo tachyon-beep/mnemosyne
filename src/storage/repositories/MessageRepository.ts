@@ -316,19 +316,19 @@ export class MessageRepository extends BaseRepository {
       `SELECT 
          m.id, m.conversation_id, m.role, m.content, m.created_at, 
          m.parent_message_id, m.metadata, m.embedding,
-         bm25(fts) as rank,
-         snippet(fts, 0, ?, ?, '...', 32) as snippet,
+         rank as rank,
+         snippet(messages_fts, 0, ?, ?, '...', 32) as snippet,
          c.title as conversation_title
-       FROM messages_fts fts
-       JOIN messages m ON m.rowid = fts.rowid
+       FROM messages_fts
+       JOIN messages m ON m.rowid = messages_fts.rowid
        JOIN conversations c ON c.id = m.conversation_id
-       WHERE fts MATCH ?${whereClause}
+       WHERE messages_fts MATCH ?${whereClause}
        ORDER BY rank
        LIMIT ? OFFSET ?`,
       [
         options.highlightStart || '<mark>',
         options.highlightEnd || '</mark>',
-        ...params
+        ...params // Use all params - ftsQuery is first, then filters, then limit/offset
       ]
     );
 

@@ -328,7 +328,7 @@ describe('MessageRepository', () => {
     });
   });
 
-  describe.skip('Search Operations', () => {
+  describe('Search Operations', () => {
     beforeEach(async () => {
       // Create messages for searching
       await messageRepo.create({
@@ -349,13 +349,8 @@ describe('MessageRepository', () => {
         content: 'Can you explain neural networks and deep learning?'
       });
 
-      // Force FTS rebuild for external content table
-      try {
-        const db = dbManager.getConnection();
-        db.prepare("INSERT INTO messages_fts(messages_fts) VALUES('rebuild')").run();
-      } catch (error) {
-        console.error('FTS rebuild failed:', error);
-      }
+      // Wait a moment for FTS triggers to process
+      await new Promise(resolve => setTimeout(resolve, 100));
     });
 
     it('should perform full-text search', async () => {
@@ -603,7 +598,7 @@ describe('MessageRepository', () => {
       expect(uniqueIds.size).toBe(100);
     });
 
-    it.skip('should maintain FTS index consistency', async () => {
+    it('should maintain FTS index consistency', async () => {
       // Create a message
       const message = await messageRepo.create({
         conversationId: testConversation.id,
@@ -620,10 +615,20 @@ describe('MessageRepository', () => {
       expect(searchResult.data.length).toBeGreaterThan(0);
       expect(searchResult.data.some(r => r.message.id === message.id)).toBe(true);
 
+      // Verify FTS index content by checking actual search functionality
+      const db = dbManager.getConnection();
+      const ftsResult = db.prepare(`
+        SELECT rowid FROM messages_fts WHERE messages_fts MATCH 'searchable'
+      `).all();
+      expect(ftsResult.length).toBeGreaterThan(0);
+
       // Update the message
       await messageRepo.update(message.id, {
         content: 'Updated content for FTS test'
       });
+
+      // Wait for FTS update trigger to process
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Old content should not be findable
       const oldSearchResult = await messageRepo.search({
@@ -633,6 +638,12 @@ describe('MessageRepository', () => {
 
       expect(oldSearchResult.data.some(r => r.message.id === message.id)).toBe(false);
 
+      // Verify FTS index was updated
+      const ftsOldResult = db.prepare(`
+        SELECT rowid FROM messages_fts WHERE messages_fts MATCH 'searchable'
+      `).all();
+      expect(ftsOldResult.length).toBe(0);
+
       // New content should be findable
       const newSearchResult = await messageRepo.search({
         query: 'updated',
@@ -640,6 +651,12 @@ describe('MessageRepository', () => {
       });
 
       expect(newSearchResult.data.some(r => r.message.id === message.id)).toBe(true);
+
+      // Verify FTS index contains new content
+      const ftsNewResult = db.prepare(`
+        SELECT rowid FROM messages_fts WHERE messages_fts MATCH 'updated'
+      `).all();
+      expect(ftsNewResult.length).toBeGreaterThan(0);
     });
   });
 });

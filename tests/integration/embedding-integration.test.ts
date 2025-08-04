@@ -86,11 +86,12 @@ describe('Embedding Integration Tests', () => {
       END;
 
       CREATE TRIGGER messages_fts_delete AFTER DELETE ON messages BEGIN
-        DELETE FROM messages_fts WHERE rowid = old.rowid;
+        INSERT INTO messages_fts(messages_fts, rowid, content) VALUES('delete', old.rowid, old.content);
       END;
 
       CREATE TRIGGER messages_fts_update AFTER UPDATE OF content ON messages BEGIN
-        UPDATE messages_fts SET content = new.content WHERE rowid = new.rowid;
+        INSERT INTO messages_fts(messages_fts, rowid, content) VALUES('delete', old.rowid, old.content);
+        INSERT INTO messages_fts(rowid, content) VALUES (new.rowid, new.content);
       END;
 
       -- Persistence state

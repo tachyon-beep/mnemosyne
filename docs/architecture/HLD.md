@@ -4,6 +4,8 @@
 
 This document presents a pragmatic, implementation-ready design for adding conversation persistence to Claude Desktop using the Model Context Protocol (MCP). The design prioritizes simplicity, local-first operation, and incremental enhancement while maintaining full MCP compliance.
 
+**Implementation Status**: Phase 1 ✅ Complete | Phase 2 ✅ Complete
+
 Key principles:
 
 - **Local-first**: SQLite as primary storage with optional cloud sync
@@ -88,6 +90,48 @@ CREATE TABLE persistence_state (
     value TEXT NOT NULL,
     updated_at INTEGER NOT NULL
 );
+
+-- Phase 2: Context Management Tables
+CREATE TABLE conversation_summaries (
+    id TEXT PRIMARY KEY,
+    conversation_id TEXT NOT NULL,
+    level TEXT NOT NULL CHECK (level IN ('brief', 'standard', 'detailed')),
+    summary_text TEXT NOT NULL,
+    token_count INTEGER NOT NULL,
+    provider TEXT NOT NULL,
+    model TEXT NOT NULL,
+    generated_at INTEGER NOT NULL,
+    message_count INTEGER NOT NULL,
+    start_message_id TEXT,
+    end_message_id TEXT,
+    metadata TEXT, -- JSON
+    quality_score REAL,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+    UNIQUE(conversation_id, level)
+);
+
+CREATE TABLE llm_providers (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL CHECK (type IN ('ollama', 'openai', 'claude')),
+    name TEXT NOT NULL,
+    endpoint TEXT NOT NULL,
+    api_key TEXT,
+    model_name TEXT NOT NULL,
+    max_tokens INTEGER NOT NULL DEFAULT 4096,
+    is_active BOOLEAN NOT NULL DEFAULT 1,
+    priority INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    last_used_at INTEGER,
+    metadata TEXT -- JSON
+);
+
+-- Indexes for Phase 2
+CREATE INDEX idx_summaries_conversation 
+    ON conversation_summaries(conversation_id);
+CREATE INDEX idx_summaries_level 
+    ON conversation_summaries(level);
+CREATE INDEX idx_providers_active 
+    ON llm_providers(is_active, priority DESC);
 ```
 
 ## MCP Protocol Implementation
@@ -1058,23 +1102,29 @@ npm run build
 
 ## Future Enhancements
 
-### Phase 1 (Current)
+### Phase 1 (Complete)
 
 - ✅ Basic conversation storage and retrieval
-- ✅ Full-text search
+- ✅ Full-text search with SQLite FTS5
 - ✅ MCP protocol compliance
+- ✅ Semantic search with local embeddings
+- ✅ Hybrid search combining keyword and semantic
 
-### Phase 2 (3-6 months)
+### Phase 2 (Complete)
 
-- [ ] Local embedding generation for semantic search
-- [ ] Automatic conversation summarization
-- [ ] Export to multiple formats
+- ✅ Hierarchical conversation summarization (brief/standard/detailed)
+- ✅ Smart context assembly with relevance scoring
+- ✅ Progressive detail retrieval
+- ✅ LLM provider abstraction (Ollama/OpenAI)
+- ✅ Context caching for performance
+- ✅ Export to multiple formats (JSON/Markdown)
 
-### Phase 3 (6-12 months)
+### Phase 3 (Future - 6-12 months)
 
 - [ ] Optional cloud sync with end-to-end encryption
-- [ ] Conversation branching (if proven valuable)
+- [ ] Conversation branching and versioning
 - [ ] Plugin system for custom analyzers
+- [ ] Advanced analytics and insights
 
 ## Conclusion
 

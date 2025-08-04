@@ -29,6 +29,30 @@ export {
   type BatchStateOperation
 } from './StateRepository.js';
 
+// Summary repository
+export { 
+  SummaryRepository,
+  type CreateSummaryParams,
+  type UpdateSummaryParams,
+  type BatchSummaryParams
+} from './SummaryRepository.js';
+
+// Provider configuration repository
+export { 
+  ProviderConfigRepository,
+  type UpdateProviderParams
+} from './ProviderConfigRepository.js';
+
+// Cache repository
+export { 
+  CacheRepository
+} from './CacheRepository.js';
+
+// Summary history repository
+export { 
+  SummaryHistoryRepository
+} from './SummaryHistoryRepository.js';
+
 // Re-export relevant types from interfaces
 export type {
   Conversation,
@@ -36,5 +60,23 @@ export type {
   PersistenceState,
   PaginatedResult,
   SearchOptions,
-  SearchResult
+  SearchResult,
+  ConversationSummary,
+  LLMProvider,
+  SummaryCache,
+  SummaryHistory
 } from '../../types/interfaces.js';
+
+// Re-export repository interface types
+export type {
+  IProviderConfigRepository,
+  ICacheRepository,
+  ISummaryHistoryRepository,
+  CreateProviderParams,
+  CacheSetData,
+  CacheStats,
+  SummaryStartData,
+  SummaryCompleteResult,
+  SummaryStats,
+  EncryptedData
+} from '../../types/repositories.js';

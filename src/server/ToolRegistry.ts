@@ -9,10 +9,12 @@
  */
 
 import { BaseTool, ToolContext } from '../tools/BaseTool.js';
-import { ConversationRepository, MessageRepository } from '../storage/repositories/index.js';
+import { ConversationRepository, MessageRepository, ProviderConfigRepository, SummaryRepository } from '../storage/repositories/index.js';
 import { SearchEngine } from '../search/SearchEngine.js';
 import { EnhancedSearchEngine } from '../search/EnhancedSearchEngine.js';
+import { EmbeddingManager } from '../search/EmbeddingManager.js';
 import { ProviderManager } from '../context/ProviderManager.js';
+import { ContextAssembler } from '../context/ContextAssembler.js';
 import { ToolName, MCPTool } from '../types/mcp.js';
 import { 
   SaveMessageTool,
@@ -22,7 +24,9 @@ import {
   DeleteConversationTool,
   SemanticSearchTool,
   HybridSearchTool,
-  GetContextSummaryTool
+  GetContextSummaryTool,
+  GetRelevantSnippetsTool,
+  ConfigureLLMProviderTool
 } from '../tools/index.js';
 
 /**
@@ -34,6 +38,10 @@ export interface ToolRegistryDependencies {
   searchEngine: SearchEngine;
   enhancedSearchEngine?: EnhancedSearchEngine; // Optional for enhanced search features
   providerManager?: ProviderManager; // Optional for context management features
+  providerConfigRepository?: ProviderConfigRepository; // Optional for provider management
+  summaryRepository?: SummaryRepository; // Optional for context assembly
+  embeddingManager?: EmbeddingManager; // Optional for context assembly
+  contextAssembler?: ContextAssembler; // Optional for context assembly
 }
 
 /**
@@ -83,15 +91,23 @@ export class ToolRegistry {
   private dependencies: ToolRegistryDependencies;
   private executionStats: Map<ToolName, { calls: number; errors: number; totalTime: number }> = new Map();
 
-  constructor(dependencies: ToolRegistryDependencies) {
+  private constructor(dependencies: ToolRegistryDependencies) {
     this.dependencies = dependencies;
-    this.initializeTools();
+  }
+  
+  /**
+   * Create and initialize a ToolRegistry
+   */
+  static async create(dependencies: ToolRegistryDependencies): Promise<ToolRegistry> {
+    const registry = new ToolRegistry(dependencies);
+    await registry.initializeTools();
+    return registry;
   }
 
   /**
    * Initialize all available tools
    */
-  private initializeTools(): void {
+  private async initializeTools(): Promise<void> {
     const registrationTime = Date.now();
 
     // Register save_message tool
@@ -143,6 +159,41 @@ export class ToolRegistry {
       });
       
       this.registerTool('get_context_summary', getContextSummaryTool, registrationTime);
+    }
+
+    // Register get_relevant_snippets tool if context assembler is available
+    if (this.dependencies.contextAssembler && 
+        this.dependencies.embeddingManager && 
+        this.dependencies.summaryRepository) {
+      const getRelevantSnippetsTool = GetRelevantSnippetsTool.create({
+        contextAssembler: this.dependencies.contextAssembler,
+        embeddingManager: this.dependencies.embeddingManager,
+        messageRepository: this.dependencies.messageRepository,
+        summaryRepository: this.dependencies.summaryRepository
+      });
+      
+      this.registerTool('get_relevant_snippets', getRelevantSnippetsTool, registrationTime);
+    }
+
+    // Register configure_llm_provider tool if provider config repository is available
+    if (this.dependencies.providerConfigRepository) {
+      const configureLLMProviderTool = ConfigureLLMProviderTool.create({
+        providerConfigRepository: this.dependencies.providerConfigRepository
+      });
+      
+      this.registerTool('configure_llm_provider', configureLLMProviderTool, registrationTime);
+    }
+    
+    // Register progressive detail tool if summary repository available
+    if (this.dependencies.summaryRepository) {
+      const { GetProgressiveDetailTool } = await import('../tools/GetProgressiveDetailTool.js');
+      const getProgressiveDetailTool = GetProgressiveDetailTool.create({
+        conversationRepository: this.dependencies.conversationRepository,
+        messageRepository: this.dependencies.messageRepository,
+        summaryRepository: this.dependencies.summaryRepository
+      });
+      
+      this.registerTool('get_progressive_detail', getProgressiveDetailTool, registrationTime);
     }
   }
 
@@ -476,8 +527,8 @@ export class ToolRegistry {
 /**
  * Factory function to create a tool registry
  */
-export function createToolRegistry(dependencies: ToolRegistryDependencies): ToolRegistry {
-  return new ToolRegistry(dependencies);
+export async function createToolRegistry(dependencies: ToolRegistryDependencies): Promise<ToolRegistry> {
+  return ToolRegistry.create(dependencies);
 }
 
 /**
@@ -493,7 +544,9 @@ export function isValidToolName(name: string): name is ToolName {
     'semantic_search',
     'hybrid_search',
     'get_context_summary',
-    'configure_llm_provider'
+    'get_relevant_snippets',
+    'configure_llm_provider',
+    'get_progressive_detail'
   ];
   return validNames.includes(name as ToolName);
 }
