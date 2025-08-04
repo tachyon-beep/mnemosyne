@@ -585,7 +585,9 @@ export type ToolName =
   | 'export_conversations'
   | 'get_database_stats'
   | 'semantic_search'
-  | 'hybrid_search';
+  | 'hybrid_search'
+  | 'get_context_summary'
+  | 'configure_llm_provider';
 
 /**
  * MCP transport types

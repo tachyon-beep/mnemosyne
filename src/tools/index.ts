@@ -53,6 +53,7 @@ export type {
 
 export { SemanticSearchTool } from './SemanticSearchTool.js';
 export { HybridSearchTool } from './HybridSearchTool.js';
+export { GetContextSummaryTool } from './GetContextSummaryTool.js';
 
 // Re-export tool schemas and types for convenience
 export type {

@@ -8,6 +8,7 @@
 import { Migration } from './Migration.js';
 import { initialSchemaMigration } from './001_initial_schema.js';
 import { enhancedSearchMigration } from './002_enhanced_search.js';
+import { migration_003_intelligent_context } from './003_intelligent_context.js';
 
 /**
  * All available migrations in order
@@ -20,7 +21,8 @@ import { enhancedSearchMigration } from './002_enhanced_search.js';
  */
 export const migrations: Migration[] = [
   initialSchemaMigration,
-  enhancedSearchMigration
+  enhancedSearchMigration,
+  migration_003_intelligent_context
 ];
 
 /**

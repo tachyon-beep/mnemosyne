@@ -12,6 +12,7 @@ import { BaseTool, ToolContext } from '../tools/BaseTool.js';
 import { ConversationRepository, MessageRepository } from '../storage/repositories/index.js';
 import { SearchEngine } from '../search/SearchEngine.js';
 import { EnhancedSearchEngine } from '../search/EnhancedSearchEngine.js';
+import { ProviderManager } from '../context/ProviderManager.js';
 import { ToolName, MCPTool } from '../types/mcp.js';
 import { 
   SaveMessageTool,
@@ -20,7 +21,8 @@ import {
   GetConversationsTool,
   DeleteConversationTool,
   SemanticSearchTool,
-  HybridSearchTool
+  HybridSearchTool,
+  GetContextSummaryTool
 } from '../tools/index.js';
 
 /**
@@ -31,6 +33,7 @@ export interface ToolRegistryDependencies {
   messageRepository: MessageRepository;
   searchEngine: SearchEngine;
   enhancedSearchEngine?: EnhancedSearchEngine; // Optional for enhanced search features
+  providerManager?: ProviderManager; // Optional for context management features
 }
 
 /**
@@ -129,6 +132,17 @@ export class ToolRegistry {
       
       this.registerTool('semantic_search', semanticSearchTool, registrationTime);
       this.registerTool('hybrid_search', hybridSearchTool, registrationTime);
+    }
+
+    // Register context management tools if available
+    if (this.dependencies.providerManager) {
+      const getContextSummaryTool = GetContextSummaryTool.create({
+        providerManager: this.dependencies.providerManager,
+        conversationRepository: this.dependencies.conversationRepository,
+        messageRepository: this.dependencies.messageRepository
+      });
+      
+      this.registerTool('get_context_summary', getContextSummaryTool, registrationTime);
     }
   }
 
@@ -477,7 +491,9 @@ export function isValidToolName(name: string): name is ToolName {
     'get_conversations',
     'delete_conversation',
     'semantic_search',
-    'hybrid_search'
+    'hybrid_search',
+    'get_context_summary',
+    'configure_llm_provider'
   ];
   return validNames.includes(name as ToolName);
 }

@@ -25,6 +25,9 @@ describe('StateRepository', () => {
     dbManager = new DatabaseManager({ databasePath: tempDbPath });
     await dbManager.initialize();
     stateRepo = new StateRepository(dbManager);
+    
+    // Clear default configuration values inserted by migrations for clean test state
+    await stateRepo.clear();
   });
 
   afterEach(async () => {
