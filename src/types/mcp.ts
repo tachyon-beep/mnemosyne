@@ -783,7 +783,10 @@ export type ToolName =
   | 'get_context_summary'
   | 'get_relevant_snippets'
   | 'configure_llm_provider'
-  | 'get_progressive_detail';
+  | 'get_progressive_detail'
+  | 'get_entity_history'
+  | 'find_related_conversations'
+  | 'get_knowledge_graph';
 
 /**
  * MCP transport types

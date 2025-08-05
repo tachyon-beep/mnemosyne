@@ -53,6 +53,17 @@ export {
   SummaryHistoryRepository
 } from './SummaryHistoryRepository.js';
 
+// Entity repository
+export {
+  EntityRepository,
+  type Entity,
+  type EntityType,
+  type CreateEntityInput,
+  type UpdateEntityInput,
+  type EntitySearchOptions
+} from './EntityRepository.js';
+
+
 // Re-export relevant types from interfaces
 export type {
   Conversation,

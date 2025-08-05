@@ -6,7 +6,6 @@
  */
 
 import Database from 'better-sqlite3';
-import { BaseRepository } from './BaseRepository.js';
 
 /**
  * Entity types supported by the knowledge graph
@@ -110,20 +109,37 @@ export interface EntityCluster {
 /**
  * Knowledge graph repository implementation
  */
-export class KnowledgeGraphRepository extends BaseRepository {
+export class KnowledgeGraphRepository {
+  public db: Database.Database;
   // Prepared statements for performance
-  private createEntityStmt: Database.Statement;
-  private createMentionStmt: Database.Statement;
-  private createRelationshipStmt: Database.Statement;
-  private findEntityByNameStmt: Database.Statement;
-  private findEntitiesByTypeStmt: Database.Statement;
-  private getEntityMentionsStmt: Database.Statement;
-  private getEntityRelationshipsStmt: Database.Statement;
-  private updateRelationshipStrengthStmt: Database.Statement;
+  private createEntityStmt!: Database.Statement;
+  private createMentionStmt!: Database.Statement;
+  private createRelationshipStmt!: Database.Statement;
+  private findEntityByNameStmt!: Database.Statement;
+  private findEntitiesByTypeStmt!: Database.Statement;
+  private getEntityMentionsStmt!: Database.Statement;
+  private getEntityRelationshipsStmt!: Database.Statement;
+  private updateRelationshipStrengthStmt!: Database.Statement;
 
   constructor(db: Database.Database) {
-    super(db);
+    this.db = db;
     this.prepareStatements();
+  }
+
+  /**
+   * Handle database errors with proper logging and error transformation
+   */
+  private handleError(error: unknown, context: string): never {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`[KnowledgeGraphRepository] ${context}: ${message}`);
+    throw new Error(`Knowledge graph operation failed: ${message}`);
+  }
+
+  /**
+   * Generate a unique ID
+   */
+  private generateId(): string {
+    return `kg_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
   }
 
   /**

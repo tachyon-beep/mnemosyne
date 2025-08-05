@@ -6,8 +6,8 @@
  */
 
 import { z } from 'zod';
-import { BaseTool } from './BaseTool.js';
-import { ToolResult } from '../types/mcp.js';
+import { BaseTool, ToolContext } from './BaseTool.js';
+import { MCPToolResult, MCPTool } from '../types/mcp.js';
 import { KnowledgeGraphService } from '../knowledge-graph/KnowledgeGraphService.js';
 
 /**
@@ -80,14 +80,31 @@ export class GetKnowledgeGraphTool extends BaseTool<GetKnowledgeGraphArgs> {
   private knowledgeGraphService: KnowledgeGraphService;
 
   constructor(knowledgeGraphService: KnowledgeGraphService) {
-    super();
+    const tool: MCPTool = {
+      name: 'get_knowledge_graph',
+      description: 'Explore the knowledge graph around an entity, finding connected entities and relationships',
+      inputSchema: {
+        type: 'object',
+        properties: GetKnowledgeGraphArgsSchema.shape,
+        required: ['center_entity'],
+        additionalProperties: false
+      }
+    };
+    super(tool, GetKnowledgeGraphArgsSchema);
     this.knowledgeGraphService = knowledgeGraphService;
+  }
+
+  /**
+   * Execute the tool
+   */
+  protected async executeImpl(input: GetKnowledgeGraphArgs, _context: ToolContext): Promise<MCPToolResult> {
+    return this.handle(input);
   }
 
   /**
    * Handle the get knowledge graph request
    */
-  async handle(args: GetKnowledgeGraphArgs): Promise<ToolResult> {
+  async handle(args: GetKnowledgeGraphArgs): Promise<MCPToolResult> {
     try {
       // Get the center entity history to verify it exists
       const centerEntityHistory = await this.knowledgeGraphService.getEntityHistory(args.center_entity);
@@ -383,7 +400,7 @@ export class GetKnowledgeGraphTool extends BaseTool<GetKnowledgeGraphArgs> {
     }, {} as Record<string, number>);
 
     const mostCommonRelType = Object.entries(relationshipTypes)
-      .sort(([,a], [,b]) => b - a)[0];
+      .sort(([,a], [,b]) => (b as number) - (a as number))[0];
     
     if (mostCommonRelType) {
       insights.push(`Most common relationship type is '${mostCommonRelType[0]}' (${mostCommonRelType[1]} occurrences).`);

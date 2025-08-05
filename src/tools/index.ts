@@ -193,7 +193,9 @@ export class ToolRegistry {
 
     // Register knowledge graph tools if available
     if (this.dependencies.knowledgeGraphService) {
-      const { GetEntityHistoryTool, FindRelatedConversationsTool, GetKnowledgeGraphTool } = require('./GetEntityHistoryTool.js');
+      const { GetEntityHistoryTool } = require('./GetEntityHistoryTool.js');
+      const { FindRelatedConversationsTool } = require('./FindRelatedConversationsTool.js');
+      const { GetKnowledgeGraphTool } = require('./GetKnowledgeGraphTool.js');
       
       const getEntityHistoryTool = new GetEntityHistoryTool(this.dependencies.knowledgeGraphService);
       const findRelatedConversationsTool = new FindRelatedConversationsTool(this.dependencies.knowledgeGraphService);

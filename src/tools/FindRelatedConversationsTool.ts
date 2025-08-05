@@ -6,8 +6,8 @@
  */
 
 import { z } from 'zod';
-import { BaseTool } from './BaseTool.js';
-import { ToolResult } from '../types/mcp.js';
+import { BaseTool, ToolContext } from './BaseTool.js';
+import { MCPToolResult, MCPTool } from '../types/mcp.js';
 import { KnowledgeGraphService } from '../knowledge-graph/KnowledgeGraphService.js';
 
 /**
@@ -70,14 +70,31 @@ export class FindRelatedConversationsTool extends BaseTool<FindRelatedConversati
   private knowledgeGraphService: KnowledgeGraphService;
 
   constructor(knowledgeGraphService: KnowledgeGraphService) {
-    super();
+    const tool: MCPTool = {
+      name: 'find_related_conversations',
+      description: 'Find conversations related to specific entities based on knowledge graph relationships',
+      inputSchema: {
+        type: 'object',
+        properties: FindRelatedConversationsArgsSchema.shape,
+        required: ['entities'],
+        additionalProperties: false
+      }
+    };
+    super(tool, FindRelatedConversationsArgsSchema);
     this.knowledgeGraphService = knowledgeGraphService;
+  }
+
+  /**
+   * Execute the tool
+   */
+  protected async executeImpl(input: FindRelatedConversationsArgs, _context: ToolContext): Promise<MCPToolResult> {
+    return this.handle(input);
   }
 
   /**
    * Handle the find related conversations request
    */
-  async handle(args: FindRelatedConversationsArgs): Promise<ToolResult> {
+  async handle(args: FindRelatedConversationsArgs): Promise<MCPToolResult> {
     try {
       // Find related conversations using the knowledge graph service
       const relatedConversations = await this.knowledgeGraphService.findRelatedConversations(

@@ -27,6 +27,7 @@ import { EmbeddingManager } from '../search/EmbeddingManager.js';
 import { ToolRegistry } from './ToolRegistry.js';
 import { PersistenceServerConfig } from '../types/index.js';
 import { isValidToolName } from '../tools/index.js';
+import { KnowledgeGraphService as NewKnowledgeGraphService } from '../knowledge-graph/KnowledgeGraphService.js';
 
 /**
  * Configuration options for the MCP server
@@ -78,6 +79,7 @@ export class MCPServer {
   private basicSearchEngine: SearchEngine | null = null;
   private enhancedSearchEngine: EnhancedSearchEngine | null = null;
   private embeddingManager: EmbeddingManager | null = null;
+  private knowledgeGraphService: NewKnowledgeGraphService | null = null;
   private config: MCPServerConfig;
   private status: ServerStatus = ServerStatus.STOPPED;
   private startTime: number | null = null;
@@ -221,6 +223,13 @@ export class MCPServer {
    */
   getStatus(): ServerStatus {
     return this.status;
+  }
+
+  /**
+   * Get the tool registry (for testing)
+   */
+  getToolRegistry(): ToolRegistry | null {
+    return this.toolRegistry;
   }
 
   /**
@@ -394,6 +403,25 @@ export class MCPServer {
       this.enhancedSearchEngine = null;
       this.embeddingManager = null;
     }
+
+    // Initialize knowledge graph service
+    try {
+      this.knowledgeGraphService = new NewKnowledgeGraphService(this.database.getConnection(), {
+        enableAutoProcessing: true,
+        batchProcessingSize: 100,
+        maxEntitiesPerMessage: 20,
+        minEntityConfidence: 0.6,
+        minRelationshipConfidence: 0.3,
+        enableRelationshipDecay: true,
+        relationshipDecayDays: 30
+      });
+      this.log('info', 'Knowledge graph service initialized successfully');
+    } catch (error) {
+      // Knowledge graph is optional - log warning but continue
+      this.log('warn', `Knowledge graph initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log('warn', 'Continuing without knowledge graph functionality');
+      this.knowledgeGraphService = null;
+    }
   }
 
   /**
@@ -444,7 +472,8 @@ export class MCPServer {
         providerConfigRepository,
         summaryRepository,
         embeddingManager: this.embeddingManager || undefined,
-        contextAssembler
+        contextAssembler,
+        knowledgeGraphService: this.knowledgeGraphService || undefined
       });
 
       const toolCount = this.toolRegistry ? this.toolRegistry.getAllTools().length : 0;

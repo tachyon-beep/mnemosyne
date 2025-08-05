@@ -42,6 +42,7 @@ export interface ToolRegistryDependencies {
   summaryRepository?: SummaryRepository; // Optional for context assembly
   embeddingManager?: EmbeddingManager; // Optional for context assembly
   contextAssembler?: ContextAssembler; // Optional for context assembly
+  knowledgeGraphService?: any; // Optional for knowledge graph features
 }
 
 /**
@@ -194,6 +195,21 @@ export class ToolRegistry {
       });
       
       this.registerTool('get_progressive_detail', getProgressiveDetailTool, registrationTime);
+    }
+
+    // Register knowledge graph tools if available
+    if (this.dependencies.knowledgeGraphService) {
+      const { GetEntityHistoryTool } = await import('../tools/GetEntityHistoryTool.js');
+      const { FindRelatedConversationsTool } = await import('../tools/FindRelatedConversationsTool.js');
+      const { GetKnowledgeGraphTool } = await import('../tools/GetKnowledgeGraphTool.js');
+      
+      const getEntityHistoryTool = new GetEntityHistoryTool(this.dependencies.knowledgeGraphService);
+      const findRelatedConversationsTool = new FindRelatedConversationsTool(this.dependencies.knowledgeGraphService);
+      const getKnowledgeGraphTool = new GetKnowledgeGraphTool(this.dependencies.knowledgeGraphService);
+      
+      this.registerTool('get_entity_history', getEntityHistoryTool, registrationTime);
+      this.registerTool('find_related_conversations', findRelatedConversationsTool, registrationTime);
+      this.registerTool('get_knowledge_graph', getKnowledgeGraphTool, registrationTime);
     }
   }
 
@@ -546,7 +562,10 @@ export function isValidToolName(name: string): name is ToolName {
     'get_context_summary',
     'get_relevant_snippets',
     'configure_llm_provider',
-    'get_progressive_detail'
+    'get_progressive_detail',
+    'get_entity_history',
+    'find_related_conversations',
+    'get_knowledge_graph'
   ];
   return validNames.includes(name as ToolName);
 }

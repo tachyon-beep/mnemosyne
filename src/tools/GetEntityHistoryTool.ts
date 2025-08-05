@@ -6,8 +6,8 @@
  */
 
 import { z } from 'zod';
-import { BaseTool } from './BaseTool.js';
-import { ToolResult } from '../types/mcp.js';
+import { BaseTool, ToolContext } from './BaseTool.js';
+import { MCPToolResult, MCPTool } from '../types/mcp.js';
 import { KnowledgeGraphService } from '../knowledge-graph/KnowledgeGraphService.js';
 
 /**
@@ -56,14 +56,31 @@ export class GetEntityHistoryTool extends BaseTool<GetEntityHistoryArgs> {
   private knowledgeGraphService: KnowledgeGraphService;
 
   constructor(knowledgeGraphService: KnowledgeGraphService) {
-    super();
+    const tool: MCPTool = {
+      name: 'get_entity_history',
+      description: 'Get complete history of an entity across all conversations including mentions, relationships, and evolution',
+      inputSchema: {
+        type: 'object',
+        properties: GetEntityHistoryArgsSchema.shape,
+        required: ['entity_name'],
+        additionalProperties: false
+      }
+    };
+    super(tool, GetEntityHistoryArgsSchema);
     this.knowledgeGraphService = knowledgeGraphService;
+  }
+
+  /**
+   * Execute the tool
+   */
+  protected async executeImpl(input: GetEntityHistoryArgs, _context: ToolContext): Promise<MCPToolResult> {
+    return this.handle(input);
   }
 
   /**
    * Handle the get entity history request
    */
-  async handle(args: GetEntityHistoryArgs): Promise<ToolResult> {
+  async handle(args: GetEntityHistoryArgs): Promise<MCPToolResult> {
     try {
       // Get entity history
       const history = await this.knowledgeGraphService.getEntityHistory(args.entity_name);
