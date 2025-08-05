@@ -9,6 +9,7 @@ import { Migration } from './Migration.js';
 import { initialSchemaMigration } from './001_initial_schema.js';
 import { enhancedSearchMigration } from './002_enhanced_search.js';
 import { migration_003_intelligent_context } from './003_intelligent_context.js';
+import { migration_004_knowledge_graph } from './004_knowledge_graph.js';
 
 /**
  * All available migrations in order
@@ -22,7 +23,8 @@ import { migration_003_intelligent_context } from './003_intelligent_context.js'
 export const migrations: Migration[] = [
   initialSchemaMigration,
   enhancedSearchMigration,
-  migration_003_intelligent_context
+  migration_003_intelligent_context,
+  migration_004_knowledge_graph
 ];
 
 /**

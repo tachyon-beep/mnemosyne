@@ -65,6 +65,16 @@ export type {
   ConfigureLLMProviderDependencies
 } from './ConfigureLLMProviderTool.js';
 
+// Knowledge Graph tools
+export { GetEntityHistoryTool } from './GetEntityHistoryTool.js';
+export type { GetEntityHistoryArgs } from './GetEntityHistoryTool.js';
+
+export { FindRelatedConversationsTool } from './FindRelatedConversationsTool.js';
+export type { FindRelatedConversationsArgs } from './FindRelatedConversationsTool.js';
+
+export { GetKnowledgeGraphTool } from './GetKnowledgeGraphTool.js';
+export type { GetKnowledgeGraphArgs } from './GetKnowledgeGraphTool.js';
+
 // Re-export tool schemas and types for convenience
 export type {
   SaveMessageInput,
@@ -118,6 +128,7 @@ export interface ToolRegistryDependencies {
   messageRepository: MessageRepository;
   searchEngine: SearchEngine;
   enhancedSearchEngine?: EnhancedSearchEngine; // Optional for enhanced search features
+  knowledgeGraphService?: any; // Optional for knowledge graph features
 }
 
 /**
@@ -178,6 +189,19 @@ export class ToolRegistry {
       
       this.tools.set('semantic_search', semanticSearchTool);
       this.tools.set('hybrid_search', hybridSearchTool);
+    }
+
+    // Register knowledge graph tools if available
+    if (this.dependencies.knowledgeGraphService) {
+      const { GetEntityHistoryTool, FindRelatedConversationsTool, GetKnowledgeGraphTool } = require('./GetEntityHistoryTool.js');
+      
+      const getEntityHistoryTool = new GetEntityHistoryTool(this.dependencies.knowledgeGraphService);
+      const findRelatedConversationsTool = new FindRelatedConversationsTool(this.dependencies.knowledgeGraphService);
+      const getKnowledgeGraphTool = new GetKnowledgeGraphTool(this.dependencies.knowledgeGraphService);
+      
+      this.tools.set('get_entity_history', getEntityHistoryTool);
+      this.tools.set('find_related_conversations', findRelatedConversationsTool);
+      this.tools.set('get_knowledge_graph', getKnowledgeGraphTool);
     }
   }
 
@@ -286,7 +310,10 @@ export function isValidToolName(name: string): name is ToolName {
     'get_context_summary',
     'get_relevant_snippets',
     'configure_llm_provider',
-    'get_progressive_detail'
+    'get_progressive_detail',
+    'get_entity_history',
+    'find_related_conversations',
+    'get_knowledge_graph'
   ];
   return validNames.includes(name as ToolName);
 }
