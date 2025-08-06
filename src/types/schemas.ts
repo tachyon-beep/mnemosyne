@@ -387,6 +387,85 @@ export const GetProgressiveDetailSchema = z.object({
 });
 
 export type GetProgressiveDetailInput = z.input<typeof GetProgressiveDetailSchema>;
+
+/**
+ * Schema for validating get_proactive_insights tool input
+ */
+export const GetProactiveInsightsSchema = z.object({
+  conversationId: z.string().optional(),
+  includeTypes: z.array(z.enum(['unresolved_actions', 'recurring_questions', 'knowledge_gaps', 'stale_commitments']))
+    .default(['unresolved_actions', 'recurring_questions', 'knowledge_gaps', 'stale_commitments']),
+  daysSince: z.number().min(1).max(365).default(30),
+  minConfidence: z.number().min(0).max(1).default(0.6),
+  limit: z.number().min(1).max(100).default(20)
+});
+
+/**
+ * Schema for validating check_for_conflicts tool input
+ */
+export const CheckForConflictsSchema = z.object({
+  conversationId: z.string().optional(),
+  entityIds: z.array(z.string()).optional(),
+  conflictTypes: z.array(z.enum([
+    'property_contradiction', 
+    'status_inconsistency', 
+    'temporal_impossibility', 
+    'relationship_conflict', 
+    'existence_dispute', 
+    'identity_confusion', 
+    'authority_disagreement'
+  ])).default(['property_contradiction', 'status_inconsistency', 'temporal_impossibility', 'relationship_conflict']),
+  minSeverity: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  maxAge: z.number().min(1).max(365).default(90),
+  includeResolutions: z.boolean().default(true),
+  limit: z.number().min(1).max(100).default(20)
+});
+
+/**
+ * Schema for validating suggest_relevant_context tool input
+ */
+export const SuggestRelevantContextSchema = z.object({
+  currentConversationId: z.string().optional(),
+  currentEntities: z.array(z.string()).optional(),
+  contextTypes: z.array(z.enum([
+    'related_conversation', 
+    'expert_insight', 
+    'similar_context', 
+    'temporal_connection', 
+    'relationship_network', 
+    'follow_up_needed', 
+    'missing_information', 
+    'contradiction_alert'
+  ])).default(['related_conversation', 'expert_insight', 'similar_context', 'contradiction_alert']),
+  maxHistoryAge: z.number().min(1).max(365).default(90),
+  minRelevanceScore: z.number().min(0).max(1).default(0.4),
+  maxTokens: z.number().min(100).max(16000).default(4000),
+  includeExperts: z.boolean().default(true),
+  includeMessages: z.boolean().default(true),
+  limit: z.number().min(1).max(50).default(10)
+});
+
+/**
+ * Schema for validating auto_tag_conversation tool input
+ */
+export const AutoTagConversationSchema = z.object({
+  conversationId: z.string().min(1, 'Conversation ID cannot be empty'),
+  analysisTypes: z.array(z.enum(['topic_tags', 'activity_classification', 'urgency_analysis', 'project_contexts']))
+    .default(['topic_tags', 'activity_classification', 'urgency_analysis', 'project_contexts']),
+  config: z.object({
+    minEntityRelevance: z.number().min(0).max(1).default(0.3),
+    maxTopicTags: z.number().min(1).max(20).default(5),
+    minProjectConfidence: z.number().min(0).max(1).default(0.6),
+    urgencyKeywords: z.array(z.string()).optional()
+  }).optional(),
+  updateConversation: z.boolean().default(false),
+  returnAnalysis: z.boolean().default(true)
+});
+
+export type GetProactiveInsightsInput = z.infer<typeof GetProactiveInsightsSchema>;
+export type CheckForConflictsInput = z.infer<typeof CheckForConflictsSchema>;
+export type SuggestRelevantContextInput = z.infer<typeof SuggestRelevantContextSchema>;
+export type AutoTagConversationInput = z.infer<typeof AutoTagConversationSchema>;
 export type ConversationData = z.infer<typeof ConversationDataSchema>;
 export type PersistenceServerConfigInput = z.infer<typeof PersistenceServerConfigSchema>;
 
@@ -410,7 +489,11 @@ export const ToolInputSchema = z.union([
   GenerateEmbeddingsSchema,
   GetRelevantSnippetsSchema,
   ConfigureLLMProviderSchema,
-  GetProgressiveDetailSchema
+  GetProgressiveDetailSchema,
+  GetProactiveInsightsSchema,
+  CheckForConflictsSchema,
+  SuggestRelevantContextSchema,
+  AutoTagConversationSchema
 ]);
 
 export type ToolInput = z.infer<typeof ToolInputSchema>;

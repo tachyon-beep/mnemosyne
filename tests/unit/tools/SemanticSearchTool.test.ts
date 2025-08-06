@@ -124,7 +124,7 @@ describe('SemanticSearchTool', () => {
         query: 'machine learning'
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.pagination.limit).toBe(20); // Default limit
@@ -140,7 +140,7 @@ describe('SemanticSearchTool', () => {
         limit: 5
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(Array.isArray(response.results)).toBe(true);
@@ -169,7 +169,7 @@ describe('SemanticSearchTool', () => {
         limit: 10
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.results.length).toBeGreaterThan(1);
@@ -195,8 +195,8 @@ describe('SemanticSearchTool', () => {
         limit: 20
       }, {});
       
-      const highResponse = JSON.parse(highThresholdResult.content[0].text!);
-      const lowResponse = JSON.parse(lowThresholdResult.content[0].text!);
+      const highResponse = parseToolResponse(highThresholdResult);
+      const lowResponse = parseToolResponse(lowThresholdResult);
       
       expect(lowResponse.results.length).toBeGreaterThanOrEqual(
         highResponse.results.length
@@ -217,7 +217,7 @@ describe('SemanticSearchTool', () => {
         limit: 10
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.results.length).toBeGreaterThan(0);
@@ -240,7 +240,7 @@ describe('SemanticSearchTool', () => {
         limit: 10
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       
@@ -269,8 +269,8 @@ describe('SemanticSearchTool', () => {
         offset: 2
       }, {});
       
-      const firstResponse = JSON.parse(firstPageResult.content[0].text!);
-      const secondResponse = JSON.parse(secondPageResult.content[0].text!);
+      const firstResponse = parseToolResponse(firstPageResult);
+      const secondResponse = parseToolResponse(secondPageResult);
       
       expect(firstResponse.success).toBe(true);
       expect(secondResponse.success).toBe(true);
@@ -292,7 +292,7 @@ describe('SemanticSearchTool', () => {
         limit: 3
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.results.length).toBeGreaterThan(0);
@@ -313,7 +313,7 @@ describe('SemanticSearchTool', () => {
         limit: 5
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response).toHaveProperty('metadata');
@@ -337,7 +337,7 @@ describe('SemanticSearchTool', () => {
         offset: 1
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response).toHaveProperty('pagination');
       expect(response.pagination.limit).toBe(3);
@@ -352,7 +352,7 @@ describe('SemanticSearchTool', () => {
         limit: 3
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       
@@ -382,7 +382,7 @@ describe('SemanticSearchTool', () => {
         startDate: validDate
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       expect(response.success).toBe(true);
     });
 
@@ -411,7 +411,7 @@ describe('SemanticSearchTool', () => {
         limit: 10
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       // Should complete within reasonable time (semantic search target: 500ms)
       timer.expectUnder(500, 'Semantic search tool execution');
@@ -429,7 +429,7 @@ describe('SemanticSearchTool', () => {
         threshold: 0.1 // Low threshold to get more results
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       // Should still be reasonably fast even with many results
       timer.expectUnder(1000, 'Large result set search');
@@ -445,7 +445,7 @@ describe('SemanticSearchTool', () => {
         threshold: 0.99
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.results).toHaveLength(0);
@@ -478,7 +478,7 @@ describe('SemanticSearchTool', () => {
         limit: 5
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       // Should still work, might just truncate the query internally
@@ -532,7 +532,7 @@ describe('SemanticSearchTool', () => {
         limit: 5
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       // Should not crash, even if no results
@@ -544,7 +544,7 @@ describe('SemanticSearchTool', () => {
         limit: 5
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
     });
@@ -557,7 +557,7 @@ describe('SemanticSearchTool', () => {
         limit: 5
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
     });

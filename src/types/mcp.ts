@@ -750,6 +750,255 @@ export const GetProgressiveDetailTool: MCPTool = {
 };
 
 /**
+ * Tool definition for get_proactive_insights
+ */
+export const GetProactiveInsightsToolDef: MCPTool = {
+  name: 'get_proactive_insights',
+  description: 'Returns unresolved actions, recurring questions, knowledge gaps, and stale commitments to provide proactive assistance.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      conversationId: {
+        type: 'string',
+        description: 'Optional conversation ID to limit analysis scope'
+      },
+      includeTypes: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: ['unresolved_actions', 'recurring_questions', 'knowledge_gaps', 'stale_commitments']
+        },
+        description: 'Types of insights to include',
+        default: ['unresolved_actions', 'recurring_questions', 'knowledge_gaps', 'stale_commitments']
+      },
+      daysSince: {
+        type: 'number',
+        minimum: 1,
+        maximum: 365,
+        default: 30,
+        description: 'Number of days to look back for patterns'
+      },
+      minConfidence: {
+        type: 'number',
+        minimum: 0,
+        maximum: 1,
+        default: 0.6,
+        description: 'Minimum confidence threshold for insights'
+      },
+      limit: {
+        type: 'number',
+        minimum: 1,
+        maximum: 100,
+        default: 20,
+        description: 'Maximum number of insights per type to return'
+      }
+    },
+    required: [],
+    additionalProperties: false
+  }
+};
+
+/**
+ * Tool definition for check_for_conflicts
+ */
+export const CheckForConflictsToolDef: MCPTool = {
+  name: 'check_for_conflicts',
+  description: 'Detects contradictions in entity information across conversations, identifying conflicting statements and data inconsistencies.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      conversationId: {
+        type: 'string',
+        description: 'Optional conversation ID to focus analysis on specific conversation entities'
+      },
+      entityIds: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Optional list of specific entity IDs to check for conflicts'
+      },
+      conflictTypes: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: ['property_contradiction', 'status_inconsistency', 'temporal_impossibility', 'relationship_conflict', 'existence_dispute', 'identity_confusion', 'authority_disagreement']
+        },
+        description: 'Types of conflicts to detect',
+        default: ['property_contradiction', 'status_inconsistency', 'temporal_impossibility', 'relationship_conflict']
+      },
+      minSeverity: {
+        type: 'string',
+        enum: ['low', 'medium', 'high', 'critical'],
+        default: 'medium',
+        description: 'Minimum severity level of conflicts to return'
+      },
+      maxAge: {
+        type: 'number',
+        minimum: 1,
+        maximum: 365,
+        default: 90,
+        description: 'Maximum age in days of information to consider for conflicts'
+      },
+      includeResolutions: {
+        type: 'boolean',
+        default: true,
+        description: 'Whether to include suggested resolutions for detected conflicts'
+      },
+      limit: {
+        type: 'number',
+        minimum: 1,
+        maximum: 100,
+        default: 20,
+        description: 'Maximum number of conflicts to return'
+      }
+    },
+    required: [],
+    additionalProperties: false
+  }
+};
+
+/**
+ * Tool definition for suggest_relevant_context
+ */
+export const SuggestRelevantContextToolDef: MCPTool = {
+  name: 'suggest_relevant_context',
+  description: 'Provides past conversations and insights relevant to current discussion by analyzing entity relationships and conversation patterns.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      currentConversationId: {
+        type: 'string',
+        description: 'ID of the current conversation to find relevant context for'
+      },
+      currentEntities: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'List of entity names or IDs currently being discussed'
+      },
+      contextTypes: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: ['related_conversation', 'expert_insight', 'similar_context', 'temporal_connection', 'relationship_network', 'follow_up_needed', 'missing_information', 'contradiction_alert']
+        },
+        description: 'Types of context suggestions to include',
+        default: ['related_conversation', 'expert_insight', 'similar_context', 'contradiction_alert']
+      },
+      maxHistoryAge: {
+        type: 'number',
+        minimum: 1,
+        maximum: 365,
+        default: 90,
+        description: 'Maximum age in days of historical context to consider'
+      },
+      minRelevanceScore: {
+        type: 'number',
+        minimum: 0,
+        maximum: 1,
+        default: 0.4,
+        description: 'Minimum relevance threshold for suggestions'
+      },
+      maxTokens: {
+        type: 'number',
+        minimum: 100,
+        maximum: 16000,
+        default: 4000,
+        description: 'Maximum token budget for context window optimization'
+      },
+      includeExperts: {
+        type: 'boolean',
+        default: true,
+        description: 'Whether to include expert recommendations'
+      },
+      includeMessages: {
+        type: 'boolean',
+        default: true,
+        description: 'Whether to include relevant message excerpts in suggestions'
+      },
+      limit: {
+        type: 'number',
+        minimum: 1,
+        maximum: 50,
+        default: 10,
+        description: 'Maximum number of context suggestions to return'
+      }
+    },
+    required: [],
+    additionalProperties: false
+  }
+};
+
+/**
+ * Tool definition for auto_tag_conversation
+ */
+export const AutoTagConversationToolDef: MCPTool = {
+  name: 'auto_tag_conversation',
+  description: 'Automatically generates tags, classifications, and urgency levels for conversations based on content analysis and entity patterns.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      conversationId: {
+        type: 'string',
+        description: 'ID of the conversation to analyze and tag'
+      },
+      analysisTypes: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: ['topic_tags', 'activity_classification', 'urgency_analysis', 'project_contexts']
+        },
+        description: 'Types of analysis to perform',
+        default: ['topic_tags', 'activity_classification', 'urgency_analysis', 'project_contexts']
+      },
+      config: {
+        type: 'object',
+        properties: {
+          minEntityRelevance: {
+            type: 'number',
+            minimum: 0,
+            maximum: 1,
+            default: 0.3,
+            description: 'Minimum relevance threshold for entity-based topic tags'
+          },
+          maxTopicTags: {
+            type: 'number',
+            minimum: 1,
+            maximum: 20,
+            default: 5,
+            description: 'Maximum number of topic tags to generate'
+          },
+          minProjectConfidence: {
+            type: 'number',
+            minimum: 0,
+            maximum: 1,
+            default: 0.6,
+            description: 'Minimum confidence threshold for project context detection'
+          },
+          urgencyKeywords: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Additional custom keywords that indicate urgency'
+          }
+        },
+        additionalProperties: false,
+        description: 'Optional configuration overrides for auto-tagging behavior'
+      },
+      updateConversation: {
+        type: 'boolean',
+        default: false,
+        description: 'Whether to update the conversation metadata with generated tags'
+      },
+      returnAnalysis: {
+        type: 'boolean',
+        default: true,
+        description: 'Whether to return detailed analysis results'
+      }
+    },
+    required: ['conversationId'],
+    additionalProperties: false
+  }
+};
+
+/**
  * All available tools in the persistence system
  */
 export const AllTools: MCPTool[] = [
@@ -764,7 +1013,11 @@ export const AllTools: MCPTool[] = [
   HybridSearchTool,
   GetRelevantSnippetsTool,
   ConfigureLLMProviderTool,
-  GetProgressiveDetailTool
+  GetProgressiveDetailTool,
+  GetProactiveInsightsToolDef,
+  CheckForConflictsToolDef,
+  SuggestRelevantContextToolDef,
+  AutoTagConversationToolDef
 ];
 
 /**
@@ -786,7 +1039,11 @@ export type ToolName =
   | 'get_progressive_detail'
   | 'get_entity_history'
   | 'find_related_conversations'
-  | 'get_knowledge_graph';
+  | 'get_knowledge_graph'
+  | 'get_proactive_insights'
+  | 'check_for_conflicts'
+  | 'suggest_relevant_context'
+  | 'auto_tag_conversation';
 
 /**
  * MCP transport types

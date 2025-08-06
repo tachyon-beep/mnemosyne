@@ -141,20 +141,36 @@ export class GetContextSummaryTool extends BaseTool<GetContextSummaryInput, any>
       };
     }
 
-    // Generate summary using provider manager
-    const summaryResponse = await this.providerManager.generateSummary({
-      messages,
-      level: params.level,
-      maxTokens: Math.min(params.maxTokens, 4000), // Reasonable limit
-      focusTopics: params.focusTopics,
-      context: {
-        conversationId: conversations[0].id, // Primary conversation
-        timeRange: params.timeRange ? {
-          start: new Date(params.timeRange.start),
-          end: new Date(params.timeRange.end)
-        } : undefined
-      }
-    }, params.strategy);
+    // Try to generate summary using provider manager
+    let summaryResponse;
+    try {
+      summaryResponse = await this.providerManager.generateSummary({
+        messages,
+        level: params.level,
+        maxTokens: Math.min(params.maxTokens, 4000), // Reasonable limit
+        focusTopics: params.focusTopics,
+        context: {
+          conversationId: conversations[0].id, // Primary conversation
+          timeRange: params.timeRange ? {
+            start: new Date(params.timeRange.start),
+            end: new Date(params.timeRange.end)
+          } : undefined
+        }
+      }, params.strategy);
+    } catch (error) {
+      // Fallback when no LLM providers are configured
+      const fallbackSummary = this.generateFallbackSummary(messages, params);
+      summaryResponse = {
+        summary: fallbackSummary,
+        tokenCount: fallbackSummary.length, // Rough estimate
+        inputTokens: messages.reduce((sum, m) => sum + m.content.length, 0),
+        outputTokens: fallbackSummary.length,
+        cost: 0,
+        qualityScore: 0.5,
+        processingTime: Date.now(),
+        metadata: { model: 'fallback', error: error instanceof Error ? error.message : 'Unknown error' }
+      };
+    }
 
     // Prepare response
     return {
@@ -257,6 +273,101 @@ export class GetContextSummaryTool extends BaseTool<GetContextSummaryInput, any>
       console.error('Error retrieving messages:', error);
       throw new Error('Failed to retrieve conversation messages');
     }
+  }
+
+  /**
+   * Generate a basic summary without LLM
+   */
+  private generateFallbackSummary(messages: any[], params: GetContextSummaryInput): string {
+    // Sort messages by timestamp
+    const sortedMessages = messages.sort((a, b) => a.createdAt - b.createdAt);
+    
+    // Build a basic summary based on the level
+    const messageCount = sortedMessages.length;
+    const firstMessage = sortedMessages[0];
+    const lastMessage = sortedMessages[messageCount - 1];
+    
+    let summary = `Context Summary (${params.level} level):\n\n`;
+    
+    if (params.level === 'brief') {
+      summary += `Found ${messageCount} messages related to "${params.query}".\n`;
+      summary += `Time range: ${new Date(firstMessage.createdAt).toLocaleDateString()} to ${new Date(lastMessage.createdAt).toLocaleDateString()}.\n`;
+      
+      // Extract key topics from messages
+      const topics = this.extractTopics(messages);
+      if (topics.length > 0) {
+        summary += `Key topics: ${topics.slice(0, 5).join(', ')}.`;
+      }
+      
+    } else if (params.level === 'standard') {
+      summary += `Query: "${params.query}"\n`;
+      summary += `Total messages: ${messageCount}\n`;
+      summary += `Time period: ${new Date(firstMessage.createdAt).toISOString()} to ${new Date(lastMessage.createdAt).toISOString()}\n\n`;
+      
+      // Include first and last message previews
+      summary += `First message (${firstMessage.role}): ${firstMessage.content.substring(0, 150)}...\n\n`;
+      summary += `Last message (${lastMessage.role}): ${lastMessage.content.substring(0, 150)}...\n\n`;
+      
+      // Extract and include topics
+      const topics = this.extractTopics(messages);
+      if (topics.length > 0) {
+        summary += `Main topics discussed: ${topics.slice(0, 10).join(', ')}.`;
+      }
+      
+    } else { // detailed
+      summary += `Detailed Context for: "${params.query}"\n`;
+      summary += `Message count: ${messageCount}\n`;
+      summary += `Full time range: ${new Date(firstMessage.createdAt).toISOString()} to ${new Date(lastMessage.createdAt).toISOString()}\n\n`;
+      
+      // Include more message samples
+      const sampleIndices = [0, Math.floor(messageCount / 3), Math.floor(2 * messageCount / 3), messageCount - 1];
+      summary += 'Message samples:\n';
+      
+      for (const idx of sampleIndices) {
+        if (idx < messageCount) {
+          const msg = sortedMessages[idx];
+          summary += `\n[${new Date(msg.createdAt).toLocaleString()}] ${msg.role}:\n`;
+          summary += `${msg.content.substring(0, 200)}...\n`;
+        }
+      }
+      
+      // Extract comprehensive topic list
+      const topics = this.extractTopics(messages);
+      if (topics.length > 0) {
+        summary += `\nAll topics: ${topics.join(', ')}.`;
+      }
+    }
+    
+    if (params.focusTopics && params.focusTopics.length > 0) {
+      summary += `\n\nFocus topics requested: ${params.focusTopics.join(', ')}`;
+    }
+    
+    return summary;
+  }
+  
+  /**
+   * Extract topics from messages (basic implementation)
+   */
+  private extractTopics(messages: any[]): string[] {
+    const wordFreq = new Map<string, number>();
+    
+    // Count word frequencies
+    for (const msg of messages) {
+      const words = msg.content.toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter((word: string) => word.length > 4); // Only words > 4 chars
+      
+      for (const word of words) {
+        wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
+      }
+    }
+    
+    // Sort by frequency and return top words as topics
+    return Array.from(wordFreq.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20)
+      .map(([word]) => word);
   }
 
   /**

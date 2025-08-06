@@ -75,6 +75,24 @@ export type { FindRelatedConversationsArgs } from './FindRelatedConversationsToo
 export { GetKnowledgeGraphTool } from './GetKnowledgeGraphTool.js';
 export type { GetKnowledgeGraphArgs } from './GetKnowledgeGraphTool.js';
 
+// Proactive Assistance tools
+export { 
+  GetProactiveInsightsTool,
+  CheckForConflictsTool,
+  SuggestRelevantContextTool,
+  AutoTagConversationTool
+} from './proactive/index.js';
+export type {
+  GetProactiveInsightsResponse,
+  GetProactiveInsightsDependencies,
+  CheckForConflictsResponse,
+  CheckForConflictsDependencies,
+  SuggestRelevantContextResponse,
+  SuggestRelevantContextDependencies,
+  AutoTagConversationResponse,
+  AutoTagConversationDependencies
+} from './proactive/index.js';
+
 // Re-export tool schemas and types for convenience
 export type {
   SaveMessageInput,
@@ -83,7 +101,11 @@ export type {
   GetConversationsInput,
   DeleteConversationInput,
   GetRelevantSnippetsInput,
-  ConfigureLLMProviderInput
+  ConfigureLLMProviderInput,
+  GetProactiveInsightsInput,
+  CheckForConflictsInput,
+  SuggestRelevantContextInput,
+  AutoTagConversationInput
 } from '../types/schemas.js';
 
 // Re-export MCP tool definitions
@@ -96,6 +118,10 @@ export {
   GetRelevantSnippetsTool as GetRelevantSnippetsToolDef,
   ConfigureLLMProviderTool as ConfigureLLMProviderToolDef,
   GetProgressiveDetailTool as GetProgressiveDetailToolDef,
+  GetProactiveInsightsToolDef,
+  CheckForConflictsToolDef,
+  SuggestRelevantContextToolDef,
+  AutoTagConversationToolDef,
   AllTools,
   type MCPTool,
   type MCPToolResult,
@@ -204,6 +230,28 @@ export class ToolRegistry {
       this.tools.set('get_entity_history', getEntityHistoryTool);
       this.tools.set('find_related_conversations', findRelatedConversationsTool);
       this.tools.set('get_knowledge_graph', getKnowledgeGraphTool);
+      
+      // Register proactive assistance tools
+      try {
+        const { 
+          GetProactiveInsightsTool,
+          CheckForConflictsTool,
+          SuggestRelevantContextTool,
+          AutoTagConversationTool
+        } = require('./proactive/index.js');
+        
+        const getProactiveInsightsTool = new GetProactiveInsightsTool(this.dependencies);
+        const checkForConflictsTool = new CheckForConflictsTool(this.dependencies);  
+        const suggestRelevantContextTool = new SuggestRelevantContextTool(this.dependencies);
+        const autoTagConversationTool = new AutoTagConversationTool(this.dependencies);
+        
+        this.tools.set('get_proactive_insights', getProactiveInsightsTool);
+        this.tools.set('check_for_conflicts', checkForConflictsTool);
+        this.tools.set('suggest_relevant_context', suggestRelevantContextTool);
+        this.tools.set('auto_tag_conversation', autoTagConversationTool);
+      } catch (error) {
+        console.warn('Failed to register proactive tools:', error);
+      }
     }
   }
 
@@ -315,7 +363,11 @@ export function isValidToolName(name: string): name is ToolName {
     'get_progressive_detail',
     'get_entity_history',
     'find_related_conversations',
-    'get_knowledge_graph'
+    'get_knowledge_graph',
+    'get_proactive_insights',
+    'check_for_conflicts',
+    'suggest_relevant_context',
+    'auto_tag_conversation'
   ];
   return validNames.includes(name as ToolName);
 }

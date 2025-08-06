@@ -61,7 +61,47 @@ export class GetEntityHistoryTool extends BaseTool<GetEntityHistoryArgs> {
       description: 'Get complete history of an entity across all conversations including mentions, relationships, and evolution',
       inputSchema: {
         type: 'object',
-        properties: GetEntityHistoryArgsSchema.shape,
+        properties: {
+          entity_name: {
+            type: 'string',
+            description: 'Name of the entity to get history for',
+            minLength: 1,
+            maxLength: 200
+          },
+          include_relationships: {
+            type: 'boolean',
+            description: 'Whether to include entity relationships in the response',
+            default: true
+          },
+          include_evolution: {
+            type: 'boolean',
+            description: 'Whether to include entity evolution history',
+            default: true
+          },
+          max_mentions: {
+            type: 'number',
+            description: 'Maximum number of mentions to return',
+            minimum: 1,
+            maximum: 500,
+            default: 100
+          },
+          time_range: {
+            type: 'object',
+            properties: {
+              start: {
+                type: 'number',
+                description: 'Start timestamp (Unix milliseconds)'
+              },
+              end: {
+                type: 'number',
+                description: 'End timestamp (Unix milliseconds)'
+              }
+            },
+            required: ['start', 'end'],
+            additionalProperties: false,
+            description: 'Optional time range to filter mentions and relationships'
+          }
+        },
         required: ['entity_name'],
         additionalProperties: false
       }

@@ -307,6 +307,15 @@ export async function insertTestData(dbManager: DatabaseManager, conversations: 
  * Falls back to mock if initialization fails (e.g., no network access)
  */
 export async function createTestEmbeddingManager(dbManager: DatabaseManager): Promise<EmbeddingManager> {
+  // Use mock if explicitly disabled or in CI without real embeddings enabled
+  if (process.env.DISABLE_REAL_EMBEDDINGS === 'true' || 
+      (process.env.CI === 'true' && process.env.USE_REAL_EMBEDDINGS !== 'true')) {
+    const { MockEmbeddingManager } = await import('../mocks/MockEmbeddingManager');
+    const mockManager = new MockEmbeddingManager(dbManager);
+    await mockManager.initialize();
+    return mockManager;
+  }
+  
   const testCacheDir = join(process.cwd(), '.test-cache-enhanced');
   if (!existsSync(testCacheDir)) {
     mkdirSync(testCacheDir, { recursive: true });
@@ -325,7 +334,10 @@ export async function createTestEmbeddingManager(dbManager: DatabaseManager): Pr
     return embeddingManager;
   } catch (error) {
     console.warn('Failed to initialize real embedding manager, using mock:', error instanceof Error ? error.message : 'Unknown error');
-    return createMockEmbeddingManager(dbManager);
+    const { MockEmbeddingManager } = await import('../mocks/MockEmbeddingManager');
+    const mockManager = new MockEmbeddingManager(dbManager);
+    await mockManager.initialize();
+    return mockManager;
   }
 }
 

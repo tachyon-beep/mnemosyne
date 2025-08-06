@@ -174,6 +174,9 @@ describe('EntityRepository', () => {
         metadata: { old: 'value' }
       });
 
+      // Add small delay to ensure updatedAt changes
+      await new Promise(resolve => setTimeout(resolve, 2));
+
       const updated = await entityRepository.update(entity.id, {
         name: 'New Name',
         confidenceScore: 0.9,

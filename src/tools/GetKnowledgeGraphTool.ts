@@ -85,7 +85,63 @@ export class GetKnowledgeGraphTool extends BaseTool<GetKnowledgeGraphArgs> {
       description: 'Explore the knowledge graph around an entity, finding connected entities and relationships',
       inputSchema: {
         type: 'object',
-        properties: GetKnowledgeGraphArgsSchema.shape,
+        properties: {
+          center_entity: {
+            type: 'string',
+            description: 'Name of the entity to center the knowledge graph around',
+            minLength: 1,
+            maxLength: 200
+          },
+          max_degrees: {
+            type: 'number',
+            description: 'Maximum degrees of separation to explore (1-4)',
+            minimum: 1,
+            maximum: 4,
+            default: 2
+          },
+          min_strength: {
+            type: 'number',
+            description: 'Minimum relationship strength threshold (0.0 to 1.0)',
+            minimum: 0.0,
+            maximum: 1.0,
+            default: 0.3
+          },
+          entity_types: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['person', 'organization', 'product', 'concept', 
+                     'location', 'technical', 'event', 'decision']
+            },
+            description: 'Filter connected entities by specific types'
+          },
+          relationship_types: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['works_for', 'created_by', 'discussed_with', 'related_to',
+                     'part_of', 'mentioned_with', 'temporal_sequence', 'cause_effect']
+            },
+            description: 'Filter relationships by specific types'
+          },
+          include_clusters: {
+            type: 'boolean',
+            description: 'Whether to include entity cluster analysis',
+            default: false
+          },
+          include_paths: {
+            type: 'boolean',
+            description: 'Whether to include shortest paths to connected entities',
+            default: true
+          },
+          max_entities: {
+            type: 'number',
+            description: 'Maximum number of connected entities to return',
+            minimum: 1,
+            maximum: 200,
+            default: 50
+          }
+        },
         required: ['center_entity'],
         additionalProperties: false
       }

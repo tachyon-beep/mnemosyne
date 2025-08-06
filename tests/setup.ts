@@ -5,6 +5,12 @@
  * global setup for all test files.
  */
 
+import { TextEncoder, TextDecoder } from 'util';
+
+// Fix for ONNX runtime in Node.js test environment
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder as any;
+
 // Extend Jest matchers if needed
 // import '@testing-library/jest-dom';
 

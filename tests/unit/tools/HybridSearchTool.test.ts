@@ -25,6 +25,7 @@ import {
   // setupMockTime, // Commented out as unused
   restoreTime
 } from '../../utils/test-helpers';
+import { parseToolResponse, parseToolResponseSafe } from '../../utils/test-response-helper';
 import { rmSync, existsSync } from 'fs';
 import { join } from 'path';
 
@@ -77,39 +78,43 @@ describe('HybridSearchTool', () => {
       const description = hybridSearchTool.getDescription();
       
       expect(name).toBe('hybrid_search');
-      expect(description).toContain('hybrid');
+      expect(description).toContain('combining');
       expect(description).toContain('semantic');
       expect(description).toContain('search');
     });
 
     test('should validate required parameters', async () => {
       // Missing query parameter
-      await expect(
-        hybridSearchTool.handle({} as any, {})
-      ).rejects.toThrow('Validation error');
+      const result1 = await hybridSearchTool.handle({} as any, {});
+      const response1 = parseToolResponseSafe(result1);
+      expect(response1.success).toBe(false);
+      expect(response1.error).toBe('ValidationError');
       
       // Empty query
-      await expect(
-        hybridSearchTool.handle({ query: '' }, {})
-      ).rejects.toThrow('Validation error');
+      const result2 = await hybridSearchTool.handle({ query: '' }, {});
+      const response2 = parseToolResponseSafe(result2);
+      expect(response2.success).toBe(false);
+      expect(response2.error).toBe('ValidationError');
     });
 
     test('should validate weight parameters', async () => {
       // Weights that don't sum to 1.0
-      await expect(
-        hybridSearchTool.handle({
-          query: 'test',
-          weights: { semantic: 0.8, fts: 0.3 } // Sums to 1.1
-        }, {})
-      ).rejects.toThrow('Validation error');
+      const result1 = await hybridSearchTool.handle({
+        query: 'test',
+        weights: { semantic: 0.8, fts: 0.3 } // Sums to 1.1
+      }, {});
+      const response1 = parseToolResponseSafe(result1);
+      expect(response1.success).toBe(false);
+      expect(response1.error).toBe('ValidationError');
       
       // Negative weights
-      await expect(
-        hybridSearchTool.handle({
-          query: 'test',
-          weights: { semantic: -0.1, fts: 1.1 }
-        }, {})
-      ).rejects.toThrow('Validation error');
+      const result2 = await hybridSearchTool.handle({
+        query: 'test',
+        weights: { semantic: -0.1, fts: 1.1 }
+      }, {});
+      const response2 = parseToolResponseSafe(result2);
+      expect(response2.success).toBe(false);
+      expect(response2.error).toBe('ValidationError');
       
       // Valid weights should work
       const result = await hybridSearchTool.handle({
@@ -117,18 +122,19 @@ describe('HybridSearchTool', () => {
         weights: { semantic: 0.7, fts: 0.3 }
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       expect(response.success).toBe(true);
     });
 
     test('should validate strategy parameter', async () => {
       // Invalid strategy
-      await expect(
-        hybridSearchTool.handle({
-          query: 'test',
-          strategy: 'invalid' as any
-        }, {})
-      ).rejects.toThrow('Validation error');
+      const result1 = await hybridSearchTool.handle({
+        query: 'test',
+        strategy: 'invalid' as any
+      }, {});
+      const response1 = parseToolResponseSafe(result1);
+      expect(response1.success).toBe(false);
+      expect(response1.error).toBe('ValidationError');
       
       // Valid strategies
       const strategies = ['auto', 'semantic', 'fts', 'hybrid'];
@@ -139,7 +145,7 @@ describe('HybridSearchTool', () => {
           strategy: strategy as any
         }, {});
         
-        const response = JSON.parse(result.content[0].text!);
+        const response = parseToolResponse(result);
         expect(response.success).toBe(true);
       }
     });
@@ -149,7 +155,7 @@ describe('HybridSearchTool', () => {
         query: 'machine learning'
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.pagination.limit).toBe(20);
@@ -165,7 +171,7 @@ describe('HybridSearchTool', () => {
         strategy: 'auto'
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.searchStrategy).toBeDefined();
@@ -180,7 +186,7 @@ describe('HybridSearchTool', () => {
         limit: 5
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.searchStrategy).toBe('semantic');
@@ -201,7 +207,7 @@ describe('HybridSearchTool', () => {
         limit: 5
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.searchStrategy).toBe('fts');
@@ -221,7 +227,7 @@ describe('HybridSearchTool', () => {
         limit: 10
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.searchStrategy).toBe('hybrid');
@@ -250,8 +256,8 @@ describe('HybridSearchTool', () => {
         weights: { semantic: 0.1, fts: 0.9 }
       }, {});
       
-      const semanticResponse = JSON.parse(semanticHeavyResult.content[0].text!);
-      const ftsResponse = JSON.parse(ftsHeavyResult.content[0].text!);
+      const semanticResponse = parseToolResponse(semanticHeavyResult);
+      const ftsResponse = parseToolResponse(ftsHeavyResult);
       
       expect(semanticResponse.success).toBe(true);
       expect(ftsResponse.success).toBe(true);
@@ -267,7 +273,7 @@ describe('HybridSearchTool', () => {
         limit: 10
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       
@@ -296,8 +302,8 @@ describe('HybridSearchTool', () => {
         weights: { semantic: 0.0, fts: 1.0 }
       }, {});
       
-      const semanticResponse = JSON.parse(allSemanticResult.content[0].text!);
-      const ftsResponse = JSON.parse(allFtsResult.content[0].text!);
+      const semanticResponse = parseToolResponse(allSemanticResult);
+      const ftsResponse = parseToolResponse(allFtsResult);
       
       expect(semanticResponse.success).toBe(true);
       expect(ftsResponse.success).toBe(true);
@@ -312,7 +318,7 @@ describe('HybridSearchTool', () => {
         strategy: 'hybrid'
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       
@@ -333,7 +339,7 @@ describe('HybridSearchTool', () => {
         strategy: 'hybrid'
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       
@@ -357,7 +363,7 @@ describe('HybridSearchTool', () => {
           limit: 5
         }, {});
         
-        const response = JSON.parse(result.content[0].text!);
+        const response = parseToolResponse(result);
         expect(response.success).toBe(true);
       }
     });
@@ -370,7 +376,7 @@ describe('HybridSearchTool', () => {
         limit: 3
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       
@@ -390,7 +396,7 @@ describe('HybridSearchTool', () => {
         includeMetrics: true
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.metadata).toHaveProperty('detailedTiming');
@@ -412,8 +418,8 @@ describe('HybridSearchTool', () => {
         strategy: 'auto'
       }, {});
       
-      const simpleResponse = JSON.parse(simpleResult.content[0].text!);
-      const complexResponse = JSON.parse(complexResult.content[0].text!);
+      const simpleResponse = parseToolResponse(simpleResult);
+      const complexResponse = parseToolResponse(complexResult);
       
       expect(simpleResponse.queryAnalysis.complexity).toBe('simple');
       expect(complexResponse.queryAnalysis.complexity).toBe('complex');
@@ -462,7 +468,7 @@ describe('HybridSearchTool', () => {
           limit: 10
         }, {});
         
-        const response = JSON.parse(result.content[0].text!);
+        const response = parseToolResponse(result);
         
         timer.expectUnder(strategy.target, `${strategy.name} search`);
         
@@ -481,7 +487,7 @@ describe('HybridSearchTool', () => {
         semanticThreshold: 0.1
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       timer.expectUnder(2000, 'Large result set hybrid search');
       
@@ -496,7 +502,7 @@ describe('HybridSearchTool', () => {
         limit: 10
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       
@@ -524,11 +530,14 @@ describe('HybridSearchTool', () => {
       
       const invalidTool = new HybridSearchTool(invalidEngine);
       
-      await expect(
-        invalidTool.handle({
-          query: 'test query'
-        }, {})
-      ).rejects.toThrow(ToolError);
+      const result = await invalidTool.handle({
+        query: 'test query'
+      }, {});
+      
+      // Tool should handle error gracefully and return error response
+      const response = parseToolResponse(result);
+      expect(response.success).toBe(true);
+      expect(response.searchStrategy).toBe('error');
     });
 
     test('should handle empty results gracefully', async () => {
@@ -538,7 +547,7 @@ describe('HybridSearchTool', () => {
         strategy: 'hybrid'
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       
       expect(response.success).toBe(true);
       expect(response.results).toHaveLength(0);
@@ -548,25 +557,26 @@ describe('HybridSearchTool', () => {
 
     test('should validate date parameters properly', async () => {
       // Invalid start date
-      await expect(
-        hybridSearchTool.handle({
-          query: 'test',
-          startDate: 'not-a-date'
-        }, {})
-      ).rejects.toThrow(ToolError);
+      const result1 = await hybridSearchTool.handle({
+        query: 'test',
+        startDate: 'not-a-date'
+      }, {});
+      const response1 = parseToolResponseSafe(result1);
+      expect(response1.success).toBe(false);
+      expect(response1.error).toBe('ValidationError');
       
       // Start date after end date
       const now = Date.now();
       const startDate = new Date(now).toISOString();
       const endDate = new Date(now - 3600000).toISOString();
       
-      await expect(
-        hybridSearchTool.handle({
-          query: 'test',
-          startDate,
-          endDate
-        }, {})
-      ).rejects.toThrow(ToolError);
+      const result2 = await hybridSearchTool.handle({
+        query: 'test',
+        startDate,
+        endDate
+      }, {});
+      const response2 = parseToolResponseSafe(result2);
+      expect(response2.success).toBe(false);
     });
 
     test('should handle special characters in queries', async () => {
@@ -585,7 +595,7 @@ describe('HybridSearchTool', () => {
           limit: 5
         }, {});
         
-        const response = JSON.parse(result.content[0].text!);
+        const response = parseToolResponse(result);
         expect(response.success).toBe(true);
       }
     });
@@ -598,7 +608,7 @@ describe('HybridSearchTool', () => {
         strategy: 'auto'
       }, {});
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = parseToolResponse(result);
       expect(response.success).toBe(true);
     });
   });
@@ -669,8 +679,8 @@ describe('HybridSearchTool', () => {
           offset: 3
         }, {});
         
-        const firstResponse = JSON.parse(firstPage.content[0].text!);
-        const secondResponse = JSON.parse(secondPage.content[0].text!);
+        const firstResponse = parseToolResponse(firstPage);
+        const secondResponse = parseToolResponse(secondPage);
         
         expect(firstResponse.success).toBe(true);
         expect(secondResponse.success).toBe(true);

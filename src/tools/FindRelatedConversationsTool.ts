@@ -75,7 +75,65 @@ export class FindRelatedConversationsTool extends BaseTool<FindRelatedConversati
       description: 'Find conversations related to specific entities based on knowledge graph relationships',
       inputSchema: {
         type: 'object',
-        properties: FindRelatedConversationsArgsSchema.shape,
+        properties: {
+          entities: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'List of entity names to find related conversations for',
+            minItems: 1,
+            maxItems: 10
+          },
+          relationship_types: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['works_for', 'created_by', 'discussed_with', 'related_to', 
+                     'part_of', 'mentioned_with', 'temporal_sequence', 'cause_effect']
+            },
+            description: 'Filter by specific relationship types'
+          },
+          min_strength: {
+            type: 'number',
+            description: 'Minimum relationship strength threshold (0.0 to 1.0)',
+            minimum: 0.0,
+            maximum: 1.0,
+            default: 0.3
+          },
+          time_range: {
+            type: 'object',
+            properties: {
+              start: {
+                type: 'number',
+                description: 'Start timestamp (Unix milliseconds)'
+              },
+              end: {
+                type: 'number',
+                description: 'End timestamp (Unix milliseconds)'
+              }
+            },
+            required: ['start', 'end'],
+            additionalProperties: false,
+            description: 'Optional time range to filter conversations'
+          },
+          max_results: {
+            type: 'number',
+            description: 'Maximum number of conversations to return',
+            minimum: 1,
+            maximum: 100,
+            default: 20
+          },
+          include_snippets: {
+            type: 'boolean',
+            description: 'Whether to include relevant message snippets',
+            default: true
+          },
+          sort_by: {
+            type: 'string',
+            enum: ['relevance', 'recency', 'entity_count'],
+            description: 'How to sort the results',
+            default: 'relevance'
+          }
+        },
         required: ['entities'],
         additionalProperties: false
       }
