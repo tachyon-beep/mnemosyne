@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "mcp-persistence": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {
+        "PERSISTENCE_DB_PATH": "/home/john/mnemosyne/.claude/conversations.db",
+        "PERSISTENCE_LOG_LEVEL": "info",
+        "PERSISTENCE_DEBUG": "false"
+      }
+    }
+  }
+}

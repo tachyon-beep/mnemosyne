@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This is the first production-ready release with complete feature set, comprehensive testing, and professional packaging.
 
 ### ✨ Complete Feature Set
-- **14 MCP Tools**: Full suite of conversation management, search, and intelligence tools
+- **18 MCP Tools**: Full suite of conversation management, search, and intelligence tools
 - **Advanced Search**: Full-text, semantic, and hybrid search capabilities
 - **Knowledge Graph**: Entity extraction and relationship mapping across conversations
 - **Context Intelligence**: Multi-level summarization and proactive insights

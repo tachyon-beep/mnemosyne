@@ -51,7 +51,7 @@ mcp-persistence-server --version
 #### Option 2: From Source
 ```bash
 # Clone the repository
-git clone https://github.com/mcp-community/mcp-persistence-server.git
+git clone https://github.com/YOUR_USERNAME/mcp-persistence-server.git
 cd mcp-persistence-server
 
 # Install dependencies and build
@@ -98,7 +98,7 @@ Add to your Claude Desktop MCP settings:
 
 ## 📖 Available Tools
 
-The server provides 14 MCP-compliant tools organized into logical groups:
+The server provides 18 MCP-compliant tools organized into logical groups:
 
 ### 📝 Core Persistence Tools
 - **`save_message`**: Save messages to conversation history with threading support
@@ -116,6 +116,9 @@ The server provides 14 MCP-compliant tools organized into logical groups:
 - **`get_context_summary`**: Generate conversation summaries at multiple detail levels
 - **`get_progressive_detail`**: Dynamically load conversation context based on needs
 - **`get_proactive_insights`**: Extract insights, patterns, and trends from conversations
+- **`check_for_conflicts`**: Detect conflicting information across conversations
+- **`suggest_relevant_context`**: AI-powered context suggestions for enhanced responses
+- **`auto_tag_conversation`**: Intelligent conversation categorization and tagging
 - **`configure_llm_provider`**: Configure AI providers (Ollama, OpenAI) for enhanced features
 
 ### 🕸️ Knowledge Graph Tools

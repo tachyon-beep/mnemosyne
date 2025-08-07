@@ -1,38 +1,28 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-env/
-ENV/
-.venv
-pip-log.txt
-pip-delete-this-directory.txt
-.pytest_cache/
-*.egg-info/
-dist/
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+# Note: dist/ is intentionally included for npm publishing
+*.tsbuildinfo
+out/
 build/
 
-# Node.js
-node_modules/
+# TypeScript source maps (can be large)
+*.js.map
+
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.npm
-.yarn-integrity
+lerna-debug.log*
+*.log
 
-# TypeScript
-*.tsbuildinfo
-dist/
-out/
-*.js
-*.js.map
-*.d.ts
-!jest.config.js
-!*.config.js
-!.eslintrc.js
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
 
 # IDE
 .vscode/
@@ -42,8 +32,9 @@ out/
 *~
 .DS_Store
 
-# Claude Code
-# .claude/agents/ should be committed to share with team
+# Claude Code specific files
+.claude/conversations.db*
+.claude/settings.local.json
 
 # Environment
 .env
@@ -54,34 +45,39 @@ out/
 logs/
 *.log
 
-# Database
+# Database files (should not be committed)
 *.db
 *.sqlite
 *.sqlite3
-!test/*.db
 *.db-shm
 *.db-wal
 *.db.backup-*
-conversations.db.backup-*
+conversations.db*
+test-*.db
 
 # Coverage
 coverage/
 .nyc_output/
 
-# Misc
+# Cache and temporary files
 .cache/
 tmp/
 temp/
+*.tmp
 
-# Documentation build
-docs/_build/
-docs/.working-memory/
+# AI/ML model files (can be large)
+models/
+*.onnx
+*.bin
+*.safetensors
 
-# MCP specific
-mcp-persistence.db
-conversations.db
-.claude/conversations.db*
-.mcp.json
+# Test artifacts
+test-*.js
+*-test.js
+debug-*.js
+minimal-test.js
+comprehensive-test.js
 
-#Ignore vscode AI rules
-.github/copilot-instructions.md
+# OS generated files
+Thumbs.db
+Desktop.ini
