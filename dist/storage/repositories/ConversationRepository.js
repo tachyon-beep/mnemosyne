@@ -315,5 +315,38 @@ export class ConversationRepository extends BaseRepository {
             metadata: this.parseMetadata(row.metadata)
         };
     }
+    /**
+     * Get conversations with pagination and optional filters
+     */
+    getConversations(options = {}) {
+        const pagination = this.validatePagination(options.limit, options.offset);
+        let whereClause = '';
+        let params = [];
+        if (options.startDate) {
+            whereClause += 'WHERE created_at >= ?';
+            params.push(options.startDate.getTime());
+        }
+        if (options.endDate) {
+            whereClause += whereClause ? ' AND created_at <= ?' : 'WHERE created_at <= ?';
+            params.push(options.endDate.getTime());
+        }
+        const rows = this.executeStatementAll('get_conversations_paginated', `SELECT id, created_at, updated_at, title, metadata
+       FROM conversations
+       ${whereClause}
+       ORDER BY updated_at DESC
+       LIMIT ? OFFSET ?`, [...params, pagination.limit, pagination.offset]);
+        const conversations = rows.map(row => ({
+            id: row.id,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            title: row.title || undefined,
+            metadata: this.parseMetadata(row.metadata)
+        }));
+        return {
+            data: conversations,
+            hasMore: conversations.length === pagination.limit,
+            totalCount: undefined
+        };
+    }
 }
 //# sourceMappingURL=ConversationRepository.js.map

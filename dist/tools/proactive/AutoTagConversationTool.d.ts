@@ -25,40 +25,40 @@ export declare const AutoTagConversationSchema: z.ZodObject<{
         minProjectConfidence: z.ZodDefault<z.ZodNumber>;
         urgencyKeywords: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     }, "strip", z.ZodTypeAny, {
-        minEntityRelevance: number;
-        maxTopicTags: number;
-        minProjectConfidence: number;
-        urgencyKeywords?: string[] | undefined;
+        minEntityRelevance?: number;
+        maxTopicTags?: number;
+        minProjectConfidence?: number;
+        urgencyKeywords?: string[];
     }, {
-        minEntityRelevance?: number | undefined;
-        maxTopicTags?: number | undefined;
-        minProjectConfidence?: number | undefined;
-        urgencyKeywords?: string[] | undefined;
+        minEntityRelevance?: number;
+        maxTopicTags?: number;
+        minProjectConfidence?: number;
+        urgencyKeywords?: string[];
     }>>;
     updateConversation: z.ZodDefault<z.ZodBoolean>;
     returnAnalysis: z.ZodDefault<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    conversationId: string;
-    analysisTypes: ("topic_tags" | "activity_classification" | "urgency_analysis" | "project_contexts")[];
-    updateConversation: boolean;
-    returnAnalysis: boolean;
+    conversationId?: string;
     config?: {
-        minEntityRelevance: number;
-        maxTopicTags: number;
-        minProjectConfidence: number;
-        urgencyKeywords?: string[] | undefined;
-    } | undefined;
+        minEntityRelevance?: number;
+        maxTopicTags?: number;
+        minProjectConfidence?: number;
+        urgencyKeywords?: string[];
+    };
+    analysisTypes?: ("topic_tags" | "activity_classification" | "urgency_analysis" | "project_contexts")[];
+    updateConversation?: boolean;
+    returnAnalysis?: boolean;
 }, {
-    conversationId: string;
+    conversationId?: string;
     config?: {
-        minEntityRelevance?: number | undefined;
-        maxTopicTags?: number | undefined;
-        minProjectConfidence?: number | undefined;
-        urgencyKeywords?: string[] | undefined;
-    } | undefined;
-    analysisTypes?: ("topic_tags" | "activity_classification" | "urgency_analysis" | "project_contexts")[] | undefined;
-    updateConversation?: boolean | undefined;
-    returnAnalysis?: boolean | undefined;
+        minEntityRelevance?: number;
+        maxTopicTags?: number;
+        minProjectConfidence?: number;
+        urgencyKeywords?: string[];
+    };
+    analysisTypes?: ("topic_tags" | "activity_classification" | "urgency_analysis" | "project_contexts")[];
+    updateConversation?: boolean;
+    returnAnalysis?: boolean;
 }>;
 export type AutoTagConversationInput = z.infer<typeof AutoTagConversationSchema>;
 /**

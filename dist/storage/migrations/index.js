@@ -9,6 +9,9 @@ import { enhancedSearchMigration } from './002_enhanced_search.js';
 import { migration_003_intelligent_context } from './003_intelligent_context.js';
 import { migration_004_knowledge_graph } from './004_knowledge_graph.js';
 import { migration_005_conflict_resolution } from './005_conflict_resolution.js';
+import { analyticsMigration } from './006_analytics.js';
+import { optimizedAnalyticsIndexes } from '../../analytics/performance/OptimizedAnalyticsIndexes.js';
+import { indexMonitoringMigration } from './008_index_monitoring.js';
 /**
  * All available migrations in order
  *
@@ -23,7 +26,10 @@ export const migrations = [
     enhancedSearchMigration,
     migration_003_intelligent_context,
     migration_004_knowledge_graph,
-    migration_005_conflict_resolution
+    migration_005_conflict_resolution,
+    analyticsMigration,
+    optimizedAnalyticsIndexes,
+    indexMonitoringMigration
 ];
 /**
  * Validate that all migrations are properly configured

@@ -28,21 +28,21 @@ export declare const CheckForConflictsSchema: z.ZodObject<{
     includeResolutions: z.ZodDefault<z.ZodBoolean>;
     limit: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    limit: number;
-    conflictTypes: ("property_contradiction" | "status_inconsistency" | "temporal_impossibility" | "relationship_conflict" | "existence_dispute" | "identity_confusion" | "authority_disagreement")[];
-    minSeverity: "low" | "medium" | "high" | "critical";
-    maxAge: number;
-    includeResolutions: boolean;
-    conversationId?: string | undefined;
-    entityIds?: string[] | undefined;
+    conversationId?: string;
+    limit?: number;
+    entityIds?: string[];
+    conflictTypes?: ("property_contradiction" | "status_inconsistency" | "temporal_impossibility" | "relationship_conflict" | "existence_dispute" | "identity_confusion" | "authority_disagreement")[];
+    minSeverity?: "low" | "medium" | "high" | "critical";
+    maxAge?: number;
+    includeResolutions?: boolean;
 }, {
-    conversationId?: string | undefined;
-    limit?: number | undefined;
-    entityIds?: string[] | undefined;
-    conflictTypes?: ("property_contradiction" | "status_inconsistency" | "temporal_impossibility" | "relationship_conflict" | "existence_dispute" | "identity_confusion" | "authority_disagreement")[] | undefined;
-    minSeverity?: "low" | "medium" | "high" | "critical" | undefined;
-    maxAge?: number | undefined;
-    includeResolutions?: boolean | undefined;
+    conversationId?: string;
+    limit?: number;
+    entityIds?: string[];
+    conflictTypes?: ("property_contradiction" | "status_inconsistency" | "temporal_impossibility" | "relationship_conflict" | "existence_dispute" | "identity_confusion" | "authority_disagreement")[];
+    minSeverity?: "low" | "medium" | "high" | "critical";
+    maxAge?: number;
+    includeResolutions?: boolean;
 }>;
 export type CheckForConflictsInput = z.infer<typeof CheckForConflictsSchema>;
 /**

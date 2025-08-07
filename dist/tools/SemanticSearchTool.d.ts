@@ -18,23 +18,23 @@ declare const semanticSearchSchema: z.ZodObject<{
     threshold: z.ZodDefault<z.ZodNumber>;
     explainResults: z.ZodDefault<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    query: string;
-    limit: number;
-    offset: number;
-    threshold: number;
-    explainResults: boolean;
-    conversationId?: string | undefined;
-    startDate?: string | undefined;
-    endDate?: string | undefined;
+    conversationId?: string;
+    query?: string;
+    limit?: number;
+    offset?: number;
+    startDate?: string;
+    endDate?: string;
+    threshold?: number;
+    explainResults?: boolean;
 }, {
-    query: string;
-    conversationId?: string | undefined;
-    limit?: number | undefined;
-    offset?: number | undefined;
-    startDate?: string | undefined;
-    endDate?: string | undefined;
-    threshold?: number | undefined;
-    explainResults?: boolean | undefined;
+    conversationId?: string;
+    query?: string;
+    limit?: number;
+    offset?: number;
+    startDate?: string;
+    endDate?: string;
+    threshold?: number;
+    explainResults?: boolean;
 }>;
 type SemanticSearchParams = z.infer<typeof semanticSearchSchema>;
 export declare class SemanticSearchTool extends BaseTool<SemanticSearchParams> {
@@ -43,13 +43,13 @@ export declare class SemanticSearchTool extends BaseTool<SemanticSearchParams> {
     protected executeImpl(params: SemanticSearchParams, context: ToolContext): Promise<{
         success: boolean;
         results: {
-            explanation?: string | undefined;
+            explanation: string;
             messageId: string;
             conversationId: string;
             content: string;
             similarity: number;
             preview: string;
-            conversationTitle: string | undefined;
+            conversationTitle: string;
             createdAt: number;
         }[];
         totalCount: number;

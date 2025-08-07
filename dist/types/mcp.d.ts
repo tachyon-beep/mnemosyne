@@ -193,13 +193,33 @@ export declare const SuggestRelevantContextToolDef: MCPTool;
  */
 export declare const AutoTagConversationToolDef: MCPTool;
 /**
+ * Tool definition for get_conversation_analytics
+ */
+export declare const GetConversationAnalyticsToolDef: MCPTool;
+/**
+ * Tool definition for analyze_productivity_patterns
+ */
+export declare const AnalyzeProductivityPatternsToolDef: MCPTool;
+/**
+ * Tool definition for detect_knowledge_gaps
+ */
+export declare const DetectKnowledgeGapsToolDef: MCPTool;
+/**
+ * Tool definition for track_decision_effectiveness
+ */
+export declare const TrackDecisionEffectivenessToolDef: MCPTool;
+/**
+ * Tool definition for generate_analytics_report
+ */
+export declare const GenerateAnalyticsReportToolDef: MCPTool;
+/**
  * All available tools in the persistence system
  */
 export declare const AllTools: MCPTool[];
 /**
  * Tool name type for type safety
  */
-export type ToolName = 'save_message' | 'search_messages' | 'get_conversation' | 'get_conversations' | 'delete_conversation' | 'export_conversations' | 'get_database_stats' | 'semantic_search' | 'hybrid_search' | 'get_context_summary' | 'get_relevant_snippets' | 'configure_llm_provider' | 'get_progressive_detail' | 'get_entity_history' | 'find_related_conversations' | 'get_knowledge_graph' | 'get_proactive_insights' | 'check_for_conflicts' | 'suggest_relevant_context' | 'auto_tag_conversation';
+export type ToolName = 'save_message' | 'search_messages' | 'get_conversation' | 'get_conversations' | 'delete_conversation' | 'export_conversations' | 'get_database_stats' | 'semantic_search' | 'hybrid_search' | 'get_context_summary' | 'get_relevant_snippets' | 'configure_llm_provider' | 'get_progressive_detail' | 'get_entity_history' | 'find_related_conversations' | 'get_knowledge_graph' | 'get_proactive_insights' | 'check_for_conflicts' | 'suggest_relevant_context' | 'auto_tag_conversation' | 'get_conversation_analytics' | 'analyze_productivity_patterns' | 'detect_knowledge_gaps' | 'track_decision_effectiveness' | 'generate_analytics_report';
 /**
  * MCP transport types
  */
@@ -222,15 +242,15 @@ export declare const MCPRequestSchema: z.ZodObject<{
     method: z.ZodString;
     params: z.ZodOptional<z.ZodAny>;
 }, "strip", z.ZodTypeAny, {
-    id: string | number;
-    jsonrpc: "2.0";
-    method: string;
     params?: any;
+    id?: string | number;
+    jsonrpc?: "2.0";
+    method?: string;
 }, {
-    id: string | number;
-    jsonrpc: "2.0";
-    method: string;
     params?: any;
+    id?: string | number;
+    jsonrpc?: "2.0";
+    method?: string;
 }>;
 /**
  * Validation schema for MCP responses
@@ -244,31 +264,31 @@ export declare const MCPResponseSchema: z.ZodObject<{
         message: z.ZodString;
         data: z.ZodOptional<z.ZodAny>;
     }, "strip", z.ZodTypeAny, {
-        code: number;
-        message: string;
+        code?: number;
+        message?: string;
         data?: any;
     }, {
-        code: number;
-        message: string;
+        code?: number;
+        message?: string;
         data?: any;
     }>>;
 }, "strip", z.ZodTypeAny, {
-    id: string | number;
-    jsonrpc: "2.0";
     error?: {
-        code: number;
-        message: string;
+        code?: number;
+        message?: string;
         data?: any;
-    } | undefined;
+    };
+    id?: string | number;
+    jsonrpc?: "2.0";
     result?: any;
 }, {
-    id: string | number;
-    jsonrpc: "2.0";
     error?: {
-        code: number;
-        message: string;
+        code?: number;
+        message?: string;
         data?: any;
-    } | undefined;
+    };
+    id?: string | number;
+    jsonrpc?: "2.0";
     result?: any;
 }>;
 export type MCPRequestType = z.infer<typeof MCPRequestSchema>;

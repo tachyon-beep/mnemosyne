@@ -268,6 +268,95 @@ export class ToolRegistry {
       console.log('[INFO] Skipping Phase 4 tools - database manager not available');
     }
 
+    // Register Phase 5 analytics tools if database manager is available
+    if (this.dependencies.databaseManager) {
+      console.log('[INFO] Registering Phase 5 analytics tools...');
+      
+      try {
+        const {
+          GetConversationAnalyticsTool,
+          AnalyzeProductivityPatternsTool,
+          DetectKnowledgeGapsTool,
+          TrackDecisionEffectivenessTool,
+          GenerateAnalyticsReportTool
+        } = await import('../tools/analytics/index.js');
+        
+        // Import analytics repositories
+        const {
+          ConversationAnalyticsRepository,
+          ProductivityPatternsRepository,
+          KnowledgeGapsRepository,
+          DecisionTrackingRepository
+        } = await import('../analytics/repositories/index.js');
+        
+        // Import analyzers
+        const { ConversationFlowAnalyzer } = await import('../analytics/analyzers/ConversationFlowAnalyzer.js');
+        const { ProductivityAnalyzer } = await import('../analytics/analyzers/ProductivityAnalyzer.js');
+        const { KnowledgeGapDetector } = await import('../analytics/analyzers/KnowledgeGapDetector.js');
+        const { DecisionTracker } = await import('../analytics/analyzers/DecisionTracker.js');
+        
+        // Import analytics engine
+        const { AnalyticsEngine } = await import('../analytics/services/AnalyticsEngine.js');
+        
+        // Create analytics repositories
+        const conversationAnalyticsRepo = new ConversationAnalyticsRepository(this.dependencies.databaseManager);
+        const productivityPatternsRepo = new ProductivityPatternsRepository(this.dependencies.databaseManager);
+        const knowledgeGapsRepo = new KnowledgeGapsRepository(this.dependencies.databaseManager);
+        const decisionTrackingRepo = new DecisionTrackingRepository(this.dependencies.databaseManager);
+        
+        // Create analyzers
+        const conversationFlowAnalyzer = new ConversationFlowAnalyzer();
+        const productivityAnalyzer = new ProductivityAnalyzer();
+        const knowledgeGapDetector = new KnowledgeGapDetector();
+        const decisionTracker = new DecisionTracker();
+        
+        // Create analytics engine
+        const analyticsEngine = new AnalyticsEngine(this.dependencies.databaseManager);
+        
+        // Common dependencies for analytics tools
+        const analyticsToolDependencies = {
+          analyticsEngine,
+          conversationRepository: this.dependencies.conversationRepository,
+          messageRepository: this.dependencies.messageRepository,
+          conversationFlowAnalyzer,
+          productivityAnalyzer,
+          knowledgeGapDetector,
+          decisionTracker
+        };
+        
+        // Create and register analytics tools
+        const getConversationAnalyticsTool = new GetConversationAnalyticsTool(analyticsToolDependencies);
+        const analyzeProductivityPatternsTool = new AnalyzeProductivityPatternsTool({
+          ...analyticsToolDependencies,
+          productivityPatternsRepository: productivityPatternsRepo
+        });
+        const detectKnowledgeGapsTool = new DetectKnowledgeGapsTool({
+          ...analyticsToolDependencies,
+          knowledgeGapsRepository: knowledgeGapsRepo
+        });
+        const trackDecisionEffectivenessTool = new TrackDecisionEffectivenessTool({
+          ...analyticsToolDependencies,
+          decisionTrackingRepository: decisionTrackingRepo
+        });
+        const generateAnalyticsReportTool = new GenerateAnalyticsReportTool(analyticsToolDependencies);
+        
+        // Register Phase 5 analytics tools
+        this.registerTool('get_conversation_analytics', getConversationAnalyticsTool, registrationTime);
+        this.registerTool('analyze_productivity_patterns', analyzeProductivityPatternsTool, registrationTime);
+        this.registerTool('detect_knowledge_gaps', detectKnowledgeGapsTool, registrationTime);
+        this.registerTool('track_decision_effectiveness', trackDecisionEffectivenessTool, registrationTime);
+        this.registerTool('generate_analytics_report', generateAnalyticsReportTool, registrationTime);
+        
+        console.log('[INFO] Phase 5 analytics tools registered successfully');
+        
+      } catch (error) {
+        console.error('[ERROR] Failed to register Phase 5 analytics tools:', error);
+        console.log('[INFO] Skipping Phase 5 analytics tools due to import error');
+      }
+    } else {
+      console.log('[INFO] Skipping Phase 5 analytics tools - database manager not available');
+    }
+
   }
 
   /**
@@ -627,7 +716,16 @@ export function isValidToolName(name: string): name is ToolName {
     'get_progressive_detail',
     'get_entity_history',
     'find_related_conversations',
-    'get_knowledge_graph'
+    'get_knowledge_graph',
+    'get_proactive_insights',
+    'check_for_conflicts',
+    'suggest_relevant_context',
+    'auto_tag_conversation',
+    'get_conversation_analytics',
+    'analyze_productivity_patterns',
+    'detect_knowledge_gaps',
+    'track_decision_effectiveness',
+    'generate_analytics_report'
   ];
   return validNames.includes(name as ToolName);
 }

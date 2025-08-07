@@ -77,8 +77,8 @@ export declare abstract class BaseTool<TInput = any, TOutput = any> {
  * Custom error classes for better error handling
  */
 export declare class ValidationError extends Error {
-    details?: any | undefined;
-    constructor(message: string, details?: any | undefined);
+    details?: any;
+    constructor(message: string, details?: any);
 }
 export declare class NotFoundError extends Error {
     constructor(message: string);
@@ -87,8 +87,8 @@ export declare class ConflictError extends Error {
     constructor(message: string);
 }
 export declare class DatabaseError extends Error {
-    originalError?: Error | undefined;
-    constructor(message: string, originalError?: Error | undefined);
+    originalError?: Error;
+    constructor(message: string, originalError?: Error);
 }
 /**
  * Type guard to check if an error is a known error type

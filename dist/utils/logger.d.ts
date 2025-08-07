@@ -197,7 +197,7 @@ export declare class PerformanceTimer {
     private logger?;
     private startTime;
     private startTimestamp;
-    constructor(operation: string, logger?: Logger | undefined);
+    constructor(operation: string, logger?: Logger);
     /**
      * Stop the timer and log the performance metrics
      */

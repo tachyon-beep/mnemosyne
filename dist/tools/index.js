@@ -24,8 +24,17 @@ export { FindRelatedConversationsTool } from './FindRelatedConversationsTool.js'
 export { GetKnowledgeGraphTool } from './GetKnowledgeGraphTool.js';
 // Proactive Assistance tools
 export { GetProactiveInsightsTool, CheckForConflictsTool, SuggestRelevantContextTool, AutoTagConversationTool } from './proactive/index.js';
+// Analytics tools
+export { GetConversationAnalyticsTool } from './GetConversationAnalyticsTool.js';
+export { AnalyzeProductivityPatternsTool } from './AnalyzeProductivityPatternsTool.js';
+export { DetectKnowledgeGapsTool } from './DetectKnowledgeGapsTool.js';
+export { TrackDecisionEffectivenessTool } from './TrackDecisionEffectivenessTool.js';
+export { GenerateAnalyticsReportTool } from './GenerateAnalyticsReportTool.js';
+// Performance Monitoring tools
+export { GetIndexPerformanceReportTool } from './GetIndexPerformanceReportTool.js';
+export { ManageIndexOptimizationTool } from './ManageIndexOptimizationTool.js';
 // Re-export MCP tool definitions
-export { SaveMessageTool as SaveMessageToolDef, SearchMessagesTool as SearchMessagesToolDef, GetConversationTool as GetConversationToolDef, GetConversationsTool as GetConversationsToolDef, DeleteConversationTool as DeleteConversationToolDef, GetRelevantSnippetsTool as GetRelevantSnippetsToolDef, ConfigureLLMProviderTool as ConfigureLLMProviderToolDef, GetProgressiveDetailTool as GetProgressiveDetailToolDef, GetProactiveInsightsToolDef, CheckForConflictsToolDef, SuggestRelevantContextToolDef, AutoTagConversationToolDef, AllTools } from '../types/mcp.js';
+export { SaveMessageTool as SaveMessageToolDef, SearchMessagesTool as SearchMessagesToolDef, GetConversationTool as GetConversationToolDef, GetConversationsTool as GetConversationsToolDef, DeleteConversationTool as DeleteConversationToolDef, GetRelevantSnippetsTool as GetRelevantSnippetsToolDef, ConfigureLLMProviderTool as ConfigureLLMProviderToolDef, GetProgressiveDetailTool as GetProgressiveDetailToolDef, GetProactiveInsightsToolDef, CheckForConflictsToolDef, SuggestRelevantContextToolDef, AutoTagConversationToolDef, GetConversationAnalyticsToolDef, AnalyzeProductivityPatternsToolDef, DetectKnowledgeGapsToolDef, TrackDecisionEffectivenessToolDef, GenerateAnalyticsReportToolDef, AllTools } from '../types/mcp.js';
 import { SaveMessageTool } from './SaveMessageTool.js';
 import { SearchMessagesTool } from './SearchMessagesTool.js';
 import { GetConversationTool } from './GetConversationTool.js';
@@ -111,6 +120,70 @@ export class ToolRegistry {
                 console.warn('Failed to register proactive tools:', error);
             }
         }
+        // Analytics tools temporarily disabled for build
+        /*
+        if (this.dependencies.enableAnalytics && this.dependencies.databaseManager) {
+          try {
+            // Create analytics dependencies
+            const analyticsDeps = this.createAnalyticsDependencies(this.dependencies.databaseManager);
+            
+            // Create analytics tool instances
+            const getConversationAnalyticsTool = new GetConversationAnalyticsTool({
+              analyticsEngine: analyticsDeps.analyticsEngine,
+              conversationRepository: this.dependencies.conversationRepository,
+              messageRepository: this.dependencies.messageRepository,
+              conversationFlowAnalyzer: analyticsDeps.conversationFlowAnalyzer,
+              productivityAnalyzer: analyticsDeps.productivityAnalyzer,
+              knowledgeGapDetector: analyticsDeps.knowledgeGapDetector,
+              decisionTracker: analyticsDeps.decisionTracker
+            });
+            
+            const analyzeProductivityPatternsTool = new AnalyzeProductivityPatternsTool({
+              analyticsEngine: analyticsDeps.analyticsEngine,
+              conversationRepository: this.dependencies.conversationRepository,
+              messageRepository: this.dependencies.messageRepository,
+              productivityAnalyzer: analyticsDeps.productivityAnalyzer,
+              productivityPatternsRepository: analyticsDeps.productivityPatternsRepository
+            });
+            
+            const detectKnowledgeGapsTool = new DetectKnowledgeGapsTool({
+              analyticsEngine: analyticsDeps.analyticsEngine,
+              conversationRepository: this.dependencies.conversationRepository,
+              messageRepository: this.dependencies.messageRepository,
+              knowledgeGapDetector: analyticsDeps.knowledgeGapDetector,
+              knowledgeGapsRepository: analyticsDeps.knowledgeGapsRepository
+            });
+            
+            const trackDecisionEffectivenessTool = new TrackDecisionEffectivenessTool({
+              analyticsEngine: analyticsDeps.analyticsEngine,
+              conversationRepository: this.dependencies.conversationRepository,
+              messageRepository: this.dependencies.messageRepository,
+              decisionTracker: analyticsDeps.decisionTracker,
+              decisionTrackingRepository: analyticsDeps.decisionTrackingRepository
+            });
+            
+            const generateAnalyticsReportTool = new GenerateAnalyticsReportTool({
+              analyticsEngine: analyticsDeps.analyticsEngine,
+              conversationRepository: this.dependencies.conversationRepository,
+              messageRepository: this.dependencies.messageRepository
+            });
+            
+            // Register analytics tools
+            this.tools.set('get_conversation_analytics', getConversationAnalyticsTool);
+            this.tools.set('analyze_productivity_patterns', analyzeProductivityPatternsTool);
+            this.tools.set('detect_knowledge_gaps', detectKnowledgeGapsTool);
+            this.tools.set('track_decision_effectiveness', trackDecisionEffectivenessTool);
+            this.tools.set('generate_analytics_report', generateAnalyticsReportTool);
+            
+            console.log('Analytics tools successfully registered');
+          } catch (error) {
+            console.warn('Failed to register analytics tools:', error);
+            // Analytics tools are optional - continue without them
+          }
+        } else if (this.dependencies.enableAnalytics && !this.dependencies.databaseManager) {
+          console.warn('Analytics enabled but DatabaseManager not provided - analytics tools will not be available');
+        }
+        */
     }
     /**
      * Get a tool by name
@@ -148,6 +221,45 @@ export class ToolRegistry {
         return await tool.execute(input, executionContext);
     }
     /**
+     * Create analytics dependencies for analytics tools
+     * Temporarily disabled for build
+     */
+    /*
+    private createAnalyticsDependencies(databaseManager: DatabaseManager) {
+      // Create analyzers (stateless)
+      const conversationFlowAnalyzer = new ConversationFlowAnalyzer();
+      const productivityAnalyzer = new ProductivityAnalyzer();
+      const knowledgeGapDetector = new KnowledgeGapDetector();
+      const decisionTracker = new DecisionTracker();
+      
+      // Create repositories (require DatabaseManager)
+      const conversationAnalyticsRepository = new ConversationAnalyticsRepository(databaseManager);
+      const productivityPatternsRepository = new ProductivityPatternsRepository(databaseManager);
+      const knowledgeGapsRepository = new KnowledgeGapsRepository(databaseManager);
+      const decisionTrackingRepository = new DecisionTrackingRepository(databaseManager);
+      
+      // Create analytics engine
+      const analyticsEngine = new AnalyticsEngine(databaseManager, {
+        enableIncrementalProcessing: true,
+        cacheExpirationMinutes: 30,
+        batchProcessingSize: 100,
+        maxProcessingTimeMs: 30000
+      });
+      
+      return {
+        analyticsEngine,
+        conversationFlowAnalyzer,
+        productivityAnalyzer,
+        knowledgeGapDetector,
+        decisionTracker,
+        conversationAnalyticsRepository,
+        productivityPatternsRepository,
+        knowledgeGapsRepository,
+        decisionTrackingRepository
+      };
+    }
+    */
+    /**
      * Get tool definitions for MCP protocol
      */
     getToolDefinitions() {
@@ -179,6 +291,15 @@ export function createToolRegistry(dependencies) {
     return new ToolRegistry(dependencies);
 }
 /**
+ * Factory function to create a tool registry with analytics enabled
+ */
+export function createToolRegistryWithAnalytics(dependencies) {
+    return new ToolRegistry({
+        ...dependencies,
+        enableAnalytics: true
+    });
+}
+/**
  * Utility function to get all tool definitions for MCP
  */
 export function getAllToolDefinitions() {
@@ -208,7 +329,12 @@ export function isValidToolName(name) {
         'get_proactive_insights',
         'check_for_conflicts',
         'suggest_relevant_context',
-        'auto_tag_conversation'
+        'auto_tag_conversation',
+        'get_conversation_analytics',
+        'analyze_productivity_patterns',
+        'detect_knowledge_gaps',
+        'track_decision_effectiveness',
+        'generate_analytics_report'
     ];
     return validNames.includes(name);
 }

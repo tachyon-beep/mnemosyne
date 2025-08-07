@@ -20,30 +20,30 @@ export declare const GetEntityHistoryArgsSchema: z.ZodObject<{
         start: z.ZodNumber;
         end: z.ZodNumber;
     }, "strip", z.ZodTypeAny, {
-        start: number;
-        end: number;
+        end?: number;
+        start?: number;
     }, {
-        start: number;
-        end: number;
+        end?: number;
+        start?: number;
     }>>;
 }, "strip", z.ZodTypeAny, {
-    entity_name: string;
-    include_relationships: boolean;
-    include_evolution: boolean;
-    max_mentions: number;
+    entity_name?: string;
+    include_relationships?: boolean;
+    include_evolution?: boolean;
+    max_mentions?: number;
     time_range?: {
-        start: number;
-        end: number;
-    } | undefined;
+        end?: number;
+        start?: number;
+    };
 }, {
-    entity_name: string;
-    include_relationships?: boolean | undefined;
-    include_evolution?: boolean | undefined;
-    max_mentions?: number | undefined;
+    entity_name?: string;
+    include_relationships?: boolean;
+    include_evolution?: boolean;
+    max_mentions?: number;
     time_range?: {
-        start: number;
-        end: number;
-    } | undefined;
+        end?: number;
+        start?: number;
+    };
 }>;
 export type GetEntityHistoryArgs = z.infer<typeof GetEntityHistoryArgsSchema>;
 /**
@@ -61,30 +61,30 @@ export declare class GetEntityHistoryTool extends BaseTool<GetEntityHistoryArgs>
             start: z.ZodNumber;
             end: z.ZodNumber;
         }, "strip", z.ZodTypeAny, {
-            start: number;
-            end: number;
+            end?: number;
+            start?: number;
         }, {
-            start: number;
-            end: number;
+            end?: number;
+            start?: number;
         }>>;
     }, "strip", z.ZodTypeAny, {
-        entity_name: string;
-        include_relationships: boolean;
-        include_evolution: boolean;
-        max_mentions: number;
+        entity_name?: string;
+        include_relationships?: boolean;
+        include_evolution?: boolean;
+        max_mentions?: number;
         time_range?: {
-            start: number;
-            end: number;
-        } | undefined;
+            end?: number;
+            start?: number;
+        };
     }, {
-        entity_name: string;
-        include_relationships?: boolean | undefined;
-        include_evolution?: boolean | undefined;
-        max_mentions?: number | undefined;
+        entity_name?: string;
+        include_relationships?: boolean;
+        include_evolution?: boolean;
+        max_mentions?: number;
         time_range?: {
-            start: number;
-            end: number;
-        } | undefined;
+            end?: number;
+            start?: number;
+        };
     }>;
     private knowledgeGraphService;
     constructor(knowledgeGraphService: KnowledgeGraphService);

@@ -159,7 +159,8 @@ export class FindRelatedConversationsTool extends BaseTool<FindRelatedConversati
         args.entities,
         {
           minRelationshipStrength: args.min_strength,
-          timeRange: args.time_range,
+          timeRange: args.time_range && args.time_range.start && args.time_range.end ? 
+            { start: args.time_range.start, end: args.time_range.end } : undefined,
           relationshipTypes: args.relationship_types,
           limit: args.max_results
         }

@@ -8,6 +8,7 @@
 import { EventEmitter } from 'events';
 import { DatabaseManager } from '../storage/Database.js';
 import { MemoryManager } from './MemoryManager.js';
+import { DynamicThresholdManager } from '../monitoring/DynamicThresholdManager.js';
 
 interface PerformanceMetric {
   id: string;
@@ -76,6 +77,7 @@ interface PerformanceReport {
 export class PerformanceMonitor extends EventEmitter {
   private dbManager: DatabaseManager;
   private memoryManager: MemoryManager;
+  private dynamicThresholds: DynamicThresholdManager | null = null;
   private metrics: Map<string, PerformanceMetric[]> = new Map();
   private alertRules: Map<string, AlertRule> = new Map();
   private activeAlerts: Map<string, Alert> = new Map();
@@ -86,9 +88,10 @@ export class PerformanceMonitor extends EventEmitter {
   private metricsRetentionMs: number;
   private alertCooldownMs: number;
   private isMonitoring = false;
+  private useDynamicThresholds = false;
 
-  // Performance baselines and thresholds
-  private readonly PERFORMANCE_THRESHOLDS = {
+  // Fallback static thresholds (used when dynamic thresholds are not available)
+  private readonly FALLBACK_THRESHOLDS = {
     DATABASE_QUERY_TIME: 500,    // ms
     SEARCH_RESPONSE_TIME: 1000,  // ms
     EMBEDDING_TIME: 200,         // ms
@@ -104,6 +107,7 @@ export class PerformanceMonitor extends EventEmitter {
       metricsRetentionHours?: number;
       alertCooldownMinutes?: number;
       monitoringIntervalSeconds?: number;
+      enableDynamicThresholds?: boolean;
     } = {}
   ) {
     super();
@@ -112,15 +116,35 @@ export class PerformanceMonitor extends EventEmitter {
     this.memoryManager = memoryManager;
     this.metricsRetentionMs = (options.metricsRetentionHours || 24) * 60 * 60 * 1000;
     this.alertCooldownMs = (options.alertCooldownMinutes || 5) * 60 * 1000;
+    this.useDynamicThresholds = options.enableDynamicThresholds || false;
+
+    if (this.useDynamicThresholds) {
+      this.dynamicThresholds = new DynamicThresholdManager();
+    }
 
     this.setupDefaultAlertRules();
   }
 
   /**
+   * Initialize dynamic thresholds if enabled
+   */
+  async initializeDynamicThresholds(): Promise<void> {
+    if (this.dynamicThresholds && this.useDynamicThresholds) {
+      await this.dynamicThresholds.initialize();
+      console.log('✅ Dynamic thresholds initialized');
+    }
+  }
+
+  /**
    * Start performance monitoring
    */
-  startMonitoring(intervalSeconds: number = 30): void {
+  async startMonitoring(intervalSeconds: number = 30): Promise<void> {
     if (this.isMonitoring) return;
+
+    // Initialize dynamic thresholds if enabled
+    if (this.useDynamicThresholds && this.dynamicThresholds) {
+      await this.initializeDynamicThresholds();
+    }
 
     this.isMonitoring = true;
     this.monitoringInterval = setInterval(() => {
@@ -130,22 +154,44 @@ export class PerformanceMonitor extends EventEmitter {
       this.cleanupOldMetrics();
     }, intervalSeconds * 1000);
 
-    console.log(`Performance monitoring started (interval: ${intervalSeconds}s)`);
+    const thresholdType = this.useDynamicThresholds ? 'dynamic' : 'static';
+    console.log(`Performance monitoring started (interval: ${intervalSeconds}s, thresholds: ${thresholdType})`);
     this.emit('monitoring:started');
   }
 
   /**
    * Stop performance monitoring
    */
-  stopMonitoring(): void {
+  async stopMonitoring(): Promise<void> {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
     this.isMonitoring = false;
     
+    // Cleanup dynamic thresholds
+    if (this.dynamicThresholds && this.useDynamicThresholds) {
+      await this.dynamicThresholds.shutdown();
+    }
+    
     console.log('Performance monitoring stopped');
     this.emit('monitoring:stopped');
+  }
+
+  /**
+   * Get threshold for a metric (adaptive or fallback)
+   */
+  private getThreshold(category: string, metric: string): number | null {
+    if (this.dynamicThresholds && this.useDynamicThresholds) {
+      const dynamicThreshold = this.dynamicThresholds.getThreshold(`${category}_${metric}`);
+      if (dynamicThreshold !== null) {
+        return dynamicThreshold;
+      }
+    }
+    
+    // Fallback to static thresholds
+    const fallbackKey = `${category.toUpperCase()}_${metric.toUpperCase()}`;
+    return this.FALLBACK_THRESHOLDS[fallbackKey as keyof typeof this.FALLBACK_THRESHOLDS] || null;
   }
 
   /**
@@ -164,6 +210,12 @@ export class PerformanceMonitor extends EventEmitter {
     }
 
     this.metrics.get(key)!.push(fullMetric);
+    
+    // Update dynamic threshold baseline if enabled
+    if (this.dynamicThresholds && this.useDynamicThresholds) {
+      this.dynamicThresholds.updateBaseline(metric.name, metric.category, metric.value);
+    }
+    
     this.emit('metric:recorded', fullMetric);
   }
 
@@ -179,14 +231,15 @@ export class PerformanceMonitor extends EventEmitter {
       tags: { resultCount: resultCount.toString() }
     });
 
-    // Record slow query alert
-    if (duration > this.PERFORMANCE_THRESHOLDS.DATABASE_QUERY_TIME) {
+    // Record slow query alert using dynamic threshold
+    const threshold = this.getThreshold('database', 'query_time') || this.FALLBACK_THRESHOLDS.DATABASE_QUERY_TIME;
+    if (duration > threshold) {
       this.recordMetric({
         category: 'database',
         name: 'slow_query',
         value: 1,
         unit: 'count',
-        tags: { operation, duration: duration.toString() }
+        tags: { operation, duration: duration.toString(), threshold: threshold.toString() }
       });
     }
   }
@@ -348,7 +401,7 @@ export class PerformanceMonitor extends EventEmitter {
         category: 'database',
         metric: 'query_duration',
         operator: '>',
-        threshold: this.PERFORMANCE_THRESHOLDS.DATABASE_QUERY_TIME,
+        threshold: this.getThreshold('database', 'query_time') || this.FALLBACK_THRESHOLDS.DATABASE_QUERY_TIME,
         duration: 60000, // 1 minute
         severity: 'high',
         enabled: true,
@@ -359,7 +412,7 @@ export class PerformanceMonitor extends EventEmitter {
         category: 'search',
         metric: 'search_duration',
         operator: '>',
-        threshold: this.PERFORMANCE_THRESHOLDS.SEARCH_RESPONSE_TIME,
+        threshold: this.getThreshold('search', 'response_time') || this.FALLBACK_THRESHOLDS.SEARCH_RESPONSE_TIME,
         duration: 30000, // 30 seconds
         severity: 'medium',
         enabled: true,
@@ -370,7 +423,7 @@ export class PerformanceMonitor extends EventEmitter {
         category: 'memory',
         metric: 'heap_usage_percent',
         operator: '>',
-        threshold: this.PERFORMANCE_THRESHOLDS.MEMORY_USAGE,
+        threshold: this.getThreshold('memory', 'usage') || this.FALLBACK_THRESHOLDS.MEMORY_USAGE,
         duration: 120000, // 2 minutes
         severity: 'critical',
         enabled: true,
@@ -381,7 +434,7 @@ export class PerformanceMonitor extends EventEmitter {
         category: 'system',
         metric: 'error_rate',
         operator: '>',
-        threshold: this.PERFORMANCE_THRESHOLDS.ERROR_RATE,
+        threshold: this.getThreshold('system', 'error_rate') || this.FALLBACK_THRESHOLDS.ERROR_RATE,
         duration: 60000, // 1 minute
         severity: 'high',
         enabled: true,
@@ -390,6 +443,19 @@ export class PerformanceMonitor extends EventEmitter {
     ];
 
     defaultRules.forEach(rule => this.addAlertRule(rule));
+  }
+
+  /**
+   * Update alert rule thresholds (used when dynamic thresholds change)
+   */
+  updateAlertThresholds(): void {
+    for (const [ruleId, rule] of this.alertRules.entries()) {
+      const newThreshold = this.getThreshold(rule.category, rule.metric);
+      if (newThreshold !== null && newThreshold !== rule.threshold) {
+        console.log(`📊 Updated alert threshold for ${ruleId}: ${rule.threshold} → ${newThreshold}`);
+        rule.threshold = newThreshold;
+      }
+    }
   }
 
   private async collectSystemMetrics(): Promise<void> {
@@ -741,7 +807,7 @@ export class PerformanceMonitor extends EventEmitter {
     
     // Analyze database performance
     const dbMetrics = this.getMetricsByCategory(metrics, 'database');
-    const slowQueries = dbMetrics.filter(m => m.value > this.PERFORMANCE_THRESHOLDS.DATABASE_QUERY_TIME);
+    const slowQueries = dbMetrics.filter(m => m.value > this.FALLBACK_THRESHOLDS.DATABASE_QUERY_TIME);
     
     if (slowQueries.length > dbMetrics.length * 0.2) {
       recommendations.push('Consider optimizing database queries - 20% of queries are slow');
@@ -760,7 +826,7 @@ export class PerformanceMonitor extends EventEmitter {
     // Analyze search performance
     const searchMetrics = this.getMetricsByCategory(metrics, 'search');
     const slowSearches = searchMetrics.filter(m => 
-      m.name.includes('duration') && m.value > this.PERFORMANCE_THRESHOLDS.SEARCH_RESPONSE_TIME
+      m.name.includes('duration') && m.value > this.FALLBACK_THRESHOLDS.SEARCH_RESPONSE_TIME
     );
     
     if (slowSearches.length > 0) {
@@ -768,5 +834,81 @@ export class PerformanceMonitor extends EventEmitter {
     }
 
     return recommendations;
+  }
+
+  /**
+   * Get enhanced performance report with dynamic threshold information
+   */
+  getEnhancedPerformanceReport(durationMs: number = 300000): PerformanceReport & {
+    thresholdInfo?: {
+      isDynamic: boolean;
+      thresholdAccuracy?: number;
+      recentAdjustments?: Array<{
+        metric: string;
+        oldValue: number;
+        newValue: number;
+        timestamp: number;
+        reason: string;
+      }>;
+    };
+  } {
+    const baseReport = this.getPerformanceReport(durationMs);
+    
+    let thresholdInfo;
+    if (this.dynamicThresholds && this.useDynamicThresholds) {
+      const dynamicReport = this.dynamicThresholds.getThresholdReport();
+      
+      // Get recent threshold adjustments
+      const recentAdjustments = [];
+      const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+      
+      for (const threshold of dynamicReport.currentThresholds) {
+        const recentAdjustment = threshold.adjustmentHistory
+          .filter(adj => adj.timestamp > oneDayAgo)
+          .slice(-1)[0];
+        
+        if (recentAdjustment) {
+          recentAdjustments.push({
+            metric: `${threshold.category}_${threshold.metric}`,
+            oldValue: recentAdjustment.oldValue,
+            newValue: recentAdjustment.newValue,
+            timestamp: recentAdjustment.timestamp,
+            reason: recentAdjustment.reason
+          });
+        }
+      }
+      
+      thresholdInfo = {
+        isDynamic: true,
+        thresholdAccuracy: dynamicReport.confidence,
+        recentAdjustments
+      };
+      
+      // Add dynamic threshold recommendations
+      baseReport.recommendations.push(...dynamicReport.recommendations);
+    } else {
+      thresholdInfo = {
+        isDynamic: false
+      };
+    }
+    
+    return {
+      ...baseReport,
+      thresholdInfo
+    };
+  }
+
+  /**
+   * Get dynamic threshold manager (if enabled)
+   */
+  getDynamicThresholdManager(): DynamicThresholdManager | null {
+    return this.dynamicThresholds;
+  }
+
+  /**
+   * Check if dynamic thresholds are enabled and initialized
+   */
+  isDynamicThresholdingEnabled(): boolean {
+    return this.useDynamicThresholds && this.dynamicThresholds !== null;
   }
 }

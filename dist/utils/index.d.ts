@@ -32,4 +32,11 @@ export declare function wrapDatabaseOperation<T>(operation: () => Promise<T>, op
  * Convenience function to wrap async operations with error handling and logging
  */
 export declare function wrapOperation<T>(operation: () => Promise<T>, operationName: string, context?: LogContext): Promise<T>;
+export * from './statistics.js';
+export { MemoryManager } from './MemoryManager.js';
+export { IntelligentCacheManager, type CacheConfig } from './IntelligentCacheManager.js';
+export { PerformanceMonitor } from './PerformanceMonitor.js';
+export { PerformanceOrchestrator } from './PerformanceOrchestrator.js';
+export { CacheKeyGenerator, CacheKeys, type CacheKeyOptions, type NormalizedParams } from './CacheKeyGenerator.js';
+export { SizeEstimator, SizeUtils, type SizeEstimate, type SizeOptions } from './SizeEstimator.js';
 //# sourceMappingURL=index.d.ts.map

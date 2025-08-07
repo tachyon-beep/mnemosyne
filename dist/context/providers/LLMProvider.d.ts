@@ -150,8 +150,8 @@ export declare abstract class LLMProvider {
 export declare class ProviderError extends Error {
     readonly code: string;
     readonly provider: string;
-    readonly cause?: Error | undefined;
-    constructor(message: string, code: string, provider: string, cause?: Error | undefined);
+    readonly cause?: Error;
+    constructor(message: string, code: string, provider: string, cause?: Error);
 }
 export declare class ProviderUnavailableError extends ProviderError {
     constructor(provider: string, cause?: Error);

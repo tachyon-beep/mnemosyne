@@ -32,13 +32,26 @@ export { GetKnowledgeGraphTool } from './GetKnowledgeGraphTool.js';
 export type { GetKnowledgeGraphArgs } from './GetKnowledgeGraphTool.js';
 export { GetProactiveInsightsTool, CheckForConflictsTool, SuggestRelevantContextTool, AutoTagConversationTool } from './proactive/index.js';
 export type { GetProactiveInsightsResponse, GetProactiveInsightsDependencies, CheckForConflictsResponse, CheckForConflictsDependencies, SuggestRelevantContextResponse, SuggestRelevantContextDependencies, AutoTagConversationResponse, AutoTagConversationDependencies } from './proactive/index.js';
-export type { SaveMessageInput, SearchMessagesInput, GetConversationInput, GetConversationsInput, DeleteConversationInput, GetRelevantSnippetsInput, ConfigureLLMProviderInput, GetProactiveInsightsInput, CheckForConflictsInput, SuggestRelevantContextInput, AutoTagConversationInput } from '../types/schemas.js';
-export { SaveMessageTool as SaveMessageToolDef, SearchMessagesTool as SearchMessagesToolDef, GetConversationTool as GetConversationToolDef, GetConversationsTool as GetConversationsToolDef, DeleteConversationTool as DeleteConversationToolDef, GetRelevantSnippetsTool as GetRelevantSnippetsToolDef, ConfigureLLMProviderTool as ConfigureLLMProviderToolDef, GetProgressiveDetailTool as GetProgressiveDetailToolDef, GetProactiveInsightsToolDef, CheckForConflictsToolDef, SuggestRelevantContextToolDef, AutoTagConversationToolDef, AllTools, type MCPTool, type MCPToolResult, type ToolName } from '../types/mcp.js';
+export { GetConversationAnalyticsTool } from './GetConversationAnalyticsTool.js';
+export type { GetConversationAnalyticsResponse, GetConversationAnalyticsDependencies } from './GetConversationAnalyticsTool.js';
+export { AnalyzeProductivityPatternsTool } from './AnalyzeProductivityPatternsTool.js';
+export type { AnalyzeProductivityPatternsResponse, AnalyzeProductivityPatternsDependencies, ProductivityPattern, SessionAnalysis, QuestionPatternAnalysis } from './AnalyzeProductivityPatternsTool.js';
+export { DetectKnowledgeGapsTool } from './DetectKnowledgeGapsTool.js';
+export type { DetectKnowledgeGapsResponse, DetectKnowledgeGapsDependencies, KnowledgeGapCategory, TopicCoverage, ResolutionSuggestion } from './DetectKnowledgeGapsTool.js';
+export { TrackDecisionEffectivenessTool } from './TrackDecisionEffectivenessTool.js';
+export type { TrackDecisionEffectivenessResponse, TrackDecisionEffectivenessDependencies, DecisionQualityAnalysis, DecisionOutcomeAnalysis, DecisionReversalAnalysis, DecisionTypeAnalysis } from './TrackDecisionEffectivenessTool.js';
+export { GenerateAnalyticsReportTool } from './GenerateAnalyticsReportTool.js';
+export type { GenerateAnalyticsReportResponse, GenerateAnalyticsReportDependencies, ChartData, ReportSection, ExecutiveSummary } from './GenerateAnalyticsReportTool.js';
+export { GetIndexPerformanceReportTool } from './GetIndexPerformanceReportTool.js';
+export { ManageIndexOptimizationTool } from './ManageIndexOptimizationTool.js';
+export type { SaveMessageInput, SearchMessagesInput, GetConversationInput, GetConversationsInput, DeleteConversationInput, GetRelevantSnippetsInput, ConfigureLLMProviderInput, GetProactiveInsightsInput, CheckForConflictsInput, SuggestRelevantContextInput, AutoTagConversationInput, GetConversationAnalyticsInput, AnalyzeProductivityPatternsInput, DetectKnowledgeGapsInput, TrackDecisionEffectivenessInput, GenerateAnalyticsReportInput } from '../types/schemas.js';
+export { SaveMessageTool as SaveMessageToolDef, SearchMessagesTool as SearchMessagesToolDef, GetConversationTool as GetConversationToolDef, GetConversationsTool as GetConversationsToolDef, DeleteConversationTool as DeleteConversationToolDef, GetRelevantSnippetsTool as GetRelevantSnippetsToolDef, ConfigureLLMProviderTool as ConfigureLLMProviderToolDef, GetProgressiveDetailTool as GetProgressiveDetailToolDef, GetProactiveInsightsToolDef, CheckForConflictsToolDef, SuggestRelevantContextToolDef, AutoTagConversationToolDef, GetConversationAnalyticsToolDef, AnalyzeProductivityPatternsToolDef, DetectKnowledgeGapsToolDef, TrackDecisionEffectivenessToolDef, GenerateAnalyticsReportToolDef, AllTools, type MCPTool, type MCPToolResult, type ToolName } from '../types/mcp.js';
 import { ConversationRepository, MessageRepository } from '../storage/repositories/index.js';
 import { SearchEngine } from '../search/SearchEngine.js';
 import { EnhancedSearchEngine } from '../search/EnhancedSearchEngine.js';
 import { ToolName } from '../types/mcp.js';
 import { BaseTool, ToolContext } from './BaseTool.js';
+import { DatabaseManager } from '../storage/Database.js';
 /**
  * Dependencies required by the tool registry
  */
@@ -48,6 +61,8 @@ export interface ToolRegistryDependencies {
     searchEngine: SearchEngine;
     enhancedSearchEngine?: EnhancedSearchEngine;
     knowledgeGraphService?: any;
+    databaseManager?: DatabaseManager;
+    enableAnalytics?: boolean;
 }
 /**
  * Tool registry for managing and instantiating MCP tools
@@ -81,6 +96,10 @@ export declare class ToolRegistry {
      */
     executeTool(name: ToolName, input: unknown, context?: Partial<ToolContext>): Promise<any>;
     /**
+     * Create analytics dependencies for analytics tools
+     * Temporarily disabled for build
+     */
+    /**
      * Get tool definitions for MCP protocol
      */
     getToolDefinitions(): any[];
@@ -97,6 +116,12 @@ export declare class ToolRegistry {
  * Factory function to create a tool registry
  */
 export declare function createToolRegistry(dependencies: ToolRegistryDependencies): ToolRegistry;
+/**
+ * Factory function to create a tool registry with analytics enabled
+ */
+export declare function createToolRegistryWithAnalytics(dependencies: Omit<ToolRegistryDependencies, 'enableAnalytics'> & {
+    databaseManager: DatabaseManager;
+}): ToolRegistry;
 /**
  * Utility function to get all tool definitions for MCP
  */

@@ -172,3 +172,40 @@ export async function wrapOperation<T>(
     }
   }, operationName, context);
 }
+
+// Statistical utilities
+export * from './statistics.js';
+
+// Performance utilities
+export {
+  MemoryManager
+} from './MemoryManager.js';
+
+export {
+  IntelligentCacheManager,
+  type CacheConfig
+} from './IntelligentCacheManager.js';
+
+export {
+  PerformanceMonitor
+} from './PerformanceMonitor.js';
+
+export {
+  PerformanceOrchestrator
+} from './PerformanceOrchestrator.js';
+
+// Cache key generation utilities
+export {
+  CacheKeyGenerator,
+  CacheKeys,
+  type CacheKeyOptions,
+  type NormalizedParams
+} from './CacheKeyGenerator.js';
+
+// Size estimation utilities
+export {
+  SizeEstimator,
+  SizeUtils,
+  type SizeEstimate,
+  type SizeOptions
+} from './SizeEstimator.js';

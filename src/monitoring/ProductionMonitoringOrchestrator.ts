@@ -1,23 +1,40 @@
 /**
- * Simplified Production Monitoring Orchestrator
+ * Production Monitoring Orchestrator with Dynamic Capabilities
  * 
- * Basic monitoring coordination for the MCP Persistence System
+ * Orchestrates dynamic monitoring coordination for the MCP Persistence System
+ * with adaptive thresholds, context-aware alerting, and system profiling
  */
 
 import { EventEmitter } from 'events';
 import { DatabaseManager } from '../storage/Database.js';
 import { PerformanceMonitor } from '../utils/PerformanceMonitor.js';
 import { MemoryManager } from '../utils/MemoryManager.js';
+import { EnhancedPerformanceMonitor } from './EnhancedPerformanceMonitor.js';
 
 export class ProductionMonitoringOrchestrator extends EventEmitter {
   private isRunning = false;
+  private enhancedMonitor: EnhancedPerformanceMonitor | null = null;
+  private useEnhancedMonitoring = false;
 
   constructor(
     private readonly database: DatabaseManager,
     private readonly performanceMonitor: PerformanceMonitor,
-    private readonly memoryManager: MemoryManager
+    private readonly memoryManager: MemoryManager,
+    options: {
+      enableEnhancedMonitoring?: boolean;
+    } = {}
   ) {
     super();
+    
+    this.useEnhancedMonitoring = options.enableEnhancedMonitoring || false;
+    
+    if (this.useEnhancedMonitoring) {
+      this.enhancedMonitor = new EnhancedPerformanceMonitor(
+        this.database,
+        this.memoryManager
+      );
+      this.setupEnhancedEventHandlers();
+    }
   }
 
   async startMonitoring(): Promise<void> {
@@ -27,35 +44,175 @@ export class ProductionMonitoringOrchestrator extends EventEmitter {
     }
 
     console.log('🚀 Starting Production Monitoring...');
+    
+    if (this.useEnhancedMonitoring && this.enhancedMonitor) {
+      console.log('📊 Initializing Enhanced Monitoring with Dynamic Thresholds...');
+      await this.enhancedMonitor.initialize();
+      await this.enhancedMonitor.startMonitoring();
+    } else {
+      console.log('📈 Starting Standard Monitoring...');
+      await this.performanceMonitor.startMonitoring(30); // 30 second intervals
+    }
+    
     this.isRunning = true;
-    this.performanceMonitor.startMonitoring(30); // 30 second intervals
-    this.emit('monitoring:started');
+    this.emit('monitoring:started', { enhanced: this.useEnhancedMonitoring });
   }
 
   async stopMonitoring(): Promise<void> {
     if (!this.isRunning) return;
 
     console.log('🛑 Stopping Production Monitoring...');
-    this.performanceMonitor.stopMonitoring();
+    
+    if (this.useEnhancedMonitoring && this.enhancedMonitor) {
+      await this.enhancedMonitor.stopMonitoring();
+    } else {
+      await this.performanceMonitor.stopMonitoring();
+    }
+    
     this.isRunning = false;
     this.emit('monitoring:stopped');
   }
 
   async getSystemHealthReport(): Promise<any> {
-    const performanceReport = this.performanceMonitor.getPerformanceReport();
-    const memoryReport = this.memoryManager.getMemoryReport();
+    if (this.useEnhancedMonitoring && this.enhancedMonitor) {
+      // Use enhanced monitoring report
+      const healthAssessment = this.enhancedMonitor.getSystemHealthAssessment();
+      const monitoringStatus = this.enhancedMonitor.getMonitoringStatus();
+      
+      return {
+        overall: healthAssessment.overall,
+        timestamp: healthAssessment.timestamp,
+        uptime: process.uptime() * 1000,
+        enhanced: true,
+        systemProfile: monitoringStatus.systemProfile,
+        components: healthAssessment.components,
+        adaptiveMetrics: healthAssessment.adaptiveMetrics,
+        recommendations: healthAssessment.recommendations,
+        activeAlerts: monitoringStatus.activeAlerts,
+        thresholdAccuracy: monitoringStatus.thresholdAccuracy
+      };
+    } else {
+      // Use standard monitoring report
+      const performanceReport = this.performanceMonitor.getEnhancedPerformanceReport();
+      const memoryReport = this.memoryManager.getMemoryReport();
+      const healthStatus = this.performanceMonitor.getHealthStatus();
 
+      return {
+        overall: healthStatus.overall,
+        timestamp: Date.now(),
+        uptime: process.uptime() * 1000,
+        enhanced: false,
+        performance: performanceReport,
+        memory: memoryReport,
+        components: healthStatus.components,
+        activeAlerts: healthStatus.activeAlerts.length,
+        thresholdInfo: performanceReport.thresholdInfo
+      };
+    }
+  }
+
+  /**
+   * Setup event handlers for enhanced monitoring
+   */
+  private setupEnhancedEventHandlers(): void {
+    if (!this.enhancedMonitor) return;
+
+    this.enhancedMonitor.on('initialized', (data) => {
+      console.log(`✅ Enhanced monitoring initialized - Performance class: ${data.systemProfile?.overallPerformanceClass}`);
+      this.emit('enhanced:initialized', data);
+    });
+
+    this.enhancedMonitor.on('thresholdAdapted', (data) => {
+      console.log(`🎯 Threshold adapted: ${data.id} (${(data.confidence * 100).toFixed(1)}% confidence)`);
+      this.emit('threshold:adapted', data);
+    });
+
+    this.enhancedMonitor.on('adaptiveAlert', (alert) => {
+      console.log(`🚨 Adaptive alert: [${alert.contextualSeverity}] ${alert.message}`);
+      this.emit('alert:adaptive', alert);
+    });
+
+    this.enhancedMonitor.on('contextualAlert', (alert) => {
+      console.log(`📋 Contextual alert processed with insights: ${alert.actionableInsights.length} recommendations`);
+      this.emit('alert:contextual', alert);
+    });
+
+    this.enhancedMonitor.on('systemProfileUpdated', (profile) => {
+      console.log(`📊 System profile updated: ${profile.overallPerformanceClass} performance class`);
+      this.emit('system:profileUpdated', profile);
+    });
+
+    this.enhancedMonitor.on('optimizationCycleComplete', (result) => {
+      console.log(`🔄 Optimization cycle complete: ${result.recommendedThresholds?.size || 0} recommendations`);
+      this.emit('optimization:complete', result);
+    });
+  }
+
+  /**
+   * Force system re-profiling (enhanced monitoring only)
+   */
+  async reprofileSystem(): Promise<void> {
+    if (!this.useEnhancedMonitoring || !this.enhancedMonitor) {
+      throw new Error('Enhanced monitoring not enabled');
+    }
+
+    console.log('🔄 Forcing system re-profiling...');
+    // This would trigger re-profiling in the enhanced monitor
+    this.emit('system:reprofileRequested');
+  }
+
+  /**
+   * Get monitoring capabilities and status
+   */
+  getMonitoringCapabilities(): {
+    enhanced: boolean;
+    dynamicThresholds: boolean;
+    contextAwareAlerts: boolean;
+    systemProfiling: boolean;
+    mlOptimization: boolean;
+    uptime: number;
+    isRunning: boolean;
+  } {
     return {
-      overall: 'healthy',
-      timestamp: Date.now(),
+      enhanced: this.useEnhancedMonitoring,
+      dynamicThresholds: this.useEnhancedMonitoring && this.performanceMonitor.isDynamicThresholdingEnabled(),
+      contextAwareAlerts: this.useEnhancedMonitoring,
+      systemProfiling: this.useEnhancedMonitoring,
+      mlOptimization: this.useEnhancedMonitoring,
       uptime: process.uptime() * 1000,
-      performance: performanceReport,
-      memory: memoryReport,
-      components: {
-        database: { status: 'healthy', message: 'Database operational' },
-        search: { status: 'healthy', message: 'Search operational' },
-        memory: { status: 'healthy', message: 'Memory usage normal' }
-      }
+      isRunning: this.isRunning
     };
+  }
+
+  /**
+   * Switch monitoring mode (requires restart)
+   */
+  async switchToEnhancedMonitoring(): Promise<void> {
+    if (this.useEnhancedMonitoring) {
+      console.log('Enhanced monitoring already enabled');
+      return;
+    }
+
+    console.log('🔄 Switching to enhanced monitoring mode...');
+    
+    const wasRunning = this.isRunning;
+    if (wasRunning) {
+      await this.stopMonitoring();
+    }
+
+    // Initialize enhanced monitoring
+    this.useEnhancedMonitoring = true;
+    this.enhancedMonitor = new EnhancedPerformanceMonitor(
+      this.database,
+      this.memoryManager
+    );
+    this.setupEnhancedEventHandlers();
+
+    if (wasRunning) {
+      await this.startMonitoring();
+    }
+
+    console.log('✅ Switched to enhanced monitoring mode');
+    this.emit('monitoring:modeChanged', { enhanced: true });
   }
 }

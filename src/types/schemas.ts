@@ -470,6 +470,108 @@ export type ConversationData = z.infer<typeof ConversationDataSchema>;
 export type PersistenceServerConfigInput = z.infer<typeof PersistenceServerConfigSchema>;
 
 /**
+ * Schema for validating get_conversation_analytics tool input
+ */
+export const GetConversationAnalyticsSchema = z.object({
+  /** ID of the conversation to analyze */
+  conversationId: z.string().min(1, 'Conversation ID cannot be empty'),
+  /** Include detailed flow metrics */
+  includeFlowMetrics: z.boolean().default(true),
+  /** Include productivity metrics */
+  includeProductivityMetrics: z.boolean().default(true),
+  /** Include knowledge gap analysis */
+  includeKnowledgeGaps: z.boolean().default(false),
+  /** Include decision tracking */
+  includeDecisionTracking: z.boolean().default(false)
+});
+
+/**
+ * Schema for validating analyze_productivity_patterns tool input
+ */
+export const AnalyzeProductivityPatternsSchema = z.object({
+  /** Start date for analysis (ISO 8601 string) */
+  startDate: z.string().datetime().optional(),
+  /** End date for analysis (ISO 8601 string) */
+  endDate: z.string().datetime().optional(),
+  /** Conversation IDs to analyze (if not provided, analyzes all) */
+  conversationIds: z.array(z.string()).optional(),
+  /** Granularity for time-based patterns */
+  granularity: z.enum(['hour', 'day', 'week', 'month']).default('day'),
+  /** Include peak hour analysis */
+  includePeakHours: z.boolean().default(true),
+  /** Include session length analysis */
+  includeSessionAnalysis: z.boolean().default(true),
+  /** Include question pattern analysis */
+  includeQuestionPatterns: z.boolean().default(true)
+});
+
+/**
+ * Schema for validating detect_knowledge_gaps tool input
+ */
+export const DetectKnowledgeGapsSchema = z.object({
+  /** Start date for analysis (ISO 8601 string) */
+  startDate: z.string().datetime().optional(),
+  /** End date for analysis (ISO 8601 string) */
+  endDate: z.string().datetime().optional(),
+  /** Minimum frequency threshold for gaps */
+  minFrequency: z.number().min(1).default(2),
+  /** Include resolved gaps in analysis */
+  includeResolved: z.boolean().default(false),
+  /** Topic areas to focus on */
+  topicAreas: z.array(z.string()).optional(),
+  /** Include gap resolution suggestions */
+  includeSuggestions: z.boolean().default(true)
+});
+
+/**
+ * Schema for validating track_decision_effectiveness tool input
+ */
+export const TrackDecisionEffectivenessSchema = z.object({
+  /** Start date for analysis (ISO 8601 string) */
+  startDate: z.string().datetime().optional(),
+  /** End date for analysis (ISO 8601 string) */
+  endDate: z.string().datetime().optional(),
+  /** Decision types to analyze */
+  decisionTypes: z.array(z.string()).optional(),
+  /** Include outcome tracking */
+  includeOutcomes: z.boolean().default(true),
+  /** Include reversal analysis */
+  includeReversals: z.boolean().default(true),
+  /** Include quality metrics */
+  includeQualityMetrics: z.boolean().default(true)
+});
+
+/**
+ * Schema for validating generate_analytics_report tool input
+ */
+export const GenerateAnalyticsReportSchema = z.object({
+  /** Start date for report (ISO 8601 string) */
+  startDate: z.string().datetime().optional(),
+  /** End date for report (ISO 8601 string) */
+  endDate: z.string().datetime().optional(),
+  /** Report format */
+  format: z.enum(['summary', 'detailed', 'executive']).default('summary'),
+  /** Sections to include in report */
+  sections: z.array(z.enum([
+    'conversation_metrics',
+    'productivity_insights',
+    'knowledge_gaps',
+    'decision_quality',
+    'recommendations'
+  ])).default(['conversation_metrics', 'productivity_insights']),
+  /** Include charts and visualizations */
+  includeCharts: z.boolean().default(false),
+  /** Include raw data */
+  includeRawData: z.boolean().default(false)
+});
+
+export type GetConversationAnalyticsInput = z.infer<typeof GetConversationAnalyticsSchema>;
+export type AnalyzeProductivityPatternsInput = z.infer<typeof AnalyzeProductivityPatternsSchema>;
+export type DetectKnowledgeGapsInput = z.infer<typeof DetectKnowledgeGapsSchema>;
+export type TrackDecisionEffectivenessInput = z.infer<typeof TrackDecisionEffectivenessSchema>;
+export type GenerateAnalyticsReportInput = z.infer<typeof GenerateAnalyticsReportSchema>;
+
+/**
  * Union type of all possible tool input schemas
  */
 export const ToolInputSchema = z.union([
@@ -493,7 +595,12 @@ export const ToolInputSchema = z.union([
   GetProactiveInsightsSchema,
   CheckForConflictsSchema,
   SuggestRelevantContextSchema,
-  AutoTagConversationSchema
+  AutoTagConversationSchema,
+  GetConversationAnalyticsSchema,
+  AnalyzeProductivityPatternsSchema,
+  DetectKnowledgeGapsSchema,
+  TrackDecisionEffectivenessSchema,
+  GenerateAnalyticsReportSchema
 ]);
 
 export type ToolInput = z.infer<typeof ToolInputSchema>;

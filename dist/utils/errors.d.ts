@@ -12,11 +12,11 @@ import { z } from 'zod';
 export declare class AppError extends Error {
     readonly code: string;
     readonly statusCode: number;
-    details?: any | undefined;
+    details?: any;
     readonly isOperational: boolean;
     readonly timestamp: number;
     readonly errorId: string;
-    constructor(message: string, code: string, statusCode?: number, details?: any | undefined);
+    constructor(message: string, code: string, statusCode?: number, details?: any);
     private generateErrorId;
     /**
      * Convert error to a JSON-serializable object
@@ -52,8 +52,8 @@ export declare class ConflictError extends AppError {
  * Database errors (500) - Database operation failures
  */
 export declare class DatabaseError extends AppError {
-    readonly originalError?: Error | undefined;
-    constructor(message: string, originalError?: Error | undefined, operation?: string);
+    readonly originalError?: Error;
+    constructor(message: string, originalError?: Error, operation?: string);
     static fromSQLiteError(error: Error, operation?: string): DatabaseError;
 }
 /**

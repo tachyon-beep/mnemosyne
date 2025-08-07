@@ -11,6 +11,7 @@
 
 import { EventEmitter } from 'events';
 import { MemoryManager } from './MemoryManager.js';
+import { SizeEstimator } from './SizeEstimator.js';
 
 interface CacheEntry<T> {
   key: string;
@@ -880,11 +881,12 @@ export class IntelligentCacheManager<T = any> extends EventEmitter {
   }
 
   private estimateSize(value: T): number {
-    // Simple size estimation - in production, use a more sophisticated method
+    // Use enhanced size estimation with object overhead calculation
     try {
-      return JSON.stringify(value).length * 2; // Rough estimate
-    } catch {
-      return 1024; // Default size
+      return SizeEstimator.quickEstimate(value);
+    } catch (error) {
+      console.warn('Size estimation failed in cache, using fallback:', error);
+      return 1024; // Conservative fallback
     }
   }
 }

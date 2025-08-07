@@ -18,11 +18,11 @@ declare const GetContextSummarySchema: z.ZodObject<{
         start: z.ZodString;
         end: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        start: string;
-        end: string;
+        end?: string;
+        start?: string;
     }, {
-        start: string;
-        end: string;
+        end?: string;
+        start?: string;
     }>>;
     maxTokens: z.ZodDefault<z.ZodNumber>;
     level: z.ZodDefault<z.ZodEnum<["brief", "standard", "detailed"]>>;
@@ -30,29 +30,29 @@ declare const GetContextSummarySchema: z.ZodObject<{
     focusTopics: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     includeMetadata: z.ZodDefault<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    query: string;
-    includeMetadata: boolean;
-    maxTokens: number;
-    level: "brief" | "standard" | "detailed";
-    conversationIds?: string[] | undefined;
-    strategy?: "priority" | "performance" | "cost-optimal" | "quality" | undefined;
-    focusTopics?: string[] | undefined;
+    query?: string;
+    conversationIds?: string[];
+    includeMetadata?: boolean;
+    maxTokens?: number;
+    strategy?: "priority" | "performance" | "cost-optimal" | "quality";
+    level?: "brief" | "standard" | "detailed";
+    focusTopics?: string[];
     timeRange?: {
-        start: string;
-        end: string;
-    } | undefined;
+        end?: string;
+        start?: string;
+    };
 }, {
-    query: string;
-    conversationIds?: string[] | undefined;
-    includeMetadata?: boolean | undefined;
-    maxTokens?: number | undefined;
-    strategy?: "priority" | "performance" | "cost-optimal" | "quality" | undefined;
-    level?: "brief" | "standard" | "detailed" | undefined;
-    focusTopics?: string[] | undefined;
+    query?: string;
+    conversationIds?: string[];
+    includeMetadata?: boolean;
+    maxTokens?: number;
+    strategy?: "priority" | "performance" | "cost-optimal" | "quality";
+    level?: "brief" | "standard" | "detailed";
+    focusTopics?: string[];
     timeRange?: {
-        start: string;
-        end: string;
-    } | undefined;
+        end?: string;
+        start?: string;
+    };
 }>;
 type GetContextSummaryInput = z.infer<typeof GetContextSummarySchema>;
 /**

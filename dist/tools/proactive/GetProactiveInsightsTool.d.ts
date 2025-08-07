@@ -23,17 +23,17 @@ export declare const GetProactiveInsightsSchema: z.ZodObject<{
     minConfidence: z.ZodDefault<z.ZodNumber>;
     limit: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    limit: number;
-    includeTypes: ("unresolved_actions" | "recurring_questions" | "knowledge_gaps" | "stale_commitments")[];
-    daysSince: number;
-    minConfidence: number;
-    conversationId?: string | undefined;
+    conversationId?: string;
+    limit?: number;
+    includeTypes?: ("unresolved_actions" | "recurring_questions" | "knowledge_gaps" | "stale_commitments")[];
+    daysSince?: number;
+    minConfidence?: number;
 }, {
-    conversationId?: string | undefined;
-    limit?: number | undefined;
-    includeTypes?: ("unresolved_actions" | "recurring_questions" | "knowledge_gaps" | "stale_commitments")[] | undefined;
-    daysSince?: number | undefined;
-    minConfidence?: number | undefined;
+    conversationId?: string;
+    limit?: number;
+    includeTypes?: ("unresolved_actions" | "recurring_questions" | "knowledge_gaps" | "stale_commitments")[];
+    daysSince?: number;
+    minConfidence?: number;
 }>;
 export type GetProactiveInsightsInput = z.infer<typeof GetProactiveInsightsSchema>;
 /**

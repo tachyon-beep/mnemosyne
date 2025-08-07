@@ -94,4 +94,15 @@ export async function wrapOperation(operation, operationName, context) {
         }
     }, operationName, context);
 }
+// Statistical utilities
+export * from './statistics.js';
+// Performance utilities
+export { MemoryManager } from './MemoryManager.js';
+export { IntelligentCacheManager } from './IntelligentCacheManager.js';
+export { PerformanceMonitor } from './PerformanceMonitor.js';
+export { PerformanceOrchestrator } from './PerformanceOrchestrator.js';
+// Cache key generation utilities
+export { CacheKeyGenerator, CacheKeys } from './CacheKeyGenerator.js';
+// Size estimation utilities
+export { SizeEstimator, SizeUtils } from './SizeEstimator.js';
 //# sourceMappingURL=index.js.map

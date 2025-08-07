@@ -20,54 +20,54 @@ declare const hybridSearchSchema: z.ZodObject<{
         semantic: z.ZodDefault<z.ZodNumber>;
         fts: z.ZodDefault<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
-        semantic: number;
-        fts: number;
+        semantic?: number;
+        fts?: number;
     }, {
-        semantic?: number | undefined;
-        fts?: number | undefined;
+        semantic?: number;
+        fts?: number;
     }>, {
-        semantic: number;
-        fts: number;
+        semantic?: number;
+        fts?: number;
     }, {
-        semantic?: number | undefined;
-        fts?: number | undefined;
+        semantic?: number;
+        fts?: number;
     }>>;
     semanticThreshold: z.ZodDefault<z.ZodNumber>;
     matchType: z.ZodDefault<z.ZodEnum<["fuzzy", "exact", "prefix"]>>;
     explainResults: z.ZodDefault<z.ZodBoolean>;
     includeMetrics: z.ZodDefault<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    query: string;
-    limit: number;
-    offset: number;
-    matchType: "fuzzy" | "exact" | "prefix";
-    strategy: "hybrid" | "auto" | "semantic" | "fts";
-    explainResults: boolean;
-    semanticThreshold: number;
-    includeMetrics: boolean;
-    conversationId?: string | undefined;
-    startDate?: string | undefined;
-    endDate?: string | undefined;
+    conversationId?: string;
+    query?: string;
+    limit?: number;
+    offset?: number;
+    startDate?: string;
+    endDate?: string;
+    matchType?: "fuzzy" | "exact" | "prefix";
+    strategy?: "hybrid" | "auto" | "semantic" | "fts";
+    explainResults?: boolean;
     weights?: {
-        semantic: number;
-        fts: number;
-    } | undefined;
+        semantic?: number;
+        fts?: number;
+    };
+    semanticThreshold?: number;
+    includeMetrics?: boolean;
 }, {
-    query: string;
-    conversationId?: string | undefined;
-    limit?: number | undefined;
-    offset?: number | undefined;
-    startDate?: string | undefined;
-    endDate?: string | undefined;
-    matchType?: "fuzzy" | "exact" | "prefix" | undefined;
-    strategy?: "hybrid" | "auto" | "semantic" | "fts" | undefined;
-    explainResults?: boolean | undefined;
+    conversationId?: string;
+    query?: string;
+    limit?: number;
+    offset?: number;
+    startDate?: string;
+    endDate?: string;
+    matchType?: "fuzzy" | "exact" | "prefix";
+    strategy?: "hybrid" | "auto" | "semantic" | "fts";
+    explainResults?: boolean;
     weights?: {
-        semantic?: number | undefined;
-        fts?: number | undefined;
-    } | undefined;
-    semanticThreshold?: number | undefined;
-    includeMetrics?: boolean | undefined;
+        semantic?: number;
+        fts?: number;
+    };
+    semanticThreshold?: number;
+    includeMetrics?: boolean;
 }>;
 type HybridSearchParams = z.infer<typeof hybridSearchSchema>;
 export declare class HybridSearchTool extends BaseTool<HybridSearchParams> {
@@ -75,19 +75,19 @@ export declare class HybridSearchTool extends BaseTool<HybridSearchParams> {
     constructor(enhancedSearchEngine: EnhancedSearchEngine);
     protected executeImpl(params: HybridSearchParams, context: ToolContext): Promise<{
         results: {
-            explanation?: string | undefined;
+            explanation: string;
             messageId: string;
             conversationId: string;
             content: string;
             score: number;
             matchType: "hybrid" | "semantic" | "fts";
             scores: {
-                fts?: number | undefined;
-                semantic?: number | undefined;
+                fts: number;
+                semantic: number;
                 combined: number;
             };
             highlights: string[];
-            conversationTitle: string | undefined;
+            conversationTitle: string;
             createdAt: number;
             preview: string;
         }[];
@@ -99,27 +99,27 @@ export declare class HybridSearchTool extends BaseTool<HybridSearchParams> {
             termCount: number;
             hasOperators: boolean;
             suggestedStrategy: string;
-        } | undefined;
+        };
         metadata: {
-            detailedTiming?: {
+            detailedTiming: {
                 queryAnalysis: number;
                 semanticSearch?: number;
                 ftsSearch?: number;
                 resultMerging?: number;
                 formatting: number;
-            } | undefined;
-            queryAnalysis?: {
+            };
+            queryAnalysis: {
                 termCount: number;
                 hasOperators: boolean;
                 complexity: "simple" | "moderate" | "complex";
                 suggestedStrategy: string;
-            } | undefined;
+            };
             queryId: string;
             executionTime: number;
             actualStrategy: string;
             weights: {
-                semantic: number;
-                fts: number;
+                semantic?: number;
+                fts?: number;
             };
         };
         pagination: {

@@ -34,7 +34,11 @@
     "test:ci": "jest tests/automation/ci-cd-integration.test.ts",
     "test:pre-release": "npm run test:mcp-compliance && npm run test:resilience && npm run test:ci",
     "prepublishOnly": "npm run clean && npm run build && npm test",
-    "health-check": "node dist/index.js --health-check"
+    "health-check": "node dist/index.js --health-check",
+    "validate-triggers": "tsx src/cli/validate-triggers.ts",
+    "validate-triggers:test": "tsx src/cli/validate-triggers.ts --test --verbose",
+    "validate-triggers:report": "tsx src/cli/validate-triggers.ts --report --verbose",
+    "validate-triggers:cleanup": "tsx src/cli/validate-triggers.ts --cleanup --verbose"
   },
   "keywords": [
     "mcp",

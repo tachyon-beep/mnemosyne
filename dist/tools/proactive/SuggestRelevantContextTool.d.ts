@@ -30,25 +30,25 @@ export declare const SuggestRelevantContextSchema: z.ZodObject<{
     includeMessages: z.ZodDefault<z.ZodBoolean>;
     limit: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    limit: number;
-    includeMessages: boolean;
-    maxTokens: number;
-    contextTypes: ("related_conversation" | "expert_insight" | "similar_context" | "temporal_connection" | "relationship_network" | "follow_up_needed" | "missing_information" | "contradiction_alert")[];
-    maxHistoryAge: number;
-    minRelevanceScore: number;
-    includeExperts: boolean;
-    currentConversationId?: string | undefined;
-    currentEntities?: string[] | undefined;
+    limit?: number;
+    includeMessages?: boolean;
+    maxTokens?: number;
+    currentConversationId?: string;
+    currentEntities?: string[];
+    contextTypes?: ("related_conversation" | "expert_insight" | "similar_context" | "temporal_connection" | "relationship_network" | "follow_up_needed" | "missing_information" | "contradiction_alert")[];
+    maxHistoryAge?: number;
+    minRelevanceScore?: number;
+    includeExperts?: boolean;
 }, {
-    limit?: number | undefined;
-    includeMessages?: boolean | undefined;
-    maxTokens?: number | undefined;
-    currentConversationId?: string | undefined;
-    currentEntities?: string[] | undefined;
-    contextTypes?: ("related_conversation" | "expert_insight" | "similar_context" | "temporal_connection" | "relationship_network" | "follow_up_needed" | "missing_information" | "contradiction_alert")[] | undefined;
-    maxHistoryAge?: number | undefined;
-    minRelevanceScore?: number | undefined;
-    includeExperts?: boolean | undefined;
+    limit?: number;
+    includeMessages?: boolean;
+    maxTokens?: number;
+    currentConversationId?: string;
+    currentEntities?: string[];
+    contextTypes?: ("related_conversation" | "expert_insight" | "similar_context" | "temporal_connection" | "relationship_network" | "follow_up_needed" | "missing_information" | "contradiction_alert")[];
+    maxHistoryAge?: number;
+    minRelevanceScore?: number;
+    includeExperts?: boolean;
 }>;
 export type SuggestRelevantContextInput = z.infer<typeof SuggestRelevantContextSchema>;
 /**

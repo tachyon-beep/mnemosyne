@@ -7,6 +7,7 @@
 import { EventEmitter } from 'events';
 import { DatabaseManager } from '../storage/Database.js';
 import { MemoryManager } from './MemoryManager.js';
+import { DynamicThresholdManager } from '../monitoring/DynamicThresholdManager.js';
 interface PerformanceMetric {
     id: string;
     category: 'database' | 'search' | 'embedding' | 'memory' | 'network' | 'system';
@@ -69,6 +70,7 @@ interface PerformanceReport {
 export declare class PerformanceMonitor extends EventEmitter {
     private dbManager;
     private memoryManager;
+    private dynamicThresholds;
     private metrics;
     private alertRules;
     private activeAlerts;
@@ -78,20 +80,30 @@ export declare class PerformanceMonitor extends EventEmitter {
     private metricsRetentionMs;
     private alertCooldownMs;
     private isMonitoring;
-    private readonly PERFORMANCE_THRESHOLDS;
+    private useDynamicThresholds;
+    private readonly FALLBACK_THRESHOLDS;
     constructor(dbManager: DatabaseManager, memoryManager: MemoryManager, options?: {
         metricsRetentionHours?: number;
         alertCooldownMinutes?: number;
         monitoringIntervalSeconds?: number;
+        enableDynamicThresholds?: boolean;
     });
+    /**
+     * Initialize dynamic thresholds if enabled
+     */
+    initializeDynamicThresholds(): Promise<void>;
     /**
      * Start performance monitoring
      */
-    startMonitoring(intervalSeconds?: number): void;
+    startMonitoring(intervalSeconds?: number): Promise<void>;
     /**
      * Stop performance monitoring
      */
-    stopMonitoring(): void;
+    stopMonitoring(): Promise<void>;
+    /**
+     * Get threshold for a metric (adaptive or fallback)
+     */
+    private getThreshold;
     /**
      * Record a performance metric
      */
@@ -130,6 +142,10 @@ export declare class PerformanceMonitor extends EventEmitter {
      */
     runHealthChecks(): Promise<void>;
     private setupDefaultAlertRules;
+    /**
+     * Update alert rule thresholds (used when dynamic thresholds change)
+     */
+    updateAlertThresholds(): void;
     private collectSystemMetrics;
     private runDatabaseHealthCheck;
     private runMemoryHealthCheck;
@@ -143,6 +159,30 @@ export declare class PerformanceMonitor extends EventEmitter {
     private sumMetricValues;
     private aggregateMetrics;
     private generateRecommendations;
+    /**
+     * Get enhanced performance report with dynamic threshold information
+     */
+    getEnhancedPerformanceReport(durationMs?: number): PerformanceReport & {
+        thresholdInfo?: {
+            isDynamic: boolean;
+            thresholdAccuracy?: number;
+            recentAdjustments?: Array<{
+                metric: string;
+                oldValue: number;
+                newValue: number;
+                timestamp: number;
+                reason: string;
+            }>;
+        };
+    };
+    /**
+     * Get dynamic threshold manager (if enabled)
+     */
+    getDynamicThresholdManager(): DynamicThresholdManager | null;
+    /**
+     * Check if dynamic thresholds are enabled and initialized
+     */
+    isDynamicThresholdingEnabled(): boolean;
 }
 export {};
 //# sourceMappingURL=PerformanceMonitor.d.ts.map

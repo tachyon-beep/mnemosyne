@@ -19,37 +19,37 @@ export declare const FindRelatedConversationsArgsSchema: z.ZodObject<{
         start: z.ZodNumber;
         end: z.ZodNumber;
     }, "strip", z.ZodTypeAny, {
-        start: number;
-        end: number;
+        end?: number;
+        start?: number;
     }, {
-        start: number;
-        end: number;
+        end?: number;
+        start?: number;
     }>>;
     max_results: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
     include_snippets: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
     sort_by: z.ZodDefault<z.ZodOptional<z.ZodEnum<["relevance", "recency", "entity_count"]>>>;
 }, "strip", z.ZodTypeAny, {
-    entities: string[];
-    min_strength: number;
-    max_results: number;
-    include_snippets: boolean;
-    sort_by: "relevance" | "recency" | "entity_count";
+    entities?: string[];
     time_range?: {
-        start: number;
-        end: number;
-    } | undefined;
-    relationship_types?: ("works_for" | "created_by" | "discussed_with" | "related_to" | "part_of" | "mentioned_with" | "temporal_sequence" | "cause_effect")[] | undefined;
+        end?: number;
+        start?: number;
+    };
+    relationship_types?: ("works_for" | "created_by" | "discussed_with" | "related_to" | "part_of" | "mentioned_with" | "temporal_sequence" | "cause_effect")[];
+    min_strength?: number;
+    max_results?: number;
+    include_snippets?: boolean;
+    sort_by?: "relevance" | "recency" | "entity_count";
 }, {
-    entities: string[];
+    entities?: string[];
     time_range?: {
-        start: number;
-        end: number;
-    } | undefined;
-    relationship_types?: ("works_for" | "created_by" | "discussed_with" | "related_to" | "part_of" | "mentioned_with" | "temporal_sequence" | "cause_effect")[] | undefined;
-    min_strength?: number | undefined;
-    max_results?: number | undefined;
-    include_snippets?: boolean | undefined;
-    sort_by?: "relevance" | "recency" | "entity_count" | undefined;
+        end?: number;
+        start?: number;
+    };
+    relationship_types?: ("works_for" | "created_by" | "discussed_with" | "related_to" | "part_of" | "mentioned_with" | "temporal_sequence" | "cause_effect")[];
+    min_strength?: number;
+    max_results?: number;
+    include_snippets?: boolean;
+    sort_by?: "relevance" | "recency" | "entity_count";
 }>;
 export type FindRelatedConversationsArgs = z.infer<typeof FindRelatedConversationsArgsSchema>;
 /**
@@ -66,37 +66,37 @@ export declare class FindRelatedConversationsTool extends BaseTool<FindRelatedCo
             start: z.ZodNumber;
             end: z.ZodNumber;
         }, "strip", z.ZodTypeAny, {
-            start: number;
-            end: number;
+            end?: number;
+            start?: number;
         }, {
-            start: number;
-            end: number;
+            end?: number;
+            start?: number;
         }>>;
         max_results: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
         include_snippets: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
         sort_by: z.ZodDefault<z.ZodOptional<z.ZodEnum<["relevance", "recency", "entity_count"]>>>;
     }, "strip", z.ZodTypeAny, {
-        entities: string[];
-        min_strength: number;
-        max_results: number;
-        include_snippets: boolean;
-        sort_by: "relevance" | "recency" | "entity_count";
+        entities?: string[];
         time_range?: {
-            start: number;
-            end: number;
-        } | undefined;
-        relationship_types?: ("works_for" | "created_by" | "discussed_with" | "related_to" | "part_of" | "mentioned_with" | "temporal_sequence" | "cause_effect")[] | undefined;
+            end?: number;
+            start?: number;
+        };
+        relationship_types?: ("works_for" | "created_by" | "discussed_with" | "related_to" | "part_of" | "mentioned_with" | "temporal_sequence" | "cause_effect")[];
+        min_strength?: number;
+        max_results?: number;
+        include_snippets?: boolean;
+        sort_by?: "relevance" | "recency" | "entity_count";
     }, {
-        entities: string[];
+        entities?: string[];
         time_range?: {
-            start: number;
-            end: number;
-        } | undefined;
-        relationship_types?: ("works_for" | "created_by" | "discussed_with" | "related_to" | "part_of" | "mentioned_with" | "temporal_sequence" | "cause_effect")[] | undefined;
-        min_strength?: number | undefined;
-        max_results?: number | undefined;
-        include_snippets?: boolean | undefined;
-        sort_by?: "relevance" | "recency" | "entity_count" | undefined;
+            end?: number;
+            start?: number;
+        };
+        relationship_types?: ("works_for" | "created_by" | "discussed_with" | "related_to" | "part_of" | "mentioned_with" | "temporal_sequence" | "cause_effect")[];
+        min_strength?: number;
+        max_results?: number;
+        include_snippets?: boolean;
+        sort_by?: "relevance" | "recency" | "entity_count";
     }>;
     private knowledgeGraphService;
     constructor(knowledgeGraphService: KnowledgeGraphService);

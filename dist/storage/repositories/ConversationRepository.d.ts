@@ -96,5 +96,14 @@ export declare class ConversationRepository extends BaseRepository {
         startDate?: string;
         endDate?: string;
     }): Promise<Conversation | null>;
+    /**
+     * Get conversations with pagination and optional filters
+     */
+    getConversations(options?: {
+        limit?: number;
+        offset?: number;
+        startDate?: Date;
+        endDate?: Date;
+    }): PaginatedResult<Conversation>;
 }
 //# sourceMappingURL=ConversationRepository.d.ts.map

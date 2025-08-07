@@ -864,6 +864,229 @@ export const AutoTagConversationToolDef = {
     }
 };
 /**
+ * Tool definition for get_conversation_analytics
+ */
+export const GetConversationAnalyticsToolDef = {
+    name: 'get_conversation_analytics',
+    description: 'Retrieve comprehensive analytics for a specific conversation including flow metrics, productivity, and insights',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            conversationId: {
+                type: 'string',
+                description: 'ID of the conversation to analyze',
+                minLength: 1
+            },
+            includeFlowMetrics: {
+                type: 'boolean',
+                description: 'Include detailed flow metrics',
+                default: true
+            },
+            includeProductivityMetrics: {
+                type: 'boolean',
+                description: 'Include productivity metrics',
+                default: true
+            },
+            includeKnowledgeGaps: {
+                type: 'boolean',
+                description: 'Include knowledge gap analysis',
+                default: false
+            },
+            includeDecisionTracking: {
+                type: 'boolean',
+                description: 'Include decision tracking',
+                default: false
+            }
+        },
+        required: ['conversationId'],
+        additionalProperties: false
+    }
+};
+/**
+ * Tool definition for analyze_productivity_patterns
+ */
+export const AnalyzeProductivityPatternsToolDef = {
+    name: 'analyze_productivity_patterns',
+    description: 'Analyze productivity patterns across conversations to identify optimal times, question types, and session characteristics',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            startDate: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Start date for analysis (ISO 8601)'
+            },
+            endDate: {
+                type: 'string',
+                format: 'date-time',
+                description: 'End date for analysis (ISO 8601)'
+            },
+            conversationIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Conversation IDs to analyze (if not provided, analyzes all)'
+            },
+            granularity: {
+                type: 'string',
+                enum: ['hour', 'day', 'week', 'month'],
+                description: 'Granularity for time-based patterns',
+                default: 'day'
+            },
+            includePeakHours: {
+                type: 'boolean',
+                description: 'Include peak hour analysis',
+                default: true
+            },
+            includeSessionAnalysis: {
+                type: 'boolean',
+                description: 'Include session length analysis',
+                default: true
+            },
+            includeQuestionPatterns: {
+                type: 'boolean',
+                description: 'Include question pattern analysis',
+                default: true
+            }
+        },
+        additionalProperties: false
+    }
+};
+/**
+ * Tool definition for detect_knowledge_gaps
+ */
+export const DetectKnowledgeGapsToolDef = {
+    name: 'detect_knowledge_gaps',
+    description: 'Identify knowledge gaps in conversations by analyzing unresolved questions and recurring issues',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            startDate: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Start date for analysis (ISO 8601)'
+            },
+            endDate: {
+                type: 'string',
+                format: 'date-time',
+                description: 'End date for analysis (ISO 8601)'
+            },
+            minFrequency: {
+                type: 'number',
+                description: 'Minimum frequency threshold for gaps',
+                minimum: 1,
+                default: 2
+            },
+            includeResolved: {
+                type: 'boolean',
+                description: 'Include resolved gaps in analysis',
+                default: false
+            },
+            topicAreas: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Topic areas to focus on'
+            },
+            includeSuggestions: {
+                type: 'boolean',
+                description: 'Include gap resolution suggestions',
+                default: true
+            }
+        },
+        additionalProperties: false
+    }
+};
+/**
+ * Tool definition for track_decision_effectiveness
+ */
+export const TrackDecisionEffectivenessToolDef = {
+    name: 'track_decision_effectiveness',
+    description: 'Track decision-making patterns and effectiveness including quality scores, outcomes, and reversal rates',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            startDate: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Start date for analysis (ISO 8601)'
+            },
+            endDate: {
+                type: 'string',
+                format: 'date-time',
+                description: 'End date for analysis (ISO 8601)'
+            },
+            decisionTypes: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Decision types to analyze'
+            },
+            includeOutcomes: {
+                type: 'boolean',
+                description: 'Include outcome tracking',
+                default: true
+            },
+            includeReversals: {
+                type: 'boolean',
+                description: 'Include reversal analysis',
+                default: true
+            },
+            includeQualityMetrics: {
+                type: 'boolean',
+                description: 'Include quality metrics',
+                default: true
+            }
+        },
+        additionalProperties: false
+    }
+};
+/**
+ * Tool definition for generate_analytics_report
+ */
+export const GenerateAnalyticsReportToolDef = {
+    name: 'generate_analytics_report',
+    description: 'Generate comprehensive analytics reports with insights, recommendations, and visualizations',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            startDate: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Start date for report (ISO 8601)'
+            },
+            endDate: {
+                type: 'string',
+                format: 'date-time',
+                description: 'End date for report (ISO 8601)'
+            },
+            format: {
+                type: 'string',
+                enum: ['summary', 'detailed', 'executive'],
+                description: 'Report format',
+                default: 'summary'
+            },
+            sections: {
+                type: 'array',
+                items: {
+                    type: 'string',
+                    enum: ['conversation_metrics', 'productivity_insights', 'knowledge_gaps', 'decision_quality', 'recommendations']
+                },
+                description: 'Sections to include in report',
+                default: ['conversation_metrics', 'productivity_insights']
+            },
+            includeCharts: {
+                type: 'boolean',
+                description: 'Include charts and visualizations',
+                default: false
+            },
+            includeRawData: {
+                type: 'boolean',
+                description: 'Include raw data',
+                default: false
+            }
+        },
+        additionalProperties: false
+    }
+};
+/**
  * All available tools in the persistence system
  */
 export const AllTools = [
@@ -882,7 +1105,12 @@ export const AllTools = [
     GetProactiveInsightsToolDef,
     CheckForConflictsToolDef,
     SuggestRelevantContextToolDef,
-    AutoTagConversationToolDef
+    AutoTagConversationToolDef,
+    GetConversationAnalyticsToolDef,
+    AnalyzeProductivityPatternsToolDef,
+    DetectKnowledgeGapsToolDef,
+    TrackDecisionEffectivenessToolDef,
+    GenerateAnalyticsReportToolDef
 ];
 /**
  * Validation schema for MCP requests
