@@ -113,9 +113,8 @@ export class HybridSearchTool extends BaseTool<HybridSearchParams> {
       // Perform hybrid search
       const searchResult = await this.enhancedSearchEngine.search(searchOptions);
 
-      // Format response
+      // Format response data (without success wrapper - BaseTool handles that)
       const response = {
-        success: true,
         results: searchResult.results.map(result => ({
           messageId: result.messageId,
           conversationId: result.conversationId,

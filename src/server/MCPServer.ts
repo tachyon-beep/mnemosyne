@@ -28,6 +28,8 @@ import { ToolRegistry } from './ToolRegistry.js';
 import { PersistenceServerConfig } from '../types/index.js';
 import { isValidToolName } from '../tools/index.js';
 import { KnowledgeGraphService as NewKnowledgeGraphService } from '../knowledge-graph/KnowledgeGraphService.js';
+import { PerformanceOrchestrator } from '../utils/PerformanceOrchestrator.js';
+import { MemoryManager } from '../utils/MemoryManager.js';
 
 /**
  * Configuration options for the MCP server
@@ -80,6 +82,8 @@ export class MCPServer {
   private enhancedSearchEngine: EnhancedSearchEngine | null = null;
   private embeddingManager: EmbeddingManager | null = null;
   private knowledgeGraphService: NewKnowledgeGraphService | null = null;
+  private memoryManager: MemoryManager | null = null;
+  private performanceOrchestrator: PerformanceOrchestrator | null = null;
   private config: MCPServerConfig;
   private status: ServerStatus = ServerStatus.STOPPED;
   private startTime: number | null = null;
@@ -133,6 +137,9 @@ export class MCPServer {
       
       this.log('info', 'Starting MCP Persistence Server...');
 
+      // Initialize performance management
+      await this.initializePerformanceManagement();
+
       // Initialize database
       await this.initializeDatabase();
 
@@ -141,6 +148,9 @@ export class MCPServer {
 
       // Register tools
       await this.initializeTools();
+
+      // Start performance monitoring
+      await this.startPerformanceMonitoring();
 
       // Start transport
       await this.startTransport();
@@ -177,6 +187,17 @@ export class MCPServer {
         }
       }
 
+      // Stop performance monitoring
+      if (this.performanceOrchestrator) {
+        this.performanceOrchestrator.stopMonitoring();
+        this.performanceOrchestrator = null;
+      }
+
+      if (this.memoryManager) {
+        this.memoryManager.stopMonitoring();
+        this.memoryManager = null;
+      }
+
       // Close embedding manager if initialized
       if (this.embeddingManager) {
         try {
@@ -199,7 +220,7 @@ export class MCPServer {
 
       // Close database connection
       if (this.database) {
-        this.database.close();
+        await this.database.close();
       }
 
       // Close transport
@@ -340,6 +361,39 @@ export class MCPServer {
       };
     }
 
+    // Get performance statistics
+    let performanceStats = null;
+    if (this.performanceOrchestrator) {
+      try {
+        const perfReport = await this.performanceOrchestrator.getSystemPerformanceReport();
+        performanceStats = {
+          enabled: true,
+          overallScore: perfReport.overall.score,
+          status: perfReport.overall.status,
+          recommendations: perfReport.overall.recommendations,
+          database: perfReport.database,
+          memory: perfReport.memory,
+          search: perfReport.search
+        };
+      } catch (error) {
+        performanceStats = {
+          enabled: false,
+          error: 'Failed to get performance stats'
+        };
+      }
+    } else {
+      performanceStats = {
+        enabled: false,
+        reason: 'Performance monitoring not initialized'
+      };
+    }
+
+    // Get search performance if available
+    let searchPerformanceStats = null;
+    if (this.basicSearchEngine) {
+      searchPerformanceStats = this.basicSearchEngine.getPerformanceMetrics();
+    }
+
     return {
       server: {
         name: this.config.name,
@@ -351,12 +405,36 @@ export class MCPServer {
       database: dbStats,
       tools: toolStats,
       embeddings: embeddingStats,
+      performance: performanceStats,
       search: {
         enhancedSearchAvailable: this.enhancedSearchEngine !== null,
         semanticSearchAvailable: this.toolRegistry?.hasTool('semantic_search') || false,
-        hybridSearchAvailable: this.toolRegistry?.hasTool('hybrid_search') || false
+        hybridSearchAvailable: this.toolRegistry?.hasTool('hybrid_search') || false,
+        performance: searchPerformanceStats
       }
     };
+  }
+
+  /**
+   * Initialize performance management systems
+   */
+  private async initializePerformanceManagement(): Promise<void> {
+    this.log('info', 'Initializing performance management...');
+    
+    try {
+      // Initialize memory manager
+      this.memoryManager = new MemoryManager({
+        heapWarningThreshold: 0.75,
+        heapCriticalThreshold: 0.9,
+        maxRssBytes: 1024 * 1024 * 1024, // 1GB
+        gcThreshold: 0.8,
+        monitoringInterval: 30000 // 30 seconds
+      });
+
+      this.log('info', 'Performance management initialized');
+    } catch (error) {
+      throw new Error(`Performance management initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -386,7 +464,10 @@ export class MCPServer {
       
       // Initialize enhanced search engine with embedding support
       const messageRepository = new MessageRepository(this.database);
-      this.basicSearchEngine = new SearchEngine(messageRepository);
+      this.basicSearchEngine = new SearchEngine(messageRepository, {
+        memoryManager: this.memoryManager!,
+        enableIntelligentCaching: true
+      });
       
       this.enhancedSearchEngine = new EnhancedSearchEngine(
         this.database,
@@ -473,7 +554,8 @@ export class MCPServer {
         summaryRepository,
         embeddingManager: this.embeddingManager || undefined,
         contextAssembler,
-        knowledgeGraphService: this.knowledgeGraphService || undefined
+        knowledgeGraphService: this.knowledgeGraphService || undefined,
+        databaseManager: this.database // Pass database manager for Phase 4 tools
       });
 
       const toolCount = this.toolRegistry ? this.toolRegistry.getAllTools().length : 0;
@@ -482,6 +564,48 @@ export class MCPServer {
       
     } catch (error) {
       throw new Error(`Tool initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Start performance monitoring
+   */
+  private async startPerformanceMonitoring(): Promise<void> {
+    this.log('info', 'Starting performance monitoring...');
+    
+    try {
+      if (this.memoryManager && this.database) {
+        // Initialize performance orchestrator
+        this.performanceOrchestrator = new PerformanceOrchestrator(
+          this.database,
+          this.memoryManager,
+          {
+            enableMonitoring: true,
+            monitoringInterval: 30, // 30 seconds
+            enableAutoOptimization: true,
+            enableAlerting: false, // Disable alerting for desktop usage
+            maxResponseTime: 1000
+          }
+        );
+
+        // Set search engine for search performance monitoring
+        if (this.basicSearchEngine) {
+          this.performanceOrchestrator.setSearchEngine(this.basicSearchEngine);
+        }
+
+        // Start monitoring
+        await this.performanceOrchestrator.startMonitoring();
+
+        // Setup performance event handlers
+        this.setupPerformanceEventHandlers();
+
+        this.log('info', 'Performance monitoring started successfully');
+      } else {
+        this.log('warn', 'Performance monitoring disabled - required components not available');
+      }
+    } catch (error) {
+      this.log('warn', `Performance monitoring startup failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log('warn', 'Continuing without performance monitoring');
     }
   }
 
@@ -498,6 +622,39 @@ export class MCPServer {
     } catch (error) {
       throw new Error(`Transport startup failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Setup performance event handlers
+   */
+  private setupPerformanceEventHandlers(): void {
+    if (!this.performanceOrchestrator) return;
+
+    // Handle performance degradation
+    this.performanceOrchestrator.on('performance:degraded', (event) => {
+      this.log('warn', `Performance degraded: score dropped from ${event.previousScore} to ${event.currentScore}`);
+      if (event.degradationFactors.length > 0) {
+        this.log('warn', `Degradation factors: ${event.degradationFactors.join(', ')}`);
+      }
+    });
+
+    // Handle optimization completion
+    this.performanceOrchestrator.on('optimization:completed', (result) => {
+      this.log('info', `Auto-optimization completed: ${result.optimizationsApplied.join(', ')}`);
+      if (result.performanceImprovement > 0) {
+        this.log('info', `Performance improved by ${result.performanceImprovement.toFixed(1)} points`);
+      }
+    });
+
+    // Handle memory pressure events
+    this.performanceOrchestrator.on('memory:pressure', (event) => {
+      this.log('warn', `Memory pressure detected: ${event.pressure.level} - ${event.pressure.recommendation}`);
+    });
+
+    // Handle critical alerts
+    this.performanceOrchestrator.on('critical:alert', (alert) => {
+      this.log('error', `CRITICAL: ${alert.message}`);
+    });
   }
 
   /**
@@ -528,6 +685,7 @@ export class MCPServer {
       // Track search tool performance
       const isSearchTool = ['search_messages', 'semantic_search', 'hybrid_search'].includes(name);
       const searchStartTime = isSearchTool ? Date.now() : null;
+      const toolStartTime = Date.now();
 
       try {
         // Validate tool name
@@ -549,6 +707,18 @@ export class MCPServer {
           () => this.toolRegistry!.executeTool(name, args),
           this.config.toolTimeoutMs!
         );
+
+        // Record tool execution metrics
+        const executionTime = Date.now() - toolStartTime;
+        if (this.performanceOrchestrator && this.performanceOrchestrator['performanceMonitor']) {
+          // Record the tool execution time in the performance monitor
+          const resultCount = result.result?.results?.length || result.result?.data?.results?.length || 0;
+          this.performanceOrchestrator['performanceMonitor'].recordDatabaseMetric(
+            `tool_${name}`,
+            executionTime,
+            resultCount
+          );
+        }
 
         if (result.success) {
           // Log search performance if this was a search tool

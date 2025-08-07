@@ -1,73 +1,69 @@
-# Source files
+# Development files
 src/
 tests/
 __tests__/
-scripts/
-docs/
-config/
-examples/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
 
-# Development files
-*.ts
-!*.d.ts
-tsconfig.json
-jest.config.mjs
-babel.config.mjs
-.eslintrc.js
-
-# Build artifacts
+# Build artifacts (except dist)
 coverage/
+.nyc_output/
 *.log
+*.tmp
+*.temp
 
-# Database files
+# Development configuration
+tsconfig.json
+babel.config.*
+jest.config.*
+.eslintrc*
+.prettierrc*
+
+# Development scripts
+scripts/
+examples/
+docs/working-memory/
+docs/development/
+venv/
+
+# Database and cache files
 *.db
-*.db-journal
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# IDE
-.vscode/
-.idea/
+*.db-*
+conversations.db*
+models/
 .claude/
 
-# Git
-.git/
-.gitignore
+# Environment and config files
+.env*
+.config
+config/
+mcp.json
 
-# Python
-venv/
-__pycache__/
-*.py
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Development scripts and test files
-test-*.ts
-test-*.js
-test-*.cjs
-dogfood-*.cjs
-dogfood-*.json
-debug-*.ts
-start-offline.js
-run-dogfood.sh
+# OS files
+.DS_Store
+Thumbs.db
 
-# Models directory (large files)
-models/
+# Git files
+.git*
 
-# Documentation source
-DEPLOYMENT_STATUS.md
-QUICKSTART.md
-RELEASE_NOTES.md
-ROADMAP.md
-CLAUDE.md
-CONTEXT_ARCHITECT.md
-SYSTEM_ARCHITECT.md
-CONTRIBUTING.md
-docs/
+# Temporary development files
+*.backup*
+*.draft*
+*.temp*
+*.tmp*
 
-# Keep only compiled files and essential docs
-!dist/
-!README.md
-!LICENSE
-!CHANGELOG.md
-!package.json
+# Keep only production essentials:
+# - dist/ (compiled code)
+# - README.md
+# - LICENSE
+# - CHANGELOG.md
+# - package.json

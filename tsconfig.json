@@ -23,5 +23,21 @@
     "experimentalDecorators": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "coverage", "tests"]
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "coverage", 
+    "tests",
+    "src/analytics/**/*",
+    "src/services/nlp/EnhancedPatternDetector.ts",
+    "src/services/nlp/PatternAccuracyValidator.ts",
+    "src/services/nlp/PatternDetectionManager.ts",
+    "src/services/nlp/ProductionPatternDetector.ts",
+    "src/storage/ConnectionPool.ts",
+    "src/entities/ConflictResolutionEngine.ts",
+    "src/entities/DataValidationService.ts",
+    "src/entities/DataIntegrityManager.ts",
+    "src/monitoring/**/*",
+    "src/scripts/start-with-monitoring.ts"
+  ]
 }

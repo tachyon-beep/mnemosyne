@@ -85,12 +85,12 @@ describe('Enhanced Search Integration', () => {
       const timer = new PerformanceTimer();
       
       // Simulate MCP tool call through the complete pipeline
-      const result = await semanticTool.handle({
+      const result = await semanticTool.execute({
         query: 'machine learning neural networks deep learning',
         limit: 10,
         threshold: 0.6,
         explainResults: true
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       timer.expectUnder(1000, 'Complete semantic search workflow');
       
@@ -113,14 +113,14 @@ describe('Enhanced Search Integration', () => {
     test('should complete full hybrid search workflow', async () => {
       const timer = new PerformanceTimer();
       
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'React TypeScript components state management',
         strategy: 'hybrid',
         weights: { semantic: 0.7, fts: 0.3 },
         limit: 15,
         explainResults: true,
         includeMetrics: true
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       timer.expectUnder(1500, 'Complete hybrid search workflow');
       
@@ -143,12 +143,12 @@ describe('Enhanced Search Integration', () => {
     });
 
     test('should handle complex multi-conversation search', async () => {
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'learning algorithms techniques',
         strategy: 'auto',
         limit: 20,
         semanticThreshold: 0.5
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text);
       
@@ -171,17 +171,17 @@ describe('Enhanced Search Integration', () => {
       const query = 'cooking pasta carbonara';
       
       // Get results from hybrid tool (which uses both engines)
-      const hybridResult = await hybridTool.handle({
+      const hybridResult = await hybridTool.execute({
         query,
         strategy: 'hybrid',
         weights: { semantic: 0.5, fts: 0.5 }
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       // Get results from semantic tool only
-      const semanticResult = await semanticTool.handle({
+      const semanticResult = await semanticTool.execute({
         query,
         threshold: 0.3
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const hybridResponse = JSON.parse(hybridResult.content[0].text);
       const semanticResponse = JSON.parse(semanticResult.content[0].text);
@@ -210,11 +210,11 @@ describe('Enhanced Search Integration', () => {
       
       // Execute all searches concurrently
       const promises = queries.map(query => 
-        hybridTool.handle({
+        hybridTool.execute({
           query,
           strategy: 'auto',
           limit: 5
-        }, {})
+        }, { requestId: 'test-integration', timestamp: Date.now() })
       );
       
       const results = await Promise.all(promises);
@@ -253,11 +253,11 @@ describe('Enhanced Search Integration', () => {
       await embeddingManager.storeEmbedding(newMessageId, embedding);
       
       // Search should now include the new message
-      const result = await semanticTool.handle({
+      const result = await semanticTool.execute({
         query: 'artificial intelligence machine learning',
         conversationId: 'conv-tech-1',
         threshold: 0.5
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text);
       
@@ -285,10 +285,10 @@ describe('Enhanced Search Integration', () => {
       expect(result.errors).toBe(0);
       
       // Verify embeddings are working
-      const searchResult = await semanticTool.handle({
+      const searchResult = await semanticTool.execute({
         query: 'test embedding processing',
         limit: 5
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const response = JSON.parse(searchResult.content[0].text);
       expect(response.success).toBe(true);
@@ -297,12 +297,12 @@ describe('Enhanced Search Integration', () => {
     test('should maintain performance with large result sets', async () => {
       const timer = new PerformanceTimer();
       
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'the', // Common word that should match many messages
         strategy: 'hybrid',
         limit: 50,
         semanticThreshold: 0.1
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       timer.expectUnder(2000, 'Large result set search');
       
@@ -322,10 +322,10 @@ describe('Enhanced Search Integration', () => {
       timer.expectUnder(5000, 'Search optimization');
       
       // Verify search still works after optimization
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'optimization test',
         strategy: 'hybrid'
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text);
       expect(response.success).toBe(true);
@@ -339,10 +339,10 @@ describe('Enhanced Search Integration', () => {
       (embeddingManager as any).model = null;
       
       try {
-        const result = await semanticTool.handle({
+        const result = await semanticTool.execute({
           query: 'test with broken embeddings',
           limit: 5
-        }, {});
+        }, { requestId: 'test-integration', timestamp: Date.now() });
         
         // Should either succeed with cached embeddings or fail gracefully
         const response = JSON.parse(result.content[0].text);
@@ -360,10 +360,10 @@ describe('Enhanced Search Integration', () => {
 
     test('should handle database connection issues gracefully', async () => {
       // This test simulates database issues by using an invalid query
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: '', // Empty query should be handled gracefully
         strategy: 'auto'
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text);
       
@@ -377,11 +377,11 @@ describe('Enhanced Search Integration', () => {
       const timer = new PerformanceTimer();
       
       const promises = Array.from({ length: concurrentRequests }, (_, i) =>
-        hybridTool.handle({
+        hybridTool.execute({
           query: `concurrent test query ${i}`,
           strategy: 'auto',
           limit: 5
-        }, {})
+        }, { requestId: 'test-integration', timestamp: Date.now() })
       );
       
       const results = await Promise.all(promises);
@@ -416,7 +416,7 @@ describe('Enhanced Search Integration', () => {
       };
       
       // This would normally go through the server, but we'll test the tool directly
-      const result = await semanticTool.handle(toolCallRequest.params.arguments, {});
+      const result = await semanticTool.execute(toolCallRequest.params.arguments, { requestId: 'test-integration', timestamp: Date.now() });
       
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
@@ -440,31 +440,31 @@ describe('Enhanced Search Integration', () => {
     test('should validate tool parameters according to MCP schemas', async () => {
       // Test semantic tool validation
       await expect(
-        semanticTool.handle({
+        semanticTool.execute({
           query: '', // Invalid empty query
           limit: 5
-        }, {})
+        }, { requestId: 'test-integration', timestamp: Date.now() })
       ).rejects.toThrow();
       
       // Test hybrid tool validation
       await expect(
-        hybridTool.handle({
+        hybridTool.execute({
           query: 'test',
           weights: { semantic: 0.8, fts: 0.3 } // Invalid sum
-        }, {})
+        }, { requestId: 'test-integration', timestamp: Date.now() })
       ).rejects.toThrow();
     });
   });
 
   describe('Real-World Usage Scenarios', () => {
     test('should support developer workflow: finding related technical discussions', async () => {
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'React TypeScript state management hooks',
         strategy: 'hybrid',
         weights: { semantic: 0.6, fts: 0.4 },
         explainResults: true,
         limit: 10
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text);
       
@@ -481,12 +481,12 @@ describe('Enhanced Search Integration', () => {
     });
 
     test('should support research workflow: semantic concept exploration', async () => {
-      const result = await semanticTool.handle({
+      const result = await semanticTool.execute({
         query: 'learning algorithms neural networks',
         threshold: 0.5,
         explainResults: true,
         limit: 15
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text);
       
@@ -506,11 +506,11 @@ describe('Enhanced Search Integration', () => {
     });
 
     test('should support content curation: finding conversations by topic', async () => {
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'cooking recipes food preparation',
         strategy: 'hybrid',
         limit: 10
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text);
       
@@ -536,12 +536,12 @@ describe('Enhanced Search Integration', () => {
     test('should support temporal search: finding recent discussions', async () => {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'development programming',
         startDate: oneDayAgo,
         strategy: 'hybrid',
         limit: 20
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text);
       
@@ -565,11 +565,11 @@ describe('Enhanced Search Integration', () => {
       ];
       
       for (const search of searches) {
-        await hybridTool.handle({
+        await hybridTool.execute({
           query: search.query,
           strategy: search.strategy as any,
           limit: 5
-        }, {});
+        }, { requestId: 'test-integration', timestamp: Date.now() });
       }
       
       // Check if metrics were stored
@@ -645,17 +645,17 @@ describe('Enhanced Search Integration', () => {
       await embeddingManager.storeEmbedding(newMessageId, embedding);
       
       // 3. Verify searchability through both engines
-      const semanticResult = await semanticTool.handle({
+      const semanticResult = await semanticTool.execute({
         query: 'machine learning neural networks',
         conversationId: newConversationId,
         threshold: 0.5
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
-      const hybridResult = await hybridTool.handle({
+      const hybridResult = await hybridTool.execute({
         query: 'machine learning neural networks',
         conversationId: newConversationId,
         strategy: 'hybrid'
-      }, {});
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const semanticResponse = JSON.parse(semanticResult.content[0].text);
       const hybridResponse = JSON.parse(hybridResult.content[0].text);

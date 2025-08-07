@@ -36,14 +36,14 @@ describe('GetProactiveInsightsTool', () => {
 
   describe('Tool Definition', () => {
     it('should have correct tool definition', () => {
-      expect(tool.definition.name).toBe('get_proactive_insights');
-      expect(tool.definition.description).toContain('proactive assistance');
-      expect(tool.definition.inputSchema).toBeDefined();
-      expect(tool.definition.inputSchema.properties).toBeDefined();
+      expect(tool.getName()).toBe('get_proactive_insights');
+      expect(tool.getDescription()).toContain('proactive assistance');
+      expect(tool.getTool().inputSchema).toBeDefined();
+      expect(tool.getTool().inputSchema.properties).toBeDefined();
     });
 
     it('should have required input schema properties', () => {
-      const schema = tool.definition.inputSchema;
+      const schema = tool.getTool().inputSchema;
       
       expect(schema.properties.conversationId).toBeDefined();
       expect(schema.properties.includeTypes).toBeDefined();
@@ -53,7 +53,7 @@ describe('GetProactiveInsightsTool', () => {
     });
 
     it('should have correct enum values for includeTypes', () => {
-      const includeTypesProperty = tool.definition.inputSchema.properties.includeTypes;
+      const includeTypesProperty = tool.getTool().inputSchema.properties.includeTypes;
       
       expect(includeTypesProperty.items.enum).toContain('unresolved_actions');
       expect(includeTypesProperty.items.enum).toContain('recurring_questions');
@@ -76,7 +76,7 @@ describe('GetProactiveInsightsTool', () => {
       mockPatternService.detectUnresolvedActions.mockResolvedValue([]);
       mockPatternService.findRecurringQuestions.mockResolvedValue([]);
 
-      const result = await tool.handle(validInput);
+      const result = await tool.execute(validInput, { requestId: 'test-valid', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockPatternService.detectUnresolvedActions).toHaveBeenCalledWith({
@@ -94,7 +94,7 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.detectUnresolvedActions.mockResolvedValue([]);
 
-      const result = await tool.handle(minimalInput);
+      const result = await tool.execute(minimalInput, { requestId: 'test-minimal', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockPatternService.detectUnresolvedActions).toHaveBeenCalledWith({
@@ -111,7 +111,7 @@ describe('GetProactiveInsightsTool', () => {
         daysSince: -1
       };
 
-      const result = await tool.handle(invalidInput);
+      const result = await tool.execute(invalidInput, { requestId: 'test-invalid', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation error');
@@ -124,7 +124,7 @@ describe('GetProactiveInsightsTool', () => {
       ];
 
       for (const input of invalidInputs) {
-        const result = await tool.handle(input);
+        const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
         expect(result.isError).toBe(true);
         expect(result.content[0].text).toContain('Validation error');
       }
@@ -136,7 +136,7 @@ describe('GetProactiveInsightsTool', () => {
         limit: 0
       };
 
-      const result = await tool.handle(invalidInput);
+      const result = await tool.execute(invalidInput, { requestId: 'test-invalid', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation error');
@@ -147,7 +147,7 @@ describe('GetProactiveInsightsTool', () => {
         includeTypes: ['invalid_type'] as any
       };
 
-      const result = await tool.handle(invalidInput);
+      const result = await tool.execute(invalidInput, { requestId: 'test-invalid', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation error');
@@ -177,7 +177,7 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.detectUnresolvedActions.mockResolvedValue(mockActions);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockPatternService.detectUnresolvedActions).toHaveBeenCalledWith({
@@ -187,7 +187,7 @@ describe('GetProactiveInsightsTool', () => {
         limit: 5
       });
 
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       expect(response.insights.unresolvedActions).toEqual(mockActions);
     });
 
@@ -208,7 +208,7 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.findRecurringQuestions.mockResolvedValue(mockQuestions);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockPatternService.findRecurringQuestions).toHaveBeenCalledWith({
@@ -218,7 +218,7 @@ describe('GetProactiveInsightsTool', () => {
         limit: 3
       });
 
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       expect(response.insights.recurringQuestions).toEqual(mockQuestions);
     });
 
@@ -239,7 +239,7 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.identifyKnowledgeGaps.mockResolvedValue(mockGaps);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockPatternService.identifyKnowledgeGaps).toHaveBeenCalledWith({
@@ -248,7 +248,7 @@ describe('GetProactiveInsightsTool', () => {
         limit: 20
       });
 
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       expect(response.insights.knowledgeGaps).toEqual(mockGaps);
     });
 
@@ -281,7 +281,7 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.trackCommitments.mockResolvedValue(mockCommitments);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockPatternService.trackCommitments).toHaveBeenCalledWith({
@@ -290,7 +290,7 @@ describe('GetProactiveInsightsTool', () => {
         limit: 40 // doubled for filtering
       });
 
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       // Should only include pending/overdue commitments that are >= 7 days old
       expect(response.insights.staleCommitments).toHaveLength(2);
@@ -306,13 +306,13 @@ describe('GetProactiveInsightsTool', () => {
       mockPatternService.detectUnresolvedActions.mockResolvedValue([{ id: 'action-1' }] as any);
       mockPatternService.findRecurringQuestions.mockResolvedValue([{ id: 'question-1' }] as any);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockPatternService.detectUnresolvedActions).toHaveBeenCalled();
       expect(mockPatternService.findRecurringQuestions).toHaveBeenCalled();
 
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       expect(response.insights.unresolvedActions).toBeDefined();
       expect(response.insights.recurringQuestions).toBeDefined();
       expect(response.summary.totalInsights).toBe(2);
@@ -330,13 +330,13 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.detectUnresolvedActions.mockResolvedValue([]);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
 
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response).toHaveProperty('insights');
       expect(response).toHaveProperty('summary');
@@ -358,10 +358,10 @@ describe('GetProactiveInsightsTool', () => {
       mockPatternService.findRecurringQuestions.mockResolvedValue([{}] as any);
       mockPatternService.identifyKnowledgeGaps.mockResolvedValue([{}, {}, {}] as any);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       expect(response.summary.totalInsights).toBe(6); // 2 + 1 + 3
     });
 
@@ -373,10 +373,10 @@ describe('GetProactiveInsightsTool', () => {
       const beforeTime = Date.now();
       mockPatternService.detectUnresolvedActions.mockResolvedValue([]);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       const afterTime = Date.now();
       
       expect(response.summary.detectionTimestamp).toBeGreaterThanOrEqual(beforeTime);
@@ -390,10 +390,10 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.detectUnresolvedActions.mockResolvedValue([]);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response.insights.unresolvedActions).toBeDefined();
       expect(response.insights.recurringQuestions).toBeUndefined();
@@ -410,7 +410,7 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.detectUnresolvedActions.mockRejectedValue(new Error('Database connection failed'));
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Failed to detect unresolved actions');
@@ -424,7 +424,7 @@ describe('GetProactiveInsightsTool', () => {
       mockPatternService.detectUnresolvedActions.mockResolvedValue([]);
       mockPatternService.findRecurringQuestions.mockRejectedValue(new Error('Service error'));
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Failed to find recurring questions');
@@ -437,7 +437,7 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.identifyKnowledgeGaps.mockRejectedValue(new Error('SQLITE_BUSY: database is locked'));
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Failed to identify knowledge gaps');
@@ -451,10 +451,10 @@ describe('GetProactiveInsightsTool', () => {
       mockPatternService.detectUnresolvedActions.mockResolvedValue([]);
       mockPatternService.findRecurringQuestions.mockResolvedValue([]);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response.insights.unresolvedActions).toEqual([]);
       expect(response.insights.recurringQuestions).toEqual([]);
@@ -467,7 +467,7 @@ describe('GetProactiveInsightsTool', () => {
       const toolInstance = GetProactiveInsightsTool.create({ databaseManager: dbManager });
       
       expect(toolInstance).toBeInstanceOf(GetProactiveInsightsTool);
-      expect(toolInstance.definition.name).toBe('get_proactive_insights');
+      expect(toolInstance.getName()).toBe('get_proactive_insights');
     });
 
     it('should initialize pattern service in factory-created instance', () => {
@@ -487,7 +487,7 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.detectUnresolvedActions.mockResolvedValue([]);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockPatternService.detectUnresolvedActions).toHaveBeenCalledWith(
@@ -503,7 +503,7 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.detectUnresolvedActions.mockResolvedValue([]);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockPatternService.detectUnresolvedActions).toHaveBeenCalledWith(
@@ -520,7 +520,7 @@ describe('GetProactiveInsightsTool', () => {
 
       mockPatternService.detectUnresolvedActions.mockResolvedValue([]);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockPatternService.detectUnresolvedActions).toHaveBeenCalledWith(

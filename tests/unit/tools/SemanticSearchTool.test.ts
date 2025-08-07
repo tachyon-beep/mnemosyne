@@ -84,45 +84,45 @@ describe('SemanticSearchTool', () => {
     test('should validate required parameters', async () => {
       // Missing query parameter
       await expect(
-        semanticSearchTool.handle({} as any, {})
+        semanticSearchTool.execute({} as any, { requestId: 'test-req', timestamp: Date.now() })
       ).rejects.toThrow('Validation error');
       
       // Empty query
       await expect(
-        semanticSearchTool.handle({ query: '' }, {})
+        semanticSearchTool.execute({ query: '' }, { requestId: 'test-req', timestamp: Date.now() })
       ).rejects.toThrow('Validation error');
     });
 
     test('should validate parameter types and ranges', async () => {
       // Invalid limit (too high)
       await expect(
-        semanticSearchTool.handle({
+        semanticSearchTool.execute({
           query: 'test',
           limit: 1000
-        }, {})
+        }, { requestId: 'test-req', timestamp: Date.now() })
       ).rejects.toThrow('Validation error');
       
       // Invalid threshold (out of range)
       await expect(
-        semanticSearchTool.handle({
+        semanticSearchTool.execute({
           query: 'test',
           threshold: 1.5
-        }, {})
+        }, { requestId: 'test-req', timestamp: Date.now() })
       ).rejects.toThrow('Validation error');
       
       // Invalid offset (negative)
       await expect(
-        semanticSearchTool.handle({
+        semanticSearchTool.execute({
           query: 'test',
           offset: -1
-        }, {})
+        }, { requestId: 'test-req', timestamp: Date.now() })
       ).rejects.toThrow('Validation error');
     });
 
     test('should apply default values correctly', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'machine learning'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -135,10 +135,10 @@ describe('SemanticSearchTool', () => {
 
   describe('Basic Search Functionality', () => {
     test('should perform semantic search successfully', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'machine learning neural networks',
         limit: 5
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -164,10 +164,10 @@ describe('SemanticSearchTool', () => {
     });
 
     test('should return results sorted by similarity', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'cooking pasta recipes',
         limit: 10
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -183,17 +183,17 @@ describe('SemanticSearchTool', () => {
     });
 
     test('should filter by similarity threshold', async () => {
-      const highThresholdResult = await semanticSearchTool.handle({
+      const highThresholdResult = await semanticSearchTool.execute({
         query: 'React components',
         threshold: 0.8,
         limit: 20
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
-      const lowThresholdResult = await semanticSearchTool.handle({
+      const lowThresholdResult = await semanticSearchTool.execute({
         query: 'React components',
         threshold: 0.3,
         limit: 20
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const highResponse = parseToolResponse(highThresholdResult);
       const lowResponse = parseToolResponse(lowThresholdResult);
@@ -211,11 +211,11 @@ describe('SemanticSearchTool', () => {
 
   describe('Advanced Search Features', () => {
     test('should filter by conversation ID', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'React',
         conversationId: 'conv-tech-1',
         limit: 10
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -233,12 +233,12 @@ describe('SemanticSearchTool', () => {
       const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
       const oneWeekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
       
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'learning',
         startDate: oneWeekAgo,
         endDate: oneDayAgo,
         limit: 10
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -256,18 +256,18 @@ describe('SemanticSearchTool', () => {
 
     test('should handle pagination correctly', async () => {
       // First page
-      const firstPageResult = await semanticSearchTool.handle({
+      const firstPageResult = await semanticSearchTool.execute({
         query: 'development',
         limit: 2,
         offset: 0
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       // Second page
-      const secondPageResult = await semanticSearchTool.handle({
+      const secondPageResult = await semanticSearchTool.execute({
         query: 'development',
         limit: 2,
         offset: 2
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const firstResponse = parseToolResponse(firstPageResult);
       const secondResponse = parseToolResponse(secondPageResult);
@@ -286,11 +286,11 @@ describe('SemanticSearchTool', () => {
     });
 
     test('should provide explanations when requested', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'neural networks',
         explainResults: true,
         limit: 3
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -308,10 +308,10 @@ describe('SemanticSearchTool', () => {
 
   describe('Response Format and Metadata', () => {
     test('should include comprehensive metadata', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'cooking recipes',
         limit: 5
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -331,11 +331,11 @@ describe('SemanticSearchTool', () => {
     });
 
     test('should include pagination information', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'machine learning',
         limit: 3,
         offset: 1
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -347,10 +347,10 @@ describe('SemanticSearchTool', () => {
     });
 
     test('should create meaningful previews', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'React components',
         limit: 3
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -369,18 +369,18 @@ describe('SemanticSearchTool', () => {
     test('should validate ISO 8601 date formats', async () => {
       // Invalid date format
       await expect(
-        semanticSearchTool.handle({
+        semanticSearchTool.execute({
           query: 'test',
           startDate: 'invalid-date'
-        }, {})
+        }, { requestId: 'test-req', timestamp: Date.now() })
       ).rejects.toThrow(ToolError);
       
       // Valid ISO 8601 format should work
       const validDate = new Date().toISOString();
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'test',
         startDate: validDate
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       expect(response.success).toBe(true);
@@ -393,11 +393,11 @@ describe('SemanticSearchTool', () => {
       
       // End date before start date should fail
       await expect(
-        semanticSearchTool.handle({
+        semanticSearchTool.execute({
           query: 'test',
           startDate,
           endDate
-        }, {})
+        }, { requestId: 'test-req', timestamp: Date.now() })
       ).rejects.toThrow(ToolError);
     });
   });
@@ -406,10 +406,10 @@ describe('SemanticSearchTool', () => {
     test('should meet performance targets', async () => {
       const timer = new PerformanceTimer();
       
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'machine learning neural networks deep learning',
         limit: 10
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -423,11 +423,11 @@ describe('SemanticSearchTool', () => {
     test('should handle large result sets efficiently', async () => {
       const timer = new PerformanceTimer();
       
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'the', // Common word that should match many messages
         limit: 50,
         threshold: 0.1 // Low threshold to get more results
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -440,10 +440,10 @@ describe('SemanticSearchTool', () => {
 
   describe('Error Handling', () => {
     test('should handle empty search results gracefully', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'nonexistent unique query that should not match anything',
         threshold: 0.99
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -464,19 +464,19 @@ describe('SemanticSearchTool', () => {
       const invalidTool = new SemanticSearchTool(invalidEngine);
       
       await expect(
-        invalidTool.handle({
+        invalidTool.execute({
           query: 'test query'
-        }, {})
+        }, { requestId: 'test-req', timestamp: Date.now() })
       ).rejects.toThrow(ToolError);
     });
 
     test('should handle very long queries', async () => {
       const longQuery = 'very long query '.repeat(100); // ~1600 characters
       
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: longQuery,
         limit: 5
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -527,10 +527,10 @@ describe('SemanticSearchTool', () => {
 
   describe('Edge Cases', () => {
     test('should handle queries with special characters', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'C++ programming & development @#$%',
         limit: 5
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -539,10 +539,10 @@ describe('SemanticSearchTool', () => {
     });
 
     test('should handle extremely short queries', async () => {
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: 'a',
         limit: 5
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -552,10 +552,10 @@ describe('SemanticSearchTool', () => {
     test('should handle maximum length queries', async () => {
       const maxQuery = 'a'.repeat(1000); // Max allowed length
       
-      const result = await semanticSearchTool.handle({
+      const result = await semanticSearchTool.execute({
         query: maxQuery,
         limit: 5
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -564,10 +564,10 @@ describe('SemanticSearchTool', () => {
 
     test('should handle zero limit edge case', async () => {
       await expect(
-        semanticSearchTool.handle({
+        semanticSearchTool.execute({
           query: 'test',
           limit: 0
-        }, {})
+        }, { requestId: 'test-req', timestamp: Date.now() })
       ).rejects.toThrow('Validation error');
     });
   });
@@ -581,10 +581,10 @@ describe('SemanticSearchTool', () => {
       const yesterday = new Date(fixedTime - 24 * 60 * 60 * 1000).toISOString();
       
       expect(async () => {
-        await semanticSearchTool.handle({
+        await semanticSearchTool.execute({
           query: 'test',
           startDate: yesterday
-        }, {});
+        }, { requestId: 'test-req', timestamp: Date.now() });
       }).not.toThrow();
     });
   });

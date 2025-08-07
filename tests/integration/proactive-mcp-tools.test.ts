@@ -54,12 +54,12 @@ describe('Proactive MCP Tools Integration', () => {
 
   describe('GetProactiveInsightsTool', () => {
     it('should retrieve unresolved actions successfully', async () => {
-      const result = await getProactiveInsightsTool.handle({
+      const result = await getProactiveInsightsTool.execute({
         includeTypes: ['unresolved_actions'],
         daysSince: 30,
         minConfidence: 0.6,
         limit: 10
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(result.content).toBeDefined();
@@ -74,11 +74,11 @@ describe('Proactive MCP Tools Integration', () => {
     });
 
     it('should retrieve recurring questions', async () => {
-      const result = await getProactiveInsightsTool.handle({
+      const result = await getProactiveInsightsTool.execute({
         includeTypes: ['recurring_questions'],
         daysSince: 30,
         limit: 5
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -91,14 +91,14 @@ describe('Proactive MCP Tools Integration', () => {
         expect(question.questionText).toBeTruthy();
         expect(question.instances).toBeDefined();
         expect(question.conversationIds).toBeDefined();
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should identify knowledge gaps', async () => {
-      const result = await getProactiveInsightsTool.handle({
+      const result = await getProactiveInsightsTool.execute({
         includeTypes: ['knowledge_gaps'],
         daysSince: 30
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -111,7 +111,7 @@ describe('Proactive MCP Tools Integration', () => {
         expect(gap.gapRatio).toBeGreaterThanOrEqual(1.5);
         expect(gap.questionCount).toBeGreaterThan(0);
         expect(gap.relatedMessages).toBeDefined();
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should track stale commitments', async () => {
@@ -119,10 +119,10 @@ describe('Proactive MCP Tools Integration', () => {
       const futureTime = mockTime + (10 * 24 * 60 * 60 * 1000);
       setupMockTime(futureTime);
 
-      const result = await getProactiveInsightsTool.handle({
+      const result = await getProactiveInsightsTool.execute({
         includeTypes: ['stale_commitments'],
         daysSince: 7
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -134,15 +134,15 @@ describe('Proactive MCP Tools Integration', () => {
         expect(commitment.status).toMatch(/pending|overdue/);
         expect(commitment.daysSinceCommitment).toBeGreaterThanOrEqual(7);
         expect(commitment.commitmentText).toBeTruthy();
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should handle all insight types together', async () => {
-      const result = await getProactiveInsightsTool.handle({
+      const result = await getProactiveInsightsTool.execute({
         includeTypes: ['unresolved_actions', 'recurring_questions', 'knowledge_gaps', 'stale_commitments'],
         daysSince: 30,
         limit: 5
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -158,11 +158,11 @@ describe('Proactive MCP Tools Integration', () => {
     });
 
     it('should filter by conversation ID', async () => {
-      const result = await getProactiveInsightsTool.handle({
+      const result = await getProactiveInsightsTool.execute({
         conversationId: 'conv-proactive-test-1',
         includeTypes: ['unresolved_actions'],
         daysSince: 30
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -172,15 +172,15 @@ describe('Proactive MCP Tools Integration', () => {
       // All unresolved actions should be from the specified conversation
       response.insights.unresolvedActions?.forEach((action: any) => {
         expect(action.conversationId).toBe('conv-proactive-test-1');
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should handle validation errors', async () => {
-      const result = await getProactiveInsightsTool.handle({
+      const result = await getProactiveInsightsTool.execute({
         daysSince: -1, // Invalid
         minConfidence: 2, // Invalid
         limit: 0 // Invalid
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation error');
@@ -189,11 +189,11 @@ describe('Proactive MCP Tools Integration', () => {
 
   describe('CheckForConflictsTool', () => {
     it('should detect scheduling conflicts', async () => {
-      const result = await checkForConflictsTool.handle({
+      const result = await checkForConflictsTool.execute({
         conversationId: 'conv-conflict-test',
         conflictTypes: ['schedule'],
         timeWindowDays: 30
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -204,11 +204,11 @@ describe('Proactive MCP Tools Integration', () => {
     });
 
     it('should detect commitment conflicts', async () => {
-      const result = await checkForConflictsTool.handle({
+      const result = await checkForConflictsTool.execute({
         conversationId: 'conv-conflict-test',
         conflictTypes: ['commitment'],
         minSeverity: 'medium'
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -220,14 +220,14 @@ describe('Proactive MCP Tools Integration', () => {
         expect(['low', 'medium', 'high', 'critical']).toContain(conflict.severity);
         expect(conflict.conflictType).toBe('commitment');
         expect(conflict.description).toBeTruthy();
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should detect resource conflicts', async () => {
-      const result = await checkForConflictsTool.handle({
+      const result = await checkForConflictsTool.execute({
         conflictTypes: ['resource'],
         timeWindowDays: 14
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -236,26 +236,26 @@ describe('Proactive MCP Tools Integration', () => {
       resourceConflicts.forEach((conflict: any) => {
         expect(conflict.involvedEntities).toBeDefined();
         expect(conflict.suggestedResolution).toBeTruthy();
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should filter by severity level', async () => {
-      const highSeverityResult = await checkForConflictsTool.handle({
+      const highSeverityResult = await checkForConflictsTool.execute({
         minSeverity: 'high'
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(highSeverityResult.isError).toBe(false);
       const highResponse = JSON.parse(highSeverityResult.content[0].text);
       
       highResponse.conflicts.forEach((conflict: any) => {
         expect(['high', 'critical']).toContain(conflict.severity);
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should provide resolution suggestions', async () => {
-      const result = await checkForConflictsTool.handle({
+      const result = await checkForConflictsTool.execute({
         conflictTypes: ['schedule', 'commitment', 'resource']
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -263,14 +263,14 @@ describe('Proactive MCP Tools Integration', () => {
       response.conflicts.forEach((conflict: any) => {
         expect(conflict.suggestedResolution).toBeTruthy();
         expect(typeof conflict.suggestedResolution).toBe('string');
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should handle empty conflict results', async () => {
-      const result = await checkForConflictsTool.handle({
+      const result = await checkForConflictsTool.execute({
         conversationId: 'conv-no-conflicts',
         conflictTypes: ['schedule']
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -282,11 +282,11 @@ describe('Proactive MCP Tools Integration', () => {
 
   describe('SuggestRelevantContextTool', () => {
     it('should suggest related conversations', async () => {
-      const result = await suggestRelevantContextTool.handle({
+      const result = await suggestRelevantContextTool.execute({
         currentConversationId: 'conv-proactive-test-1',
         contextTypes: ['related_conversations'],
         maxSuggestions: 5
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -298,15 +298,15 @@ describe('Proactive MCP Tools Integration', () => {
         expect(suggestion.conversationId).toBeTruthy();
         expect(suggestion.relevanceScore).toBeGreaterThan(0);
         expect(suggestion.reasonForRelevance).toBeTruthy();
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should suggest relevant entities', async () => {
-      const result = await suggestRelevantContextTool.handle({
+      const result = await suggestRelevantContextTool.execute({
         currentConversationId: 'conv-proactive-test-1',
         contextTypes: ['relevant_entities'],
         maxSuggestions: 10
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -318,15 +318,15 @@ describe('Proactive MCP Tools Integration', () => {
         expect(entity.name).toBeTruthy();
         expect(entity.type).toBeTruthy();
         expect(entity.relevanceScore).toBeGreaterThan(0);
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should suggest historical patterns', async () => {
-      const result = await suggestRelevantContextTool.handle({
+      const result = await suggestRelevantContextTool.execute({
         currentConversationId: 'conv-proactive-test-1',
         contextTypes: ['historical_patterns'],
         timeWindowDays: 60
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -336,26 +336,26 @@ describe('Proactive MCP Tools Integration', () => {
     });
 
     it('should filter by minimum relevance score', async () => {
-      const result = await suggestRelevantContextTool.handle({
+      const result = await suggestRelevantContextTool.execute({
         currentConversationId: 'conv-proactive-test-1',
         contextTypes: ['related_conversations'],
         minRelevanceScore: 0.7
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
       
       response.contextSuggestions.relatedConversations?.forEach((suggestion: any) => {
         expect(suggestion.relevanceScore).toBeGreaterThanOrEqual(0.7);
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should respect maxSuggestions limit', async () => {
-      const result = await suggestRelevantContextTool.handle({
+      const result = await suggestRelevantContextTool.execute({
         currentConversationId: 'conv-proactive-test-1',
         contextTypes: ['related_conversations', 'relevant_entities'],
         maxSuggestions: 3
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -367,10 +367,10 @@ describe('Proactive MCP Tools Integration', () => {
     });
 
     it('should handle non-existent conversation gracefully', async () => {
-      const result = await suggestRelevantContextTool.handle({
+      const result = await suggestRelevantContextTool.execute({
         currentConversationId: 'non-existent-conversation',
         contextTypes: ['related_conversations']
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -382,10 +382,10 @@ describe('Proactive MCP Tools Integration', () => {
 
   describe('AutoTagConversationTool', () => {
     it('should auto-tag conversation with all tag types', async () => {
-      const result = await autoTagConversationTool.handle({
+      const result = await autoTagConversationTool.execute({
         conversationId: 'conv-proactive-test-1',
         includeTypes: ['topic_tags', 'activity_classification', 'urgency_detection', 'project_context']
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -400,11 +400,11 @@ describe('Proactive MCP Tools Integration', () => {
     });
 
     it('should generate topic tags', async () => {
-      const result = await autoTagConversationTool.handle({
+      const result = await autoTagConversationTool.execute({
         conversationId: 'conv-proactive-test-1',
         includeTypes: ['topic_tags'],
         maxTopicTags: 5
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -417,14 +417,14 @@ describe('Proactive MCP Tools Integration', () => {
         expect(['entity', 'theme', 'domain']).toContain(tag.type);
         expect(tag.name).toBeTruthy();
         expect(tag.relevance).toBeGreaterThan(0);
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should classify activity type', async () => {
-      const result = await autoTagConversationTool.handle({
+      const result = await autoTagConversationTool.execute({
         conversationId: 'conv-proactive-test-1',
         includeTypes: ['activity_classification']
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -437,10 +437,10 @@ describe('Proactive MCP Tools Integration', () => {
     });
 
     it('should detect urgency levels', async () => {
-      const result = await autoTagConversationTool.handle({
+      const result = await autoTagConversationTool.execute({
         conversationId: 'conv-urgent-test',
         includeTypes: ['urgency_detection']
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -453,10 +453,10 @@ describe('Proactive MCP Tools Integration', () => {
     });
 
     it('should identify project contexts', async () => {
-      const result = await autoTagConversationTool.handle({
+      const result = await autoTagConversationTool.execute({
         conversationId: 'conv-project-test',
         includeTypes: ['project_context']
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -468,15 +468,15 @@ describe('Proactive MCP Tools Integration', () => {
         expect(project.name).toBeTruthy();
         expect(project.confidence).toBeGreaterThan(0);
         expect(['ongoing', 'new', 'completed']).toContain(project.type);
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should store tagging results when requested', async () => {
-      const result = await autoTagConversationTool.handle({
+      const result = await autoTagConversationTool.execute({
         conversationId: 'conv-proactive-test-1',
         includeTypes: ['topic_tags', 'activity_classification'],
         storeTags: true
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -487,12 +487,12 @@ describe('Proactive MCP Tools Integration', () => {
     });
 
     it('should apply custom configuration', async () => {
-      const result = await autoTagConversationTool.handle({
+      const result = await autoTagConversationTool.execute({
         conversationId: 'conv-proactive-test-1',
         includeTypes: ['topic_tags'],
         maxTopicTags: 2,
         minEntityRelevance: 0.8
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -502,14 +502,14 @@ describe('Proactive MCP Tools Integration', () => {
       const entityTags = response.taggingResult.topicTags.filter((tag: any) => tag.type === 'entity');
       entityTags.forEach((tag: any) => {
         expect(tag.relevance).toBeGreaterThanOrEqual(0.8);
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
     });
 
     it('should validate conversation exists', async () => {
-      const result = await autoTagConversationTool.handle({
+      const result = await autoTagConversationTool.execute({
         conversationId: 'non-existent-conversation',
         includeTypes: ['topic_tags']
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);
@@ -530,7 +530,7 @@ describe('Proactive MCP Tools Integration', () => {
       ];
 
       for (const { tool, input } of tools) {
-        const result = await tool.handle(input);
+        const result = await tool.execute(input);
         
         expect(result).toBeDefined();
         expect(typeof result.isError).toBe('boolean');
@@ -550,7 +550,7 @@ describe('Proactive MCP Tools Integration', () => {
       ];
 
       for (const { tool, input } of tools) {
-        const result = await tool.handle(input);
+        const result = await tool.execute(input);
         
         expect(result.isError).toBe(true);
         expect(result.content[0].text).toContain('Validation error');
@@ -568,7 +568,7 @@ describe('Proactive MCP Tools Integration', () => {
       ];
 
       for (const { tool, input } of tools) {
-        const result = await tool.handle(input);
+        const result = await tool.execute(input);
         
         expect(result.isError).toBe(true);
         expect(result.content[0].text).toContain('Database error');
@@ -580,11 +580,11 @@ describe('Proactive MCP Tools Integration', () => {
     it('should complete proactive insights analysis within reasonable time', async () => {
       const startTime = Date.now();
       
-      const result = await getProactiveInsightsTool.handle({
+      const result = await getProactiveInsightsTool.execute({
         includeTypes: ['unresolved_actions', 'recurring_questions', 'knowledge_gaps', 'stale_commitments'],
         daysSince: 30,
         limit: 20
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       const duration = Date.now() - startTime;
       
@@ -593,11 +593,11 @@ describe('Proactive MCP Tools Integration', () => {
     });
 
     it('should handle large result sets efficiently', async () => {
-      const result = await getProactiveInsightsTool.handle({
+      const result = await getProactiveInsightsTool.execute({
         includeTypes: ['unresolved_actions', 'recurring_questions'],
         daysSince: 365,
         limit: 100
-      });
+      }, { requestId: 'test-integration', timestamp: Date.now() });
       
       expect(result.isError).toBe(false);
       const response = JSON.parse(result.content[0].text);

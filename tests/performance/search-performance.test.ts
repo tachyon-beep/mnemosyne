@@ -234,11 +234,11 @@ describe('Enhanced Search Performance Tests', () => {
       const timer = new PerformanceTimer();
       
       const promises = Array.from({ length: concurrentCount }, (_, i) =>
-        semanticTool.handle({
+        semanticTool.execute({
           query: `concurrent semantic test query ${i}`,
           limit: 10,
           threshold: 0.5
-        }, {})
+        }, { requestId: 'test-perf', timestamp: Date.now() })
       );
       
       const results = await Promise.all(promises);
@@ -262,11 +262,11 @@ describe('Enhanced Search Performance Tests', () => {
       const timer = new PerformanceTimer();
       
       const promises = Array.from({ length: concurrentCount }, (_, i) =>
-        hybridTool.handle({
+        hybridTool.execute({
           query: `concurrent hybrid test query ${i}`,
           strategy: 'hybrid',
           limit: 5
-        }, {})
+        }, { requestId: 'test-perf', timestamp: Date.now() })
       );
       
       const results = await Promise.all(promises);
@@ -289,18 +289,18 @@ describe('Enhanced Search Performance Tests', () => {
       const timer = new PerformanceTimer();
       
       const semanticPromises = Array.from({ length: 5 }, (_, i) =>
-        semanticTool.handle({
+        semanticTool.execute({
           query: `mixed load semantic ${i}`,
           limit: 5
-        }, {})
+        }, { requestId: 'test-perf', timestamp: Date.now() })
       );
       
       const hybridPromises = Array.from({ length: 5 }, (_, i) =>
-        hybridTool.handle({
+        hybridTool.execute({
           query: `mixed load hybrid ${i}`,
           strategy: 'hybrid',
           limit: 5
-        }, {})
+        }, { requestId: 'test-perf', timestamp: Date.now() })
       );
       
       const allResults = await Promise.all([...semanticPromises, ...hybridPromises]);
@@ -411,11 +411,11 @@ describe('Enhanced Search Performance Tests', () => {
       
       for (let i = 0; i < 20; i++) {
         operations.push(
-          hybridTool.handle({
+          hybridTool.execute({
             query: `memory test query ${i}`,
             strategy: 'hybrid',
             limit: 20
-          }, {})
+          }, { requestId: 'test-perf', timestamp: Date.now() })
         );
       }
       
@@ -514,11 +514,11 @@ describe('Enhanced Search Performance Tests', () => {
       
       const timer = new PerformanceTimer();
       
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'cold start performance test',
         strategy: 'hybrid',
         limit: 5
-      }, {});
+      }, { requestId: 'test-perf', timestamp: Date.now() });
       
       const elapsed = timer.elapsed();
       

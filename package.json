@@ -1,8 +1,11 @@
 {
   "name": "mcp-persistence-server",
   "version": "2.0.0",
-  "description": "High-performance MCP-compliant persistence server for Claude Desktop with semantic search",
+  "description": "Production-ready MCP persistence server with conversation history, advanced search, and knowledge graph capabilities for Claude Desktop",
   "main": "dist/index.js",
+  "bin": {
+    "mcp-persistence-server": "dist/index.js"
+  },
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -21,7 +24,17 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist coverage",
     "init:models": "tsx src/scripts/init-models.ts",
-    "benchmark": "tsx src/scripts/benchmark-embeddings.ts"
+    "benchmark": "tsx src/scripts/benchmark-embeddings.ts",
+    "benchmark:performance": "tsx src/scripts/performance-benchmark.ts",
+    "benchmark:full": "npm run benchmark && npm run benchmark:performance",
+    "validate:production": "tsx scripts/pre-production-validation.ts",
+    "test:mcp-compliance": "jest tests/integration/mcp-protocol-compliance.test.ts",
+    "test:production-scale": "jest tests/integration/production-scale-validation.test.ts",
+    "test:resilience": "jest tests/integration/resilience-recovery.test.ts",
+    "test:ci": "jest tests/automation/ci-cd-integration.test.ts",
+    "test:pre-release": "npm run test:mcp-compliance && npm run test:resilience && npm run test:ci",
+    "prepublishOnly": "npm run clean && npm run build && npm test",
+    "health-check": "node dist/index.js --health-check"
   },
   "keywords": [
     "mcp",
@@ -29,23 +42,27 @@
     "claude",
     "claude-desktop",
     "persistence",
-    "conversation",
+    "conversation-history",
     "sqlite",
     "semantic-search",
+    "knowledge-graph",
     "embeddings",
     "full-text-search",
-    "fts5"
+    "fts5",
+    "ai-assistant",
+    "context-management",
+    "privacy-first"
   ],
   "author": "MCP Persistence Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/mcp-persistence-server.git"
+    "url": "git+https://github.com/mcp-community/mcp-persistence-server.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/mcp-persistence-server/issues"
+    "url": "https://github.com/mcp-community/mcp-persistence-server/issues"
   },
-  "homepage": "https://github.com/yourusername/mcp-persistence-server#readme",
+  "homepage": "https://github.com/mcp-community/mcp-persistence-server#readme",
   "dependencies": {
     "@huggingface/transformers": "^3.7.0",
     "@modelcontextprotocol/sdk": "^0.5.0",

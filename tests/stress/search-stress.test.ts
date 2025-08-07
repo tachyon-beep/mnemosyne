@@ -78,11 +78,11 @@ describe('Enhanced Search Stress Tests', () => {
     test('should handle maximum length queries', async () => {
       const maxQuery = 'a'.repeat(1000); // Maximum allowed length
       
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: maxQuery,
         strategy: 'auto',
         limit: 5
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text || '{}');
       expect(response.success).toBe(true);
@@ -103,11 +103,11 @@ describe('Enhanced Search Stress Tests', () => {
       ];
       
       for (const query of specialQueries) {
-        const result = await hybridTool.handle({
+        const result = await hybridTool.execute({
           query,
           strategy: 'auto',
           limit: 5
-        }, {});
+        }, { requestId: 'test-stress', timestamp: Date.now() });
         
         const response = JSON.parse(result.content[0].text || '{}');
         expect(response.success).toBe(true);
@@ -127,10 +127,10 @@ describe('Enhanced Search Stress Tests', () => {
       ];
       
       for (const query of unicodeQueries) {
-        const result = await semanticTool.handle({
+        const result = await semanticTool.execute({
           query,
           threshold: 0.1 // Low threshold for international content
-        }, {});
+        }, { requestId: 'test-stress', timestamp: Date.now() });
         
         const response = JSON.parse(result.content[0].text || '{}');
         expect(response.success).toBe(true);
@@ -147,11 +147,11 @@ describe('Enhanced Search Stress Tests', () => {
       ];
       
       for (const query of complexQueries) {
-        const result = await hybridTool.handle({
+        const result = await hybridTool.execute({
           query,
           strategy: 'fts',
           limit: 10
-        }, {});
+        }, { requestId: 'test-stress', timestamp: Date.now() });
         
         const response = JSON.parse(result.content[0].text || '{}');
         expect(response.success).toBe(true);
@@ -170,10 +170,10 @@ describe('Enhanced Search Stress Tests', () => {
       
       for (const query of edgeQueries) {
         try {
-          const result = await hybridTool.handle({
+          const result = await hybridTool.execute({
             query,
             strategy: 'auto'
-          }, {});
+          }, { requestId: 'test-stress', timestamp: Date.now() });
           
           const response = JSON.parse(result.content[0].text || '{}');
           expect(response.success).toBe(true);
@@ -194,11 +194,11 @@ describe('Enhanced Search Stress Tests', () => {
       console.log(`Testing ${concurrentRequests} concurrent requests...`);
       
       const promises = Array.from({ length: concurrentRequests }, (_, i) =>
-        hybridTool.handle({
+        hybridTool.execute({
           query: `stress test concurrent ${i} ${Math.random()}`,
           strategy: 'auto',
           limit: 5
-        }, {}).catch(error => ({ error }))
+        }, { requestId: 'test-stress', timestamp: Date.now() }).catch(error => ({ error }))
       );
       
       const results = await Promise.all(promises);
@@ -248,10 +248,10 @@ describe('Enhanced Search Stress Tests', () => {
       const results = [];
       for (let i = 0; i < requestCount; i++) {
         try {
-          const result = await semanticTool.handle({
+          const result = await semanticTool.execute({
             query: `rapid request ${i}`,
             limit: 1
-          }, {});
+          }, { requestId: 'test-stress', timestamp: Date.now() });
           results.push(result);
         } catch (error) {
           results.push({ error });
@@ -292,10 +292,10 @@ describe('Enhanced Search Stress Tests', () => {
       );
       
       // Search should still work despite corrupted data
-      const result = await semanticTool.handle({
+      const result = await semanticTool.execute({
         query: 'corrupted embedding test',
         threshold: 0.1
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text || '{}');
       expect(response.success).toBe(true);
@@ -321,10 +321,10 @@ describe('Enhanced Search Stress Tests', () => {
         );
         
         // Search should handle referential integrity issues
-        const result = await hybridTool.handle({
+        const result = await hybridTool.execute({
           query: 'incomplete message test',
           strategy: 'fts'
-        }, {});
+        }, { requestId: 'test-stress', timestamp: Date.now() });
         
         const response = JSON.parse(result.content[0].text || '{}');
         expect(response.success).toBe(true);
@@ -348,10 +348,10 @@ describe('Enhanced Search Stress Tests', () => {
       });
       
       try {
-        const result = await semanticTool.handle({
+        const result = await semanticTool.execute({
           query: 'service degradation test',
           threshold: 0.5
-        }, {});
+        }, { requestId: 'test-stress', timestamp: Date.now() });
         
         const response = JSON.parse(result.content[0].text || '{}');
         expect(response.success).toBe(true);
@@ -368,12 +368,12 @@ describe('Enhanced Search Stress Tests', () => {
 
   describe('System Limits and Boundaries', () => {
     test('should handle maximum result set limits', async () => {
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'maximum results test',
         limit: 100, // Maximum allowed
         strategy: 'hybrid',
         semanticThreshold: 0.01 // Very low to get many results
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text || '{}');
       expect(response.success).toBe(true);
@@ -384,12 +384,12 @@ describe('Enhanced Search Stress Tests', () => {
       const veryOldDate = new Date('1970-01-01').toISOString();
       const futureDate = new Date('2099-12-31').toISOString();
       
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'extreme date range test',
         startDate: veryOldDate,
         endDate: futureDate,
         strategy: 'hybrid'
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text || '{}');
       expect(response.success).toBe(true);
@@ -397,33 +397,33 @@ describe('Enhanced Search Stress Tests', () => {
 
     test('should handle extreme similarity thresholds', async () => {
       // Test with impossibly high threshold
-      const highThresholdResult = await semanticTool.handle({
+      const highThresholdResult = await semanticTool.execute({
         query: 'threshold test',
         threshold: 0.999999
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       const highResponse = JSON.parse(highThresholdResult.content[0].text);
       expect(highResponse.success).toBe(true);
       expect(highResponse.results.length).toBe(0);
       
       // Test with very low threshold
-      const lowThresholdResult = await semanticTool.handle({
+      const lowThresholdResult = await semanticTool.execute({
         query: 'threshold test',
         threshold: 0.000001,
         limit: 10
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       const lowResponse = JSON.parse(lowThresholdResult.content[0].text);
       expect(lowResponse.success).toBe(true);
     });
 
     test('should handle extreme offset values', async () => {
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'offset test',
         offset: 10000, // Very high offset
         limit: 5,
         strategy: 'fts'
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text || '{}');
       expect(response.success).toBe(true);
@@ -448,10 +448,10 @@ describe('Enhanced Search Stress Tests', () => {
       }
       
       // Should not crash despite constant cache invalidation
-      const result = await semanticTool.handle({
+      const result = await semanticTool.execute({
         query: 'final cache test',
         limit: 5
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text || '{}');
       expect(response.success).toBe(true);
@@ -476,10 +476,10 @@ describe('Enhanced Search Stress Tests', () => {
       await Promise.all(operations);
       
       // Search should still work after database stress
-      const result = await hybridTool.handle({
+      const result = await hybridTool.execute({
         query: 'database stress test',
         strategy: 'fts'
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       const response = JSON.parse(result.content[0].text || '{}');
       expect(response.success).toBe(true);
@@ -498,10 +498,10 @@ describe('Enhanced Search Stress Tests', () => {
         });
         
         // Search should still work or fail gracefully
-        const result = await hybridTool.handle({
+        const result = await hybridTool.execute({
           query: 'invalid config test',
           strategy: 'auto'
-        }, {});
+        }, { requestId: 'test-stress', timestamp: Date.now() });
         
         const response = JSON.parse(result.content[0].text || '{}');
         expect(response.success).toBe(true);
@@ -520,10 +520,10 @@ describe('Enhanced Search Stress Tests', () => {
       const testQuery = 'reinitialization test';
       
       // Normal search
-      let result = await semanticTool.handle({
+      let result = await semanticTool.execute({
         query: testQuery,
         limit: 5
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       let response = JSON.parse(result.content[0].text);
       expect(response.success).toBe(true);
@@ -536,10 +536,10 @@ describe('Enhanced Search Stress Tests', () => {
       }
       
       // Search should work after reinitialization
-      result = await semanticTool.handle({
+      result = await semanticTool.execute({
         query: testQuery,
         limit: 5
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       response = JSON.parse(result.content[0].text);
       expect(response.success).toBe(true);
@@ -575,22 +575,22 @@ describe('Enhanced Search Stress Tests', () => {
       );
       
       const searchPromises = Array.from({ length: 5 }, (_, i) =>
-        hybridTool.handle({
+        hybridTool.execute({
           query: 'stress test message',
           conversationId: testConvId,
           strategy: 'fts'
-        }, {})
+        }, { requestId: 'test-stress', timestamp: Date.now() })
       );
       
       // Wait for all operations to complete
       await Promise.all([...insertPromises, ...searchPromises]);
       
       // Final search should find some messages
-      const finalResult = await hybridTool.handle({
+      const finalResult = await hybridTool.execute({
         query: 'stress test message',
         conversationId: testConvId,
         strategy: 'fts'
-      }, {});
+      }, { requestId: 'test-stress', timestamp: Date.now() });
       
       const finalResponse = JSON.parse(finalResult.content[0].text);
       expect(finalResponse.success).toBe(true);
@@ -611,11 +611,11 @@ describe('Enhanced Search Stress Tests', () => {
       for (let i = 0; i < iterations; i++) {
         const timer = new PerformanceTimer();
         
-        await hybridTool.handle({
+        await hybridTool.execute({
           query: `stability test iteration ${i}`,
           strategy: 'hybrid',
           limit: 5
-        }, {});
+        }, { requestId: 'test-stress', timestamp: Date.now() });
         
         performances.push(timer.elapsed());
         
@@ -644,10 +644,10 @@ describe('Enhanced Search Stress Tests', () => {
       
       // Perform many operations to accumulate resources
       for (let i = 0; i < 100; i++) {
-        await semanticTool.handle({
+        await semanticTool.execute({
           query: `resource accumulation test ${i}`,
           limit: 2
-        }, {});
+        }, { requestId: 'test-stress', timestamp: Date.now() });
         
         if (i % 20 === 0) {
           console.log(`Resource accumulation: ${i + 1}/100 operations`);

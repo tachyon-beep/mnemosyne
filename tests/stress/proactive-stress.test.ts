@@ -186,11 +186,11 @@ describe('Proactive Features Stress Tests', () => {
           ['knowledge_gaps', 'stale_commitments']
         ][index % 6];
         
-        return proactiveInsightsTool.handle({
+        return proactiveInsightsTool.execute({
           includeTypes: includeTypes as any,
           daysSince: 30 + (index * 5),
           limit: 10 + index
-        });
+        }, { requestId: 'test-stress', timestamp: Date.now() });
       });
       
       const results = await Promise.all(promises);

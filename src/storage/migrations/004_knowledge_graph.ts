@@ -176,7 +176,7 @@ export const migration_004_knowledge_graph: Migration = {
      BEGIN
        UPDATE entities 
        SET mention_count = mention_count - 1,
-           updated_at = unixepoch() * 1000
+           updated_at = CAST(strftime('%s', 'now') AS INTEGER) * 1000
        WHERE id = OLD.entity_id;
      END`,
 

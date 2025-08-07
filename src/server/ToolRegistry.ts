@@ -43,6 +43,7 @@ export interface ToolRegistryDependencies {
   embeddingManager?: EmbeddingManager; // Optional for context assembly
   contextAssembler?: ContextAssembler; // Optional for context assembly
   knowledgeGraphService?: any; // Optional for knowledge graph features
+  databaseManager?: any; // Optional for Phase 4 proactive tools
 }
 
 /**
@@ -211,6 +212,62 @@ export class ToolRegistry {
       this.registerTool('find_related_conversations', findRelatedConversationsTool, registrationTime);
       this.registerTool('get_knowledge_graph', getKnowledgeGraphTool, registrationTime);
     }
+
+    // Register Phase 4 proactive tools if database manager is available
+    if (this.dependencies.databaseManager) {
+      console.log('[INFO] Registering Phase 4 proactive tools...');
+      const { 
+        GetProactiveInsightsTool,
+        CheckForConflictsTool,
+        SuggestRelevantContextTool,
+        AutoTagConversationTool
+      } = await import('../tools/proactive/index.js');
+      
+      // Import required repositories for Phase 4 tools
+      const { EntityRepository } = await import('../storage/repositories/EntityRepository.js');
+      const { KnowledgeGraphRepository } = await import('../storage/repositories/KnowledgeGraphRepository.js');
+      
+      // Create repositories needed by Phase 4 tools
+      // EntityRepository expects DatabaseManager
+      const entityRepository = new EntityRepository(this.dependencies.databaseManager);
+      // KnowledgeGraphRepository expects raw database connection
+      const knowledgeGraphRepository = new KnowledgeGraphRepository(this.dependencies.databaseManager.getConnection());
+      
+      // Create proactive insights tool
+      const getProactiveInsightsTool = GetProactiveInsightsTool.create({
+        databaseManager: this.dependencies.databaseManager
+      });
+      
+      // Create conflict detection tool
+      const checkForConflictsTool = CheckForConflictsTool.create({
+        databaseManager: this.dependencies.databaseManager,
+        entityRepository,
+        knowledgeGraphRepository
+      });
+      
+      // Create context suggestion tool
+      const suggestRelevantContextTool = SuggestRelevantContextTool.create({
+        databaseManager: this.dependencies.databaseManager,
+        entityRepository,
+        knowledgeGraphRepository
+      });
+      
+      // Create auto-tagging tool
+      const autoTagConversationTool = AutoTagConversationTool.create({
+        databaseManager: this.dependencies.databaseManager
+      });
+      
+      // Register all proactive tools
+      this.registerTool('get_proactive_insights', getProactiveInsightsTool, registrationTime);
+      this.registerTool('check_for_conflicts', checkForConflictsTool, registrationTime);
+      this.registerTool('suggest_relevant_context', suggestRelevantContextTool, registrationTime);
+      this.registerTool('auto_tag_conversation', autoTagConversationTool, registrationTime);
+      
+      console.log('[INFO] Phase 4 proactive tools registered successfully');
+    } else {
+      console.log('[INFO] Skipping Phase 4 tools - database manager not available');
+    }
+
   }
 
   /**
@@ -363,7 +420,12 @@ export class ToolRegistry {
 
       return {
         success: true,
-        result: parsedResult,
+        result: {
+          content: [{
+            type: 'text',
+            text: JSON.stringify(parsedResult)
+          }]
+        },
         executionTime,
         timestamp
       };

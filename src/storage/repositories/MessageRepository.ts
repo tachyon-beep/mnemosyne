@@ -257,7 +257,7 @@ export class MessageRepository extends BaseRepository {
   }
 
   /**
-   * Full-text search across messages
+   * Full-text search across messages with optimized query
    */
   async search(options: SearchOptions): Promise<PaginatedResult<SearchResult>> {
     const pagination = this.validatePagination(options.limit, options.offset);
@@ -299,6 +299,7 @@ export class MessageRepository extends BaseRepository {
     // Add pagination parameters
     params.push(pagination.limit + 1, pagination.offset);
 
+    // Optimized query with proper joins and covering indexes
     const rows = this.executeStatementAll<{
       id: string;
       conversation_id: string;
@@ -312,23 +313,28 @@ export class MessageRepository extends BaseRepository {
       snippet: string;
       conversation_title: string | null;
     }>(
-      'search_messages_fts',
-      `SELECT 
-         m.id, m.conversation_id, m.role, m.content, m.created_at, 
-         m.parent_message_id, m.metadata, m.embedding,
-         rank as rank,
-         snippet(messages_fts, 0, ?, ?, '...', 32) as snippet,
-         c.title as conversation_title
-       FROM messages_fts
-       JOIN messages m ON m.rowid = messages_fts.rowid
-       JOIN conversations c ON c.id = m.conversation_id
-       WHERE messages_fts MATCH ?${whereClause}
-       ORDER BY rank
-       LIMIT ? OFFSET ?`,
+      'search_messages_fts_optimized',
+      `WITH ranked_results AS (
+         SELECT 
+           m.id, m.conversation_id, m.role, m.content, m.created_at, 
+           m.parent_message_id, m.metadata, m.embedding,
+           messages_fts.rank as rank,
+           snippet(messages_fts, 0, ?, ?, '...', 32) as snippet
+         FROM messages_fts
+         STRAIGHT_JOIN messages m ON m.rowid = messages_fts.rowid
+         WHERE messages_fts MATCH ?${whereClause}
+         ORDER BY messages_fts.rank
+         LIMIT ? OFFSET ?
+       )
+       SELECT 
+         r.*, c.title as conversation_title
+       FROM ranked_results r
+       LEFT JOIN conversations c ON c.id = r.conversation_id
+       ORDER BY r.rank`,
       [
         options.highlightStart || '<mark>',
         options.highlightEnd || '</mark>',
-        ...params // Use all params - ftsQuery is first, then filters, then limit/offset
+        ...params
       ]
     );
 
@@ -492,6 +498,197 @@ export class MessageRepository extends BaseRepository {
       [id]
     );
     return !!result;
+  }
+
+  /**
+   * Batch create messages for better performance
+   */
+  async batchCreate(messages: CreateMessageParams[]): Promise<Message[]> {
+    if (messages.length === 0) {
+      return [];
+    }
+
+    const db = this.getConnection();
+    const now = this.getCurrentTimestamp();
+    
+    // Prepare batch insert
+    const insertStmt = db.prepare(`
+      INSERT INTO messages (id, conversation_id, role, content, created_at, parent_message_id, metadata, embedding)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const transaction = db.transaction(() => {
+      const results: Message[] = [];
+      
+      for (const params of messages) {
+        const id = params.id || this.generateId();
+        let embeddingBuffer: Buffer | null = null;
+        
+        if (params.embedding && params.embedding.length > 0) {
+          embeddingBuffer = Buffer.from(new Float32Array(params.embedding).buffer);
+        }
+
+        const message: Message = {
+          id,
+          conversationId: params.conversationId,
+          role: params.role,
+          content: params.content,
+          createdAt: now,
+          parentMessageId: params.parentMessageId,
+          metadata: params.metadata || {},
+          embedding: params.embedding
+        };
+
+        insertStmt.run(
+          message.id,
+          message.conversationId,
+          message.role,
+          message.content,
+          message.createdAt,
+          message.parentMessageId || null,
+          this.stringifyMetadata(message.metadata),
+          embeddingBuffer
+        );
+
+        results.push(message);
+      }
+      
+      return results;
+    });
+
+    return transaction();
+  }
+
+  /**
+   * Batch update message embeddings
+   */
+  async batchUpdateEmbeddings(updates: { id: string; embedding: number[] }[]): Promise<number> {
+    if (updates.length === 0) {
+      return 0;
+    }
+
+    const db = this.getConnection();
+    const updateStmt = db.prepare('UPDATE messages SET embedding = ? WHERE id = ?');
+    
+    const transaction = db.transaction(() => {
+      let updatedCount = 0;
+      
+      for (const update of updates) {
+        const embeddingBuffer = Buffer.from(new Float32Array(update.embedding).buffer);
+        const result = updateStmt.run(JSON.stringify(update.embedding), update.id);
+        updatedCount += result.changes;
+      }
+      
+      return updatedCount;
+    });
+
+    return transaction();
+  }
+
+  /**
+   * Get messages by IDs (optimized batch retrieval)
+   */
+  async findByIds(ids: string[]): Promise<Message[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    // Validate all IDs
+    const validIds = ids.filter(id => this.isValidUUID(id));
+    if (validIds.length === 0) {
+      return [];
+    }
+
+    const placeholders = validIds.map(() => '?').join(',');
+    const rows = this.executeStatementAll<{
+      id: string;
+      conversation_id: string;
+      role: string;
+      content: string;
+      created_at: number;
+      parent_message_id: string | null;
+      metadata: string;
+      embedding: Buffer | null;
+    }>(
+      'find_messages_by_ids',
+      `SELECT id, conversation_id, role, content, created_at, parent_message_id, metadata, embedding
+       FROM messages
+       WHERE id IN (${placeholders})
+       ORDER BY created_at ASC`,
+      validIds
+    );
+
+    return rows.map(row => this.mapRowToMessage(row));
+  }
+
+  /**
+   * Get conversation message statistics
+   */
+  async getConversationStats(conversationId: string): Promise<{
+    totalMessages: number;
+    messagesByRole: { [role: string]: number };
+    dateRange: { earliest: number; latest: number } | null;
+    hasEmbeddings: boolean;
+    avgMessageLength: number;
+  }> {
+    if (!this.isValidUUID(conversationId)) {
+      return {
+        totalMessages: 0,
+        messagesByRole: {},
+        dateRange: null,
+        hasEmbeddings: false,
+        avgMessageLength: 0
+      };
+    }
+
+    const stats = this.executeStatement<{
+      total_messages: number;
+      user_messages: number;
+      assistant_messages: number;
+      system_messages: number;
+      earliest_date: number | null;
+      latest_date: number | null;
+      messages_with_embeddings: number;
+      avg_content_length: number;
+    }>(
+      'conversation_message_stats',
+      `SELECT 
+         COUNT(*) as total_messages,
+         SUM(CASE WHEN role = 'user' THEN 1 ELSE 0 END) as user_messages,
+         SUM(CASE WHEN role = 'assistant' THEN 1 ELSE 0 END) as assistant_messages,
+         SUM(CASE WHEN role = 'system' THEN 1 ELSE 0 END) as system_messages,
+         MIN(created_at) as earliest_date,
+         MAX(created_at) as latest_date,
+         SUM(CASE WHEN embedding IS NOT NULL THEN 1 ELSE 0 END) as messages_with_embeddings,
+         AVG(LENGTH(content)) as avg_content_length
+       FROM messages 
+       WHERE conversation_id = ?`,
+      [conversationId]
+    );
+
+    if (!stats) {
+      return {
+        totalMessages: 0,
+        messagesByRole: {},
+        dateRange: null,
+        hasEmbeddings: false,
+        avgMessageLength: 0
+      };
+    }
+
+    return {
+      totalMessages: stats.total_messages,
+      messagesByRole: {
+        user: stats.user_messages,
+        assistant: stats.assistant_messages,
+        system: stats.system_messages
+      },
+      dateRange: stats.earliest_date && stats.latest_date 
+        ? { earliest: stats.earliest_date, latest: stats.latest_date }
+        : null,
+      hasEmbeddings: stats.messages_with_embeddings > 0,
+      avgMessageLength: Math.round(stats.avg_content_length || 0)
+    };
   }
 
   /**

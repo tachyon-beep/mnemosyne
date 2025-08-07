@@ -16,6 +16,8 @@ import { MessageRepository } from '../storage/repositories/MessageRepository.js'
 import { SearchOptions, SearchResult, PaginatedResult } from '../types/interfaces.js';
 import { QueryParser, ParsedQuery } from './QueryParser.js';
 import { SearchResultFormatter, FormattedSearchResult, SnippetOptions } from './SearchResultFormatter.js';
+import { IntelligentCacheManager } from '../utils/IntelligentCacheManager.js';
+import { MemoryManager } from '../utils/MemoryManager.js';
 
 export interface SearchEngineOptions {
   /** Default maximum number of results per page */
@@ -58,13 +60,28 @@ export interface EnhancedSearchResult {
 export class SearchEngine {
   private messageRepository: MessageRepository;
   private options: Required<SearchEngineOptions>;
-  private queryCache: Map<string, { result: EnhancedSearchResult; timestamp: number }>;
+  private intelligentCache?: IntelligentCacheManager<EnhancedSearchResult>;
+  private queryCache: Map<string, { result: EnhancedSearchResult; timestamp: number }> = new Map();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private cleanupInterval?: NodeJS.Timeout;
+  private searchMetrics: {
+    totalSearches: number;
+    totalSearchTime: number;
+    cacheHits: number;
+    cacheMisses: number;
+  } = {
+    totalSearches: 0,
+    totalSearchTime: 0,
+    cacheHits: 0,
+    cacheMisses: 0
+  };
 
   constructor(
     messageRepository: MessageRepository,
-    options?: SearchEngineOptions
+    options?: SearchEngineOptions & {
+      memoryManager?: MemoryManager;
+      enableIntelligentCaching?: boolean;
+    }
   ) {
     this.messageRepository = messageRepository;
     this.options = {
@@ -83,11 +100,25 @@ export class SearchEngine {
       minScoreThreshold: -10.0, // Allow negative BM25 scores from SQLite FTS5
       ...options
     };
-    this.queryCache = new Map();
-    
-    // Clean cache periodically
-    this.cleanupInterval = setInterval(() => this.cleanCache(), this.CACHE_TTL);
-    this.cleanupInterval.unref(); // Don't keep process alive
+
+    // Initialize intelligent caching if available
+    if (options?.enableIntelligentCaching && options.memoryManager) {
+      this.intelligentCache = new IntelligentCacheManager<EnhancedSearchResult>(
+        options.memoryManager,
+        {
+          maxTotalMemory: 20 * 1024 * 1024, // 20MB for search cache
+          defaultTTL: this.CACHE_TTL,
+          enableCacheWarming: true
+        }
+      );
+      this.intelligentCache.start();
+    } else {
+      // queryCache is already initialized above
+      
+      // Clean cache periodically
+      this.cleanupInterval = setInterval(() => this.cleanCache(), this.CACHE_TTL);
+      this.cleanupInterval.unref(); // Don't keep process alive
+    }
   }
 
   /**
@@ -95,12 +126,13 @@ export class SearchEngine {
    */
   async search(searchOptions: SearchOptions): Promise<EnhancedSearchResult> {
     const startTime = Date.now();
+    this.searchMetrics.totalSearches++;
     
     // Validate and parse the query
     const queryInfo = QueryParser.parseQuery(searchOptions.query, searchOptions.matchType);
     
     if (!queryInfo.isValid) {
-      return {
+      const result = {
         results: { data: [], hasMore: false },
         stats: {
           queryTime: Date.now() - startTime,
@@ -111,21 +143,48 @@ export class SearchEngine {
         },
         options: searchOptions
       };
+      
+      this.searchMetrics.totalSearchTime += Date.now() - startTime;
+      return result;
     }
 
-    // Check cache first
+    // Check intelligent cache first
     const cacheKey = this.generateCacheKey(searchOptions);
-    const cached = this.getCachedResult(cacheKey);
-    if (cached) {
-      return {
-        ...cached,
-        stats: {
-          ...cached.stats,
-          queryTime: Date.now() - startTime,
-          cached: true
-        }
-      };
+    
+    if (this.intelligentCache) {
+      const cached = await this.intelligentCache.get(cacheKey);
+      if (cached) {
+        this.searchMetrics.cacheHits++;
+        this.searchMetrics.totalSearchTime += Date.now() - startTime;
+        
+        return {
+          ...cached,
+          stats: {
+            ...cached.stats,
+            queryTime: Date.now() - startTime,
+            cached: true
+          }
+        };
+      }
+    } else {
+      // Fallback to simple cache
+      const cached = this.getCachedResult(cacheKey);
+      if (cached) {
+        this.searchMetrics.cacheHits++;
+        this.searchMetrics.totalSearchTime += Date.now() - startTime;
+        
+        return {
+          ...cached,
+          stats: {
+            ...cached.stats,
+            queryTime: Date.now() - startTime,
+            cached: true
+          }
+        };
+      }
     }
+
+    this.searchMetrics.cacheMisses++;
 
     try {
       // Prepare search options with parsed query
@@ -186,14 +245,27 @@ export class SearchEngine {
         options: searchOptions
       };
 
-      // Cache the result
-      this.setCachedResult(cacheKey, enhancedResult);
+      // Cache the result with intelligent caching if available
+      if (this.intelligentCache) {
+        const priority = this.getCachePriority(searchOptions, enhancedResult);
+        const cost = this.calculateSearchCost(enhancedResult);
+        
+        await this.intelligentCache.set(cacheKey, enhancedResult, {
+          priority,
+          cost,
+          size: this.estimateResultSize(enhancedResult)
+        });
+      } else {
+        // Fallback to simple caching
+        this.setCachedResult(cacheKey, enhancedResult);
+      }
 
+      this.searchMetrics.totalSearchTime += Date.now() - startTime;
       return enhancedResult;
 
     } catch (error) {
       // Return error state with debugging info
-      return {
+      const errorResult = {
         results: { data: [], hasMore: false },
         stats: {
           queryTime: Date.now() - startTime,
@@ -207,6 +279,9 @@ export class SearchEngine {
         },
         options: searchOptions
       };
+      
+      this.searchMetrics.totalSearchTime += Date.now() - startTime;
+      return errorResult;
     }
   }
 
@@ -455,16 +530,104 @@ export class SearchEngine {
    * Clear the search cache
    */
   clearCache(): void {
-    this.queryCache.clear();
+    if (this.intelligentCache) {
+      this.intelligentCache.clear();
+    } else {
+      this.queryCache.clear();
+    }
+  }
+
+  /**
+   * Optimize search cache
+   */
+  async optimizeCache(): Promise<void> {
+    if (this.intelligentCache) {
+      await this.intelligentCache.optimizeCache();
+    } else {
+      // Simple cache optimization - just clean expired entries
+      this.cleanCache();
+    }
+  }
+
+  /**
+   * Warm cache with common search patterns
+   */
+  async warmCache(commonQueries: string[]): Promise<void> {
+    if (this.intelligentCache) {
+      await this.intelligentCache.warmCache([{
+        keys: commonQueries,
+        loader: async (query) => {
+          return await this.search({ query, limit: 20 });
+        },
+        priority: 'high'
+      }]);
+    }
   }
 
   /**
    * Get cache statistics
    */
-  getCacheStats(): { size: number; hitRate: number } {
+  getCacheStats(): { 
+    size: number; 
+    hitRate: number;
+    totalSearches: number;
+    averageSearchTime: number;
+    cacheHits: number;
+    cacheMisses: number;
+  } {
+    const hitRate = this.searchMetrics.totalSearches > 0 
+      ? this.searchMetrics.cacheHits / this.searchMetrics.totalSearches 
+      : 0;
+    
+    const averageSearchTime = this.searchMetrics.totalSearches > 0
+      ? this.searchMetrics.totalSearchTime / this.searchMetrics.totalSearches
+      : 0;
+
     return {
-      size: this.queryCache.size,
-      hitRate: 0 // Would need to track hits/misses to calculate
+      size: this.intelligentCache 
+        ? this.intelligentCache.getStats().global.entryCount
+        : this.queryCache.size,
+      hitRate,
+      totalSearches: this.searchMetrics.totalSearches,
+      averageSearchTime,
+      cacheHits: this.searchMetrics.cacheHits,
+      cacheMisses: this.searchMetrics.cacheMisses
+    };
+  }
+
+  /**
+   * Get detailed performance metrics
+   */
+  getPerformanceMetrics(): {
+    searchMetrics: {
+      totalSearches: number;
+      totalSearchTime: number;
+      cacheHits: number;
+      cacheMisses: number;
+    };
+    cacheStats: any;
+    recommendations: string[];
+  } {
+    const cacheStats = this.getCacheStats();
+    const recommendations: string[] = [];
+
+    // Generate performance recommendations
+    if (cacheStats.hitRate < 0.7) {
+      recommendations.push('Search cache hit rate is low - consider cache warming');
+    }
+
+    if (cacheStats.averageSearchTime > 500) {
+      recommendations.push('Average search time is high - consider query optimization');
+    }
+
+    if (this.searchMetrics.totalSearches > 1000 && cacheStats.hitRate < 0.5) {
+      recommendations.push('High search volume with low cache efficiency - review search patterns');
+    }
+
+    return {
+      searchMetrics: { ...this.searchMetrics },
+      cacheStats: this.intelligentCache ? this.intelligentCache.getStats() : cacheStats,
+      recommendations
     };
   }
 
@@ -592,6 +755,56 @@ export class SearchEngine {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = undefined;
     }
+    
+    if (this.intelligentCache) {
+      this.intelligentCache.stop();
+    }
+    
     this.clearCache();
+  }
+
+  /**
+   * Get cache priority for search result
+   */
+  private getCachePriority(
+    searchOptions: SearchOptions, 
+    result: EnhancedSearchResult
+  ): 'low' | 'medium' | 'high' | 'critical' {
+    // High priority for searches with good results
+    if (result.results.data.length > 5 && result.stats.queryTime < 200) {
+      return 'high';
+    }
+    
+    // Medium priority for reasonable results
+    if (result.results.data.length > 0) {
+      return 'medium';
+    }
+    
+    // Low priority for empty results or very slow searches
+    return 'low';
+  }
+
+  /**
+   * Calculate search cost (for cache eviction decisions)
+   */
+  private calculateSearchCost(result: EnhancedSearchResult): number {
+    // Base cost on query time and complexity
+    const baseScore = result.stats.queryTime / 100; // Normalize to 0-10 scale
+    const complexityScore = result.stats.queryInfo.hasOperators ? 2 : 1;
+    const resultScore = Math.min(result.results.data.length / 10, 2); // Max 2 points for results
+    
+    return Math.max(1, baseScore * complexityScore + resultScore);
+  }
+
+  /**
+   * Estimate result size in bytes
+   */
+  private estimateResultSize(result: EnhancedSearchResult): number {
+    try {
+      // Rough estimation based on JSON string length
+      return JSON.stringify(result).length * 2;
+    } catch {
+      return 1024; // Default 1KB
+    }
   }
 }

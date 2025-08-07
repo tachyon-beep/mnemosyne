@@ -11,6 +11,7 @@
 
 import { pipeline, env, FeatureExtractionPipeline } from '@huggingface/transformers';
 import { DatabaseManager } from '../storage/Database.js';
+import { MemoryManager } from '../utils/MemoryManager.js';
 
 // Import crypto for secure hashing
 import { createHash } from 'crypto';
@@ -239,6 +240,7 @@ export class EmbeddingManager {
   } = { totalEmbeddings: 0, totalTime: 0, averageTime: 0 };
   private circuitBreaker: CircuitBreaker;
   private operationLock: OperationLock;
+  private memoryManager: MemoryManager;
   private readonly allowedModels = new Set([
     'Xenova/all-MiniLM-L6-v2',
     'Xenova/all-mpnet-base-v2',
@@ -261,6 +263,12 @@ export class EmbeddingManager {
     this.embeddingCache = new LRUCache(1000, this.config.maxCacheSize);
     this.circuitBreaker = new CircuitBreaker(5, 60000); // 5 failures, 60s reset
     this.operationLock = new OperationLock();
+    this.memoryManager = new MemoryManager({
+      maxRssBytes: 500 * 1024 * 1024, // 500MB for embedding operations
+      heapWarningThreshold: 0.7,
+      heapCriticalThreshold: 0.85,
+      monitoringInterval: 30000
+    });
     
     // Configure Transformers.js environment
     if (this.config.cacheDir) {
@@ -332,6 +340,26 @@ export class EmbeddingManager {
       
       console.log('Embedding manager initialized successfully');
       console.log(`Performance target: ${this.config.performanceTarget}ms per embedding`);
+      
+      // Start memory monitoring
+      this.memoryManager.startMonitoring();
+      
+      // Register memory pressure handlers
+      this.memoryManager.onMemoryPressure(async (stats, pressure) => {
+        if (pressure.level === 'high' || pressure.level === 'critical') {
+          console.log('Memory pressure detected, clearing embedding cache');
+          this.clearCache();
+        }
+      });
+      
+      this.memoryManager.onGarbageCollection(async () => {
+        // Clear old cache entries during GC
+        const cacheStats = this.getCacheStats();
+        if (cacheStats.size > 500) { // If cache is large
+          this.clearCache();
+          console.log('Cleared embedding cache during GC');
+        }
+      });
       
     } catch (error) {
       this.loadingProgress = null;
@@ -1195,6 +1223,9 @@ export class EmbeddingManager {
    */
   destroy(): void {
     console.log('Destroying embedding manager...');
+    
+    // Stop memory monitoring
+    this.memoryManager.stopMonitoring();
     
     this.clearCache();
     this.model = null;

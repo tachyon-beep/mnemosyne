@@ -85,13 +85,13 @@ describe('HybridSearchTool', () => {
 
     test('should validate required parameters', async () => {
       // Missing query parameter
-      const result1 = await hybridSearchTool.handle({} as any, {});
+      const result1 = await hybridSearchTool.execute({} as any, { requestId: 'test-req', timestamp: Date.now() });
       const response1 = parseToolResponseSafe(result1);
       expect(response1.success).toBe(false);
       expect(response1.error).toBe('ValidationError');
       
       // Empty query
-      const result2 = await hybridSearchTool.handle({ query: '' }, {});
+      const result2 = await hybridSearchTool.execute({ query: '' }, { requestId: 'test-req', timestamp: Date.now() });
       const response2 = parseToolResponseSafe(result2);
       expect(response2.success).toBe(false);
       expect(response2.error).toBe('ValidationError');
@@ -99,28 +99,28 @@ describe('HybridSearchTool', () => {
 
     test('should validate weight parameters', async () => {
       // Weights that don't sum to 1.0
-      const result1 = await hybridSearchTool.handle({
+      const result1 = await hybridSearchTool.execute({
         query: 'test',
         weights: { semantic: 0.8, fts: 0.3 } // Sums to 1.1
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       const response1 = parseToolResponseSafe(result1);
       expect(response1.success).toBe(false);
       expect(response1.error).toBe('ValidationError');
       
       // Negative weights
-      const result2 = await hybridSearchTool.handle({
+      const result2 = await hybridSearchTool.execute({
         query: 'test',
         weights: { semantic: -0.1, fts: 1.1 }
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       const response2 = parseToolResponseSafe(result2);
       expect(response2.success).toBe(false);
       expect(response2.error).toBe('ValidationError');
       
       // Valid weights should work
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'test',
         weights: { semantic: 0.7, fts: 0.3 }
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       expect(response.success).toBe(true);
@@ -128,10 +128,10 @@ describe('HybridSearchTool', () => {
 
     test('should validate strategy parameter', async () => {
       // Invalid strategy
-      const result1 = await hybridSearchTool.handle({
+      const result1 = await hybridSearchTool.execute({
         query: 'test',
         strategy: 'invalid' as any
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       const response1 = parseToolResponseSafe(result1);
       expect(response1.success).toBe(false);
       expect(response1.error).toBe('ValidationError');
@@ -140,10 +140,10 @@ describe('HybridSearchTool', () => {
       const strategies = ['auto', 'semantic', 'fts', 'hybrid'];
       
       for (const strategy of strategies) {
-        const result = await hybridSearchTool.handle({
+        const result = await hybridSearchTool.execute({
           query: 'machine learning',
           strategy: strategy as any
-        }, {});
+        }, { requestId: 'test-req', timestamp: Date.now() });
         
         const response = parseToolResponse(result);
         expect(response.success).toBe(true);
@@ -151,9 +151,9 @@ describe('HybridSearchTool', () => {
     });
 
     test('should apply default values correctly', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'machine learning'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -166,10 +166,10 @@ describe('HybridSearchTool', () => {
 
   describe('Strategy Selection and Execution', () => {
     test('should handle auto strategy selection', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'machine learning concepts',
         strategy: 'auto'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -180,11 +180,11 @@ describe('HybridSearchTool', () => {
     });
 
     test('should execute semantic-only strategy', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'neural networks deep learning',
         strategy: 'semantic',
         limit: 5
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -201,11 +201,11 @@ describe('HybridSearchTool', () => {
     });
 
     test('should execute FTS-only strategy', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: '"React components"',
         strategy: 'fts',
         limit: 5
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -221,11 +221,11 @@ describe('HybridSearchTool', () => {
     });
 
     test('should execute hybrid strategy', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'React TypeScript development',
         strategy: 'hybrid',
         limit: 10
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -244,17 +244,17 @@ describe('HybridSearchTool', () => {
 
   describe('Weighting and Ranking', () => {
     test('should apply custom weights correctly', async () => {
-      const semanticHeavyResult = await hybridSearchTool.handle({
+      const semanticHeavyResult = await hybridSearchTool.execute({
         query: 'machine learning algorithms',
         strategy: 'hybrid',
         weights: { semantic: 0.9, fts: 0.1 }
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
-      const ftsHeavyResult = await hybridSearchTool.handle({
+      const ftsHeavyResult = await hybridSearchTool.execute({
         query: 'machine learning algorithms',
         strategy: 'hybrid',
         weights: { semantic: 0.1, fts: 0.9 }
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const semanticResponse = parseToolResponse(semanticHeavyResult);
       const ftsResponse = parseToolResponse(ftsHeavyResult);
@@ -267,11 +267,11 @@ describe('HybridSearchTool', () => {
     });
 
     test('should maintain proper score ranking', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'cooking pasta recipes',
         strategy: 'hybrid',
         limit: 10
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -289,18 +289,18 @@ describe('HybridSearchTool', () => {
 
     test('should handle edge case weights', async () => {
       // All semantic weight
-      const allSemanticResult = await hybridSearchTool.handle({
+      const allSemanticResult = await hybridSearchTool.execute({
         query: 'neural networks',
         strategy: 'hybrid',
         weights: { semantic: 1.0, fts: 0.0 }
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       // All FTS weight
-      const allFtsResult = await hybridSearchTool.handle({
+      const allFtsResult = await hybridSearchTool.execute({
         query: 'neural networks',
         strategy: 'hybrid',
         weights: { semantic: 0.0, fts: 1.0 }
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const semanticResponse = parseToolResponse(allSemanticResult);
       const ftsResponse = parseToolResponse(allFtsResult);
@@ -312,11 +312,11 @@ describe('HybridSearchTool', () => {
 
   describe('Advanced Search Features', () => {
     test('should filter by conversation ID', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'TypeScript',
         conversationId: 'conv-tech-1',
         strategy: 'hybrid'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -332,12 +332,12 @@ describe('HybridSearchTool', () => {
       const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
       const oneWeekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
       
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'learning',
         startDate: oneWeekAgo,
         endDate: oneDayAgo,
         strategy: 'hybrid'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -356,12 +356,12 @@ describe('HybridSearchTool', () => {
       const matchTypes = ['fuzzy', 'exact', 'prefix'];
       
       for (const matchType of matchTypes) {
-        const result = await hybridSearchTool.handle({
+        const result = await hybridSearchTool.execute({
           query: 'React',
           matchType: matchType as any,
           strategy: 'fts',
           limit: 5
-        }, {});
+        }, { requestId: 'test-req', timestamp: Date.now() });
         
         const response = parseToolResponse(result);
         expect(response.success).toBe(true);
@@ -369,12 +369,12 @@ describe('HybridSearchTool', () => {
     });
 
     test('should provide result explanations', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'machine learning neural networks',
         strategy: 'hybrid',
         explainResults: true,
         limit: 3
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -390,11 +390,11 @@ describe('HybridSearchTool', () => {
     });
 
     test('should include detailed metrics when requested', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'cooking recipes',
         strategy: 'hybrid',
         includeMetrics: true
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -408,15 +408,15 @@ describe('HybridSearchTool', () => {
 
   describe('Query Analysis and Intelligence', () => {
     test('should analyze query complexity correctly', async () => {
-      const simpleResult = await hybridSearchTool.handle({
+      const simpleResult = await hybridSearchTool.execute({
         query: 'cooking',
         strategy: 'auto'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
-      const complexResult = await hybridSearchTool.handle({
+      const complexResult = await hybridSearchTool.execute({
         query: '"React components" AND (state OR props) -legacy',
         strategy: 'auto'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const simpleResponse = parseToolResponse(simpleResult);
       const complexResponse = parseToolResponse(complexResult);
@@ -462,11 +462,11 @@ describe('HybridSearchTool', () => {
       for (const strategy of strategies) {
         const timer = new PerformanceTimer();
         
-        const result = await hybridSearchTool.handle({
+        const result = await hybridSearchTool.execute({
           query: 'machine learning development',
           strategy: strategy.name as any,
           limit: 10
-        }, {});
+        }, { requestId: 'test-req', timestamp: Date.now() });
         
         const response = parseToolResponse(result);
         
@@ -480,12 +480,12 @@ describe('HybridSearchTool', () => {
     test('should handle large limit efficiently', async () => {
       const timer = new PerformanceTimer();
       
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'development',
         strategy: 'hybrid',
         limit: 50,
         semanticThreshold: 0.1
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -496,11 +496,11 @@ describe('HybridSearchTool', () => {
     });
 
     test('should optimize preview generation', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'React components TypeScript',
         strategy: 'hybrid',
         limit: 10
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -530,9 +530,9 @@ describe('HybridSearchTool', () => {
       
       const invalidTool = new HybridSearchTool(invalidEngine);
       
-      const result = await invalidTool.handle({
+      const result = await invalidTool.execute({
         query: 'test query'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       // Tool should handle error gracefully and return error response
       const response = parseToolResponse(result);
@@ -541,11 +541,11 @@ describe('HybridSearchTool', () => {
     });
 
     test('should handle empty results gracefully', async () => {
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: 'absolutely unique nonexistent content query',
         semanticThreshold: 0.99,
         strategy: 'hybrid'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       
@@ -557,10 +557,10 @@ describe('HybridSearchTool', () => {
 
     test('should validate date parameters properly', async () => {
       // Invalid start date
-      const result1 = await hybridSearchTool.handle({
+      const result1 = await hybridSearchTool.execute({
         query: 'test',
         startDate: 'not-a-date'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       const response1 = parseToolResponseSafe(result1);
       expect(response1.success).toBe(false);
       expect(response1.error).toBe('ValidationError');
@@ -570,11 +570,11 @@ describe('HybridSearchTool', () => {
       const startDate = new Date(now).toISOString();
       const endDate = new Date(now - 3600000).toISOString();
       
-      const result2 = await hybridSearchTool.handle({
+      const result2 = await hybridSearchTool.execute({
         query: 'test',
         startDate,
         endDate
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       const response2 = parseToolResponseSafe(result2);
       expect(response2.success).toBe(false);
     });
@@ -589,11 +589,11 @@ describe('HybridSearchTool', () => {
       ];
       
       for (const query of specialQueries) {
-        const result = await hybridSearchTool.handle({
+        const result = await hybridSearchTool.execute({
           query,
           strategy: 'hybrid',
           limit: 5
-        }, {});
+        }, { requestId: 'test-req', timestamp: Date.now() });
         
         const response = parseToolResponse(result);
         expect(response.success).toBe(true);
@@ -603,10 +603,10 @@ describe('HybridSearchTool', () => {
     test('should handle maximum length queries', async () => {
       const maxQuery = 'a'.repeat(1000);
       
-      const result = await hybridSearchTool.handle({
+      const result = await hybridSearchTool.execute({
         query: maxQuery,
         strategy: 'auto'
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = parseToolResponse(result);
       expect(response.success).toBe(true);
@@ -665,19 +665,19 @@ describe('HybridSearchTool', () => {
       const strategies = ['semantic', 'fts', 'hybrid'];
       
       for (const strategy of strategies) {
-        const firstPage = await hybridSearchTool.handle({
+        const firstPage = await hybridSearchTool.execute({
           query: 'learning development',
           strategy: strategy as any,
           limit: 3,
           offset: 0
-        }, {});
+        }, { requestId: 'test-req', timestamp: Date.now() });
         
-        const secondPage = await hybridSearchTool.handle({
+        const secondPage = await hybridSearchTool.execute({
           query: 'learning development',
           strategy: strategy as any,
           limit: 3,
           offset: 3
-        }, {});
+        }, { requestId: 'test-req', timestamp: Date.now() });
         
         const firstResponse = parseToolResponse(firstPage);
         const secondResponse = parseToolResponse(secondPage);
@@ -697,12 +697,12 @@ describe('HybridSearchTool', () => {
     });
 
     test('should indicate when more results are available', async () => {
-      const smallLimitResult = await hybridSearchTool.handle({
+      const smallLimitResult = await hybridSearchTool.execute({
         query: 'the', // Common word
         strategy: 'hybrid',
         limit: 1,
         semanticThreshold: 0.1
-      }, {});
+      }, { requestId: 'test-req', timestamp: Date.now() });
       
       const response = JSON.parse(smallLimitResult.content[0].text!);
       

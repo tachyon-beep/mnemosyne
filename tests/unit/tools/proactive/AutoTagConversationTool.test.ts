@@ -36,14 +36,14 @@ describe('AutoTagConversationTool', () => {
 
   describe('Tool Definition', () => {
     it('should have correct tool definition', () => {
-      expect(tool.definition.name).toBe('auto_tag_conversation');
-      expect(tool.definition.description).toContain('auto-tag');
-      expect(tool.definition.inputSchema).toBeDefined();
-      expect(tool.definition.inputSchema.properties).toBeDefined();
+      expect(tool.getName()).toBe('auto_tag_conversation');
+      expect(tool.getDescription()).toContain('auto-tag');
+      expect(tool.getTool().inputSchema).toBeDefined();
+      expect(tool.getTool().inputSchema.properties).toBeDefined();
     });
 
     it('should have required input schema properties', () => {
-      const schema = tool.definition.inputSchema;
+      const schema = tool.getTool().inputSchema;
       
       expect(schema.properties.conversationId).toBeDefined();
       expect(schema.properties.includeTypes).toBeDefined();
@@ -53,7 +53,7 @@ describe('AutoTagConversationTool', () => {
     });
 
     it('should have correct enum values for includeTypes', () => {
-      const includeTypesProperty = tool.definition.inputSchema.properties.includeTypes;
+      const includeTypesProperty = tool.getTool().inputSchema.properties.includeTypes;
       
       expect(includeTypesProperty.items.enum).toContain('topic_tags');
       expect(includeTypesProperty.items.enum).toContain('activity_classification');
@@ -62,7 +62,7 @@ describe('AutoTagConversationTool', () => {
     });
 
     it('should require conversationId', () => {
-      const schema = tool.definition.inputSchema;
+      const schema = tool.getTool().inputSchema;
       expect(schema.required).toContain('conversationId');
     });
   });
@@ -88,7 +88,7 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(validInput);
+      const result = await tool.execute(validInput, { requestId: 'test-1', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
     });
@@ -110,7 +110,7 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(minimalInput);
+      const result = await tool.execute(minimalInput, { requestId: 'test-2', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       
@@ -124,7 +124,7 @@ describe('AutoTagConversationTool', () => {
         includeTypes: ['topic_tags'] as const
       } as any; // Cast to bypass TypeScript checking
 
-      const result = await tool.handle(invalidInput);
+      const result = await tool.execute(invalidInput, { requestId: 'test-invalid', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation error');
@@ -136,7 +136,7 @@ describe('AutoTagConversationTool', () => {
         includeTypes: ['topic_tags'] as const
       };
 
-      const result = await tool.handle(invalidInput);
+      const result = await tool.execute(invalidInput, { requestId: 'test-invalid', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation error');
@@ -148,7 +148,7 @@ describe('AutoTagConversationTool', () => {
         includeTypes: ['invalid_type'] as any
       };
 
-      const result = await tool.handle(invalidInput);
+      const result = await tool.execute(invalidInput, { requestId: 'test-invalid', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation error');
@@ -160,7 +160,7 @@ describe('AutoTagConversationTool', () => {
         includeTypes: [] as any
       };
 
-      const result = await tool.handle(invalidInput);
+      const result = await tool.execute(invalidInput, { requestId: 'test-invalid', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation error');
@@ -173,7 +173,7 @@ describe('AutoTagConversationTool', () => {
       ];
 
       for (const input of invalidInputs) {
-        const result = await tool.handle(input);
+        const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
         expect(result.isError).toBe(true);
         expect(result.content[0].text).toContain('Validation error');
       }
@@ -186,7 +186,7 @@ describe('AutoTagConversationTool', () => {
       ];
 
       for (const input of invalidInputs) {
-        const result = await tool.handle(input);
+        const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
         expect(result.isError).toBe(true);
         expect(result.content[0].text).toContain('Validation error');
       }
@@ -215,7 +215,7 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(mockTaggingService.autoTagConversation).toHaveBeenCalledWith('test-conv-123');
@@ -242,10 +242,10 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response.taggingResult.topicTags).toHaveLength(3);
       expect(response.taggingResult.topicTags[0].name).toBe('React');
@@ -273,10 +273,10 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response.taggingResult.activity.type).toBe('problem_solving');
       expect(response.taggingResult.activity.confidence).toBe(0.85);
@@ -305,10 +305,10 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response.taggingResult.urgency.level).toBe('high');
       expect(response.taggingResult.urgency.score).toBe(0.8);
@@ -346,10 +346,10 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response.taggingResult.projectContexts).toHaveLength(2);
       expect(response.taggingResult.projectContexts[0].name).toBe('React Migration Project');
@@ -388,10 +388,10 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response.summary.tagsStored).toBe(true);
       expect(response.summary.totalTags).toBe(2);
@@ -402,7 +402,7 @@ describe('AutoTagConversationTool', () => {
         SELECT tag_name, tag_type, relevance_score
         FROM conversation_tags
         WHERE conversation_id = ?
-      `).all('test-conv-storage');
+      `).all('test-conv-storage') as Array<{tag_name: string, tag_type: string, relevance_score: number}>;
 
       expect(storedTags).toHaveLength(2);
       expect(storedTags.find(tag => tag.tag_name === 'React')).toBeDefined();
@@ -429,10 +429,10 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response.summary.tagsStored).toBe(false);
       expect(response.summary.totalTags).toBe(1);
@@ -443,7 +443,7 @@ describe('AutoTagConversationTool', () => {
         SELECT COUNT(*) as count
         FROM conversation_tags
         WHERE conversation_id = ?
-      `).get('test-conv-storage');
+      `).get('test-conv-storage') as {count: number};
 
       expect(storedTags.count).toBe(0);
     });
@@ -476,12 +476,12 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      await tool.handle(input);
+      await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       // Verify old tags were replaced
       const storedTags = db.prepare(`
         SELECT tag_name FROM conversation_tags WHERE conversation_id = ?
-      `).all('test-conv-storage');
+      `).all('test-conv-storage') as Array<{tag_name: string}>;
 
       expect(storedTags).toHaveLength(1);
       expect(storedTags[0].tag_name).toBe('NewTag');
@@ -506,13 +506,13 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
 
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response).toHaveProperty('taggingResult');
       expect(response).toHaveProperty('summary');
@@ -541,10 +541,10 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response.taggingResult.topicTags).toBeDefined();
       expect(response.taggingResult.activity).toBeUndefined();
@@ -569,10 +569,10 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       
       expect(response.summary.processingTime).toBeGreaterThanOrEqual(0);
       expect(typeof response.summary.processingTime).toBe('number');
@@ -588,7 +588,7 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockRejectedValue(new Error('Service unavailable'));
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Auto-tagging failed');
@@ -617,7 +617,7 @@ describe('AutoTagConversationTool', () => {
       // Close database to simulate storage error
       await dbManager.close();
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Database error');
@@ -640,10 +640,10 @@ describe('AutoTagConversationTool', () => {
 
       mockTaggingService.autoTagConversation.mockResolvedValue(mockResult);
 
-      const result = await tool.handle(input);
+      const result = await tool.execute(input, { requestId: 'test-input', timestamp: Date.now() });
 
       expect(result.isError).toBe(false);
-      const response = JSON.parse(result.content[0].text);
+      const response = JSON.parse(result.content[0].text!);
       expect(response.taggingResult.topicTags).toEqual([]);
       expect(response.summary.totalTags).toBe(0);
     });
@@ -654,7 +654,7 @@ describe('AutoTagConversationTool', () => {
       const toolInstance = AutoTagConversationTool.create({ databaseManager: dbManager });
       
       expect(toolInstance).toBeInstanceOf(AutoTagConversationTool);
-      expect(toolInstance.definition.name).toBe('auto_tag_conversation');
+      expect(toolInstance.getName()).toBe('auto_tag_conversation');
     });
 
     it('should initialize auto-tagging service in factory-created instance', () => {

@@ -75,12 +75,12 @@ export const enhancedSearchMigration: Migration = {
 
     // Insert default search configuration
     `INSERT INTO search_config (key, value, updated_at) VALUES
-      ('embedding_model', '"all-MiniLM-L6-v2"', unixepoch()),
-      ('embedding_dimensions', '384', unixepoch()),
-      ('fts_tokenizer', 'porter unicode61', unixepoch()),
-      ('hybrid_search_weights', '{"semantic": 0.6, "fts": 0.4}', unixepoch()),
-      ('semantic_threshold', '0.7', unixepoch()),
-      ('max_search_results', '100', unixepoch())`,
+      ('embedding_model', '"all-MiniLM-L6-v2"', 0),
+      ('embedding_dimensions', '384', 0),
+      ('fts_tokenizer', 'porter unicode61', 0),
+      ('hybrid_search_weights', '{"semantic": 0.6, "fts": 0.4}', 0),
+      ('semantic_threshold', '0.7', 0),
+      ('max_search_results', '100', 0)`,
 
     // Step 2: Create search metrics table for performance tracking
     `CREATE TABLE search_metrics (
@@ -89,7 +89,7 @@ export const enhancedSearchMigration: Migration = {
       query_text TEXT NOT NULL,
       result_count INTEGER NOT NULL,
       execution_time_ms INTEGER NOT NULL,
-      created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      created_at INTEGER NOT NULL DEFAULT 0
     )`,
 
     // Index for search metrics queries
@@ -223,10 +223,10 @@ export const enhancedSearchMigration: Migration = {
 
     // Step 8: Add configuration for search performance tuning
     `INSERT INTO search_config (key, value, updated_at) VALUES
-      ('embedding_cache_size', '1000', unixepoch()),
-      ('fts_cache_size', '2000', unixepoch()),
-      ('enable_query_logging', 'false', unixepoch()),
-      ('auto_optimize_interval', '86400', unixepoch())`,
+      ('embedding_cache_size', '1000', 0),
+      ('fts_cache_size', '2000', 0),
+      ('enable_query_logging', 'false', 0),
+      ('auto_optimize_interval', '86400', 0)`,
 
     // Step 9: Optimize FTS for better performance
     `INSERT INTO messages_fts(messages_fts) VALUES('optimize')`,
