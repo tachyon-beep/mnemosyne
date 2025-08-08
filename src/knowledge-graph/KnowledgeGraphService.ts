@@ -5,8 +5,8 @@
  * and graph operations for cross-conversation intelligence.
  */
 
-import { EntityExtractor, ExtractedEntity } from './EntityExtractor.js';
-import { RelationshipDetector, DetectedRelationship } from './RelationshipDetector.js';
+import { EntityExtractor } from './EntityExtractor.js';
+import { RelationshipDetector } from './RelationshipDetector.js';
 import { KnowledgeGraphRepository, Entity, EntityRelationship, GraphTraversalResult, EntityCluster } from '../storage/repositories/KnowledgeGraphRepository.js';
 import Database from 'better-sqlite3';
 
@@ -124,7 +124,7 @@ export class KnowledgeGraphService {
     messageId: string,
     conversationId: string,
     content: string,
-    createdAt: number
+    _createdAt: number
   ): Promise<MessageProcessingResult> {
     const startTime = Date.now();
 
@@ -278,8 +278,7 @@ export class KnowledgeGraphService {
     relationshipCount: number;
   }>> {
     const {
-      minRelationshipStrength = 0.3,
-      limit = 50
+      minRelationshipStrength = 0.3
     } = options;
 
     // Find entities by names

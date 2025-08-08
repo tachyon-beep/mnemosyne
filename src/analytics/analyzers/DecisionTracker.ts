@@ -1357,8 +1357,7 @@ export class DecisionTracker {
     return Array.from(riskFactors);
   }
 
-  private extractTypicalContext(decisions: TrackedDecision[]): string {
-    const contexts = decisions.map(d => d.context);
+  private extractTypicalContext(_decisions: TrackedDecision[]): string {
     // In practice, would use NLP to find common themes
     return 'typical decision context'; // Simplified
   }
@@ -1432,10 +1431,11 @@ export class DecisionTracker {
         if (totalContent.length > 200) quality += 20;
         if (messages.some(m => m.content.includes('?'))) quality += 15;
         break;
-      case 'option_consideration':
+      case 'option_consideration': {
         const alternatives = (totalContent.match(/option|alternative|choice/gi) || []).length;
         quality += Math.min(30, alternatives * 10);
         break;
+      }
       case 'decision_making':
         if (/decided|decision|choose/i.test(totalContent)) quality += 25;
         break;

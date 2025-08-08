@@ -328,7 +328,7 @@ export class RelationshipDetector {
    */
   private calculateBaseConfidence(
     cooccurrence: EntityCooccurrence,
-    pattern: RelationshipPattern
+    _pattern: RelationshipPattern
   ): number {
     let confidence = 0.3; // Base confidence
 
@@ -356,7 +356,7 @@ export class RelationshipDetector {
   private adjustConfidenceByContext(
     baseConfidence: number,
     cooccurrence: EntityCooccurrence,
-    pattern: RelationshipPattern
+    _pattern: RelationshipPattern
   ): number {
     let confidence = baseConfidence;
 

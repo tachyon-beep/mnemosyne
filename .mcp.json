@@ -8,6 +8,13 @@
         "PERSISTENCE_LOG_LEVEL": "info",
         "PERSISTENCE_DEBUG": "false"
       }
+    },
+    "codacy": {
+      "command": "npx",
+      "args": ["-y", "@codacy/codacy-mcp"],
+      "env": {
+        "CODACY_ACCOUNT_TOKEN": "rFhWWqn1a0mYPA1Y8rul"
+      }
     }
   }
 }

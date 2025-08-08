@@ -272,7 +272,7 @@ export class MessageRepository extends BaseRepository {
     // For fuzzy matching, we use the query as-is (FTS5 default behavior)
 
     let whereClause = '';
-    let params: any[] = [ftsQuery];
+    const params: any[] = [ftsQuery];
     
     // Add conversation filter if specified
     if (options.conversationId) {
@@ -364,7 +364,7 @@ export class MessageRepository extends BaseRepository {
     const pagination = this.validatePagination(limit, offset);
     
     let whereClause = 'WHERE role = ?';
-    let params: any[] = [role];
+    const params: any[] = [role];
     
     if (conversationId) {
       if (!this.isValidUUID(conversationId)) {
@@ -444,7 +444,7 @@ export class MessageRepository extends BaseRepository {
     const pagination = this.validatePagination(limit, offset);
     
     let whereClause = 'WHERE embedding IS NOT NULL';
-    let params: any[] = [];
+    const params: any[] = [];
     
     if (conversationId) {
       if (!this.isValidUUID(conversationId)) {
@@ -574,7 +574,6 @@ export class MessageRepository extends BaseRepository {
       let updatedCount = 0;
       
       for (const update of updates) {
-        const embeddingBuffer = Buffer.from(new Float32Array(update.embedding).buffer);
         const result = updateStmt.run(JSON.stringify(update.embedding), update.id);
         updatedCount += result.changes;
       }

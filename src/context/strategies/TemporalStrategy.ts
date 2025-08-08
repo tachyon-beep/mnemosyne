@@ -159,7 +159,7 @@ _budget: TokenBudget
     const orderedItems: ScoredItem[] = [];
     
     // Process each conversation group
-    for (const [_conversationId, groupItems] of groupedItems) {
+    for (const [, groupItems] of groupedItems) {
       // Sort group items by timestamp (newest first for temporal strategy)
       const temporallySorted = groupItems.sort((a, b) => b.createdAt - a.createdAt);
       

@@ -14,6 +14,40 @@ import { DatabaseManager } from '../storage/Database.js';
 import { KnowledgeGraphService } from '../knowledge-graph/KnowledgeGraphService.js';
 import { performance } from 'perf_hooks';
 
+// Benchmark configuration constants
+const BENCHMARK_CONSTANTS = {
+  // Test iteration counts
+  ENTITY_LOOKUP_ITERATIONS: 100,
+  RELATIONSHIP_QUERY_ITERATIONS: 50,
+  ENTITY_SAMPLE_SIZE: 50,
+  
+  // Query limits
+  DEFAULT_QUERY_LIMIT: 100,
+  RELATIONSHIP_QUERY_LIMIT: 20,
+  FORMAL_ONTOLOGY_LIMIT: 50, // Reduced due to performance overhead
+  
+  // Graph traversal settings
+  MAX_GRAPH_DEPTH: 4,
+  MIN_RELATIONSHIP_STRENGTH: 0.3,
+  MIN_SEMANTIC_WEIGHT: 0.5,
+  
+  // Memory conversion
+  BYTES_TO_MB: 1024 * 1024,
+  
+  // Warm-up settings
+  WARM_UP_ITERATIONS: 3,
+  WARM_UP_DELAY_MS: 100,
+  
+  // Concurrency settings
+  DEFAULT_CONCURRENT_REQUESTS: 10,
+  CONCURRENCY_TEST_DURATION_MS: 5000,
+  
+  // Validation simulation delays (ms)
+  TYPE_HIERARCHY_DELAY: 5,
+  DOMAIN_RANGE_DELAY: 8,
+  CONSTRAINT_VALIDATION_DELAY: 10
+} as const;
+
 interface BenchmarkResult {
   operation: string;
   approach: 'current' | 'formal' | 'enhanced';
@@ -39,6 +73,25 @@ interface PerformanceThresholds {
   maxConcurrentRequests: number;
 }
 
+export interface BenchmarkConfig {
+  /** Number of warm-up runs before actual benchmarking */
+  warmupRuns?: number;
+  /** Number of iterations for each test */
+  iterations?: number;
+  /** Timeout for individual operations (ms) */
+  timeout?: number;
+  /** Enable verbose logging */
+  verbose?: boolean;
+  /** Output format for results */
+  outputFormat?: 'json' | 'markdown' | 'csv';
+  /** Scales to test */
+  scales?: Array<'small' | 'medium' | 'large'>;
+  /** Enable memory profiling */
+  profileMemory?: boolean;
+  /** Enable concurrency testing */
+  testConcurrency?: boolean;
+}
+
 /**
  * Performance benchmark suite for ontological enhancements
  */
@@ -47,9 +100,22 @@ export class OntologyPerformanceBenchmark {
   private knowledgeGraphService: KnowledgeGraphService | null = null;
   private results: BenchmarkResult[] = [];
   private performanceThresholds: Record<string, PerformanceThresholds>;
+  private config: Required<BenchmarkConfig>;
 
-  constructor(databaseManager: DatabaseManager) {
+  constructor(databaseManager: DatabaseManager, config?: BenchmarkConfig) {
     this.databaseManager = databaseManager;
+    
+    // Apply default configuration
+    this.config = {
+      warmupRuns: config?.warmupRuns ?? BENCHMARK_CONSTANTS.WARM_UP_ITERATIONS,
+      iterations: config?.iterations ?? BENCHMARK_CONSTANTS.ENTITY_LOOKUP_ITERATIONS,
+      timeout: config?.timeout ?? 30000,
+      verbose: config?.verbose ?? false,
+      outputFormat: config?.outputFormat ?? 'markdown',
+      scales: config?.scales ?? ['small', 'medium', 'large'],
+      profileMemory: config?.profileMemory ?? true,
+      testConcurrency: config?.testConcurrency ?? true
+    };
     
     // Define performance thresholds for different scales
     this.performanceThresholds = {
@@ -75,6 +141,39 @@ export class OntologyPerformanceBenchmark {
   }
 
   /**
+   * Run warm-up iterations to stabilize performance
+   */
+  private async runWarmUp(): Promise<void> {
+    if (this.config.warmupRuns === 0) {
+      return;
+    }
+    
+    if (this.config.verbose) {
+      console.log(`🔥 Running ${this.config.warmupRuns} warm-up iterations...`);
+    }
+    
+    for (let i = 0; i < this.config.warmupRuns; i++) {
+      // Run simple queries to warm up database cache
+      await this.databaseManager.executeOptimized(
+        'SELECT COUNT(*) FROM entities',
+        []
+      );
+      
+      await this.databaseManager.executeOptimized(
+        'SELECT * FROM entities LIMIT 10',
+        []
+      );
+      
+      // Small delay between warm-up runs
+      await new Promise(resolve => setTimeout(resolve, BENCHMARK_CONSTANTS.WARM_UP_DELAY_MS));
+    }
+    
+    if (this.config.verbose) {
+      console.log('✅ Warm-up complete');
+    }
+  }
+
+  /**
    * Run comprehensive benchmark suite
    */
   async runBenchmarks(): Promise<{
@@ -92,8 +191,13 @@ export class OntologyPerformanceBenchmark {
     await this.initializeTestDatabase();
     
     try {
-      // Run benchmarks across different scales
-      for (const scale of ['small', 'medium', 'large'] as const) {
+      // Run warm-up iterations
+      await this.runWarmUp();
+      
+      // Run benchmarks across configured scales
+      for (const scale of this.config.scales) {
+        if (!['small', 'medium', 'large'].includes(scale)) continue;
+        
         console.log(`\n📊 Running ${scale} scale benchmarks...`);
         
         await this.setupTestData(scale);
@@ -130,8 +234,7 @@ export class OntologyPerformanceBenchmark {
    * Benchmark current pragmatic approach
    */
   private async benchmarkCurrentApproach(scale: 'small' | 'medium' | 'large'): Promise<void> {
-    const scaleConfig = this.getScaleConfig(scale);
-    const startMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+    const startMemory = process.memoryUsage().heapUsed / BENCHMARK_CONSTANTS.BYTES_TO_MB;
     
     // Entity lookup performance
     await this.benchmarkOperation(
@@ -142,10 +245,10 @@ export class OntologyPerformanceBenchmark {
         const startTime = performance.now();
         
         // Simulate typical entity lookups
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < BENCHMARK_CONSTANTS.ENTITY_LOOKUP_ITERATIONS; i++) {
           await this.databaseManager.executeOptimized(
             'SELECT * FROM entities WHERE normalized_name = ? LIMIT 1',
-            [`test_entity_${i % 50}`]
+            [`test_entity_${i % BENCHMARK_CONSTANTS.ENTITY_SAMPLE_SIZE}`]
           );
         }
         
@@ -162,7 +265,7 @@ export class OntologyPerformanceBenchmark {
         const startTime = performance.now();
         
         // Current recursive CTE approach
-        const result = await this.databaseManager.executeOptimized(`
+        await this.databaseManager.executeOptimized(`
           WITH RECURSIVE entity_graph(entity_id, target_id, path, degree, strength) AS (
             SELECT 
               r.source_entity_id,
@@ -171,7 +274,7 @@ export class OntologyPerformanceBenchmark {
               1,
               r.strength
             FROM entity_relationships r
-            WHERE r.source_entity_id = ? AND r.strength >= 0.3
+            WHERE r.source_entity_id = ? AND r.strength >= ${BENCHMARK_CONSTANTS.MIN_RELATIONSHIP_STRENGTH}
             
             UNION ALL
             
@@ -183,13 +286,13 @@ export class OntologyPerformanceBenchmark {
               r.strength * eg.strength
             FROM entity_graph eg
             JOIN entity_relationships r ON eg.target_id = r.source_entity_id
-            WHERE eg.degree < 4 
-              AND r.strength >= 0.3
+            WHERE eg.degree < ${BENCHMARK_CONSTANTS.MAX_GRAPH_DEPTH} 
+              AND r.strength >= ${BENCHMARK_CONSTANTS.MIN_RELATIONSHIP_STRENGTH}
               AND json_extract(eg.path, '$') NOT LIKE '%' || r.target_entity_id || '%'
           )
           SELECT * FROM entity_graph
           ORDER BY degree ASC, strength DESC
-          LIMIT 100
+          LIMIT ${BENCHMARK_CONSTANTS.DEFAULT_QUERY_LIMIT}
         `, ['test_entity_1']);
         
         return performance.now() - startTime;
@@ -204,7 +307,7 @@ export class OntologyPerformanceBenchmark {
       async () => {
         const startTime = performance.now();
         
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < BENCHMARK_CONSTANTS.RELATIONSHIP_QUERY_ITERATIONS; i++) {
           await this.databaseManager.executeOptimized(`
             SELECT r.*, e1.name as source_name, e2.name as target_name
             FROM entity_relationships r
@@ -212,7 +315,7 @@ export class OntologyPerformanceBenchmark {
             JOIN entities e2 ON r.target_entity_id = e2.id
             WHERE r.source_entity_id = ? OR r.target_entity_id = ?
             ORDER BY r.strength DESC
-            LIMIT 20
+            LIMIT ${BENCHMARK_CONSTANTS.RELATIONSHIP_QUERY_LIMIT}
           `, [`test_entity_${i}`, `test_entity_${i}`]);
         }
         
@@ -220,7 +323,7 @@ export class OntologyPerformanceBenchmark {
       }
     );
 
-    const endMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+    const endMemory = process.memoryUsage().heapUsed / BENCHMARK_CONSTANTS.BYTES_TO_MB;
     console.log(`Current approach memory usage: ${(endMemory - startMemory).toFixed(2)}MB`);
   }
 
@@ -228,7 +331,7 @@ export class OntologyPerformanceBenchmark {
    * Simulate formal ontology approach with validation overhead
    */
   private async benchmarkFormalOntologyApproach(scale: 'small' | 'medium' | 'large'): Promise<void> {
-    const startMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+    const startMemory = process.memoryUsage().heapUsed / BENCHMARK_CONSTANTS.BYTES_TO_MB;
     
     // Entity lookup with type hierarchy validation
     await this.benchmarkOperation(
@@ -238,13 +341,13 @@ export class OntologyPerformanceBenchmark {
       async () => {
         const startTime = performance.now();
         
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < BENCHMARK_CONSTANTS.ENTITY_LOOKUP_ITERATIONS; i++) {
           // Simulate type hierarchy lookup overhead
           await this.simulateTypeHierarchyValidation();
           
           await this.databaseManager.executeOptimized(
             'SELECT * FROM entities WHERE normalized_name = ? LIMIT 1',
-            [`test_entity_${i % 50}`]
+            [`test_entity_${i % BENCHMARK_CONSTANTS.ENTITY_SAMPLE_SIZE}`]
           );
           
           // Simulate domain/range validation
@@ -267,7 +370,7 @@ export class OntologyPerformanceBenchmark {
         await this.simulateOntologyValidation();
         
         // Same query but with additional validation overhead
-        const result = await this.databaseManager.executeOptimized(`
+        await this.databaseManager.executeOptimized(`
           WITH RECURSIVE 
           type_hierarchy AS (
             SELECT 'person' as entity_type, 'agent' as parent_type, 1 as level
@@ -280,7 +383,7 @@ export class OntologyPerformanceBenchmark {
             FROM entity_relationships r
             JOIN entities e1 ON r.source_entity_id = e1.id
             JOIN entities e2 ON r.target_entity_id = e2.id
-            WHERE r.source_entity_id = ? AND r.strength >= 0.3
+            WHERE r.source_entity_id = ? AND r.strength >= ${BENCHMARK_CONSTANTS.MIN_RELATIONSHIP_STRENGTH}
           ),
           entity_graph AS (
             SELECT source_entity_id, target_entity_id, 
@@ -300,14 +403,14 @@ export class OntologyPerformanceBenchmark {
           )
           SELECT * FROM entity_graph
           ORDER BY degree ASC, strength DESC
-          LIMIT 50  -- Reduced limit due to performance
+          LIMIT ${BENCHMARK_CONSTANTS.FORMAL_ONTOLOGY_LIMIT}  -- Reduced limit due to performance
         `, ['test_entity_1']);
         
         return performance.now() - startTime;
       }
     );
 
-    const endMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+    const endMemory = process.memoryUsage().heapUsed / BENCHMARK_CONSTANTS.BYTES_TO_MB;
     console.log(`Formal ontology approach memory usage: ${(endMemory - startMemory).toFixed(2)}MB`);
   }
 
@@ -315,7 +418,7 @@ export class OntologyPerformanceBenchmark {
    * Benchmark enhanced pragmatic approach
    */
   private async benchmarkEnhancedPragmaticApproach(scale: 'small' | 'medium' | 'large'): Promise<void> {
-    const startMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+    const startMemory = process.memoryUsage().heapUsed / BENCHMARK_CONSTANTS.BYTES_TO_MB;
     
     // Entity lookup with semantic categories
     await this.benchmarkOperation(
@@ -325,7 +428,7 @@ export class OntologyPerformanceBenchmark {
       async () => {
         const startTime = performance.now();
         
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < BENCHMARK_CONSTANTS.ENTITY_LOOKUP_ITERATIONS; i++) {
           await this.databaseManager.executeOptimized(`
             SELECT e.*, 
                    CASE 
@@ -352,7 +455,7 @@ export class OntologyPerformanceBenchmark {
         const startTime = performance.now();
         
         // Use materialized connection summary for faster traversal
-        const result = await this.databaseManager.executeOptimized(`
+        await this.databaseManager.executeOptimized(`
           WITH RECURSIVE entity_graph AS (
             SELECT 
               r.source_entity_id,
@@ -362,8 +465,8 @@ export class OntologyPerformanceBenchmark {
               r.strength * r.semantic_weight as weighted_strength
             FROM entity_relationships r
             WHERE r.source_entity_id = ? 
-              AND r.strength >= 0.3 
-              AND r.semantic_weight >= 0.5
+              AND r.strength >= ${BENCHMARK_CONSTANTS.MIN_RELATIONSHIP_STRENGTH} 
+              AND r.semantic_weight >= ${BENCHMARK_CONSTANTS.MIN_SEMANTIC_WEIGHT}
             
             UNION ALL
             
@@ -375,23 +478,23 @@ export class OntologyPerformanceBenchmark {
               eg.weighted_strength * r.strength * r.semantic_weight
             FROM entity_graph eg
             JOIN entity_relationships r ON eg.target_entity_id = r.source_entity_id
-            WHERE eg.degree < 4
-              AND r.strength >= 0.3
-              AND r.semantic_weight >= 0.5
+            WHERE eg.degree < ${BENCHMARK_CONSTANTS.MAX_GRAPH_DEPTH}
+              AND r.strength >= ${BENCHMARK_CONSTANTS.MIN_RELATIONSHIP_STRENGTH}
+              AND r.semantic_weight >= ${BENCHMARK_CONSTANTS.MIN_SEMANTIC_WEIGHT}
               AND json_extract(eg.path, '$') NOT LIKE '%' || r.target_entity_id || '%'
           )
           SELECT eg.*, e.name, e.type
           FROM entity_graph eg
           JOIN entities e ON eg.target_entity_id = e.id
           ORDER BY degree ASC, weighted_strength DESC
-          LIMIT 100
+          LIMIT ${BENCHMARK_CONSTANTS.DEFAULT_QUERY_LIMIT}
         `, ['test_entity_1']);
         
         return performance.now() - startTime;
       }
     );
 
-    const endMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+    const endMemory = process.memoryUsage().heapUsed / BENCHMARK_CONSTANTS.BYTES_TO_MB;
     console.log(`Enhanced pragmatic approach memory usage: ${(endMemory - startMemory).toFixed(2)}MB`);
   }
 
@@ -405,7 +508,7 @@ export class OntologyPerformanceBenchmark {
     
     for (const concurrency of concurrentOperations) {
       const startTime = performance.now();
-      const startMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+      const startMemory = process.memoryUsage().heapUsed / BENCHMARK_CONSTANTS.BYTES_TO_MB;
       
       try {
         const operations = Array.from({ length: concurrency }, (_, i) => 
@@ -415,7 +518,7 @@ export class OntologyPerformanceBenchmark {
         await Promise.all(operations);
         
         const endTime = performance.now();
-        const endMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+        const endMemory = process.memoryUsage().heapUsed / BENCHMARK_CONSTANTS.BYTES_TO_MB;
         
         this.results.push({
           operation: `concurrency_${concurrency}`,
@@ -623,7 +726,7 @@ export class OntologyPerformanceBenchmark {
   /**
    * Cleanup test data
    */
-  private async cleanupTestData(scale: 'small' | 'medium' | 'large'): Promise<void> {
+  private async cleanupTestData(_scale: 'small' | 'medium' | 'large'): Promise<void> {
     await this.databaseManager.getConnection().prepare('DELETE FROM entity_relationships WHERE id LIKE ?').run('test_rel_%');
     await this.databaseManager.getConnection().prepare('DELETE FROM entities WHERE id LIKE ?').run('test_entity_%');
   }

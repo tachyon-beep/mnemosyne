@@ -9,7 +9,7 @@
  * - Insight detection
  */
 
-import { AnalyticsRepository, TimeRange, PaginationOptions } from './AnalyticsRepository.js';
+import { AnalyticsRepository, TimeRange } from './AnalyticsRepository.js';
 import { DatabaseManager } from '../../storage/Database.js';
 
 export interface ConversationAnalytics {

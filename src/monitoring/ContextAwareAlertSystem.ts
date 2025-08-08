@@ -110,16 +110,6 @@ interface NotificationChannel {
   };
 }
 
-interface AlertCorrelationResult {
-  primaryAlert: SmartAlert;
-  relatedAlerts: SmartAlert[];
-  correlationType: 'cascade' | 'cluster' | 'pattern';
-  rootCauseHypothesis: {
-    cause: string;
-    confidence: number;
-    recommendedAction: string;
-  };
-}
 
 export class ContextAwareAlertSystem extends EventEmitter {
   private activeAlerts: Map<string, SmartAlert> = new Map();
@@ -617,7 +607,7 @@ export class ContextAwareAlertSystem extends EventEmitter {
   /**
    * Format alert message for specific channel
    */
-  private formatAlertForChannel(alert: SmartAlert, channel: NotificationChannel): string {
+  private formatAlertForChannel(alert: SmartAlert, _channel: NotificationChannel): string {
     let message = `[${alert.adjustedSeverity.toUpperCase()}] ${alert.message}`;
     
     if (alert.rootCauseAnalysis.confidence > 0.6) {
@@ -750,7 +740,7 @@ export class ContextAwareAlertSystem extends EventEmitter {
     );
   }
 
-  private getHistoricalDataForMetric(metric: string, category: string, date: Date): {
+  private getHistoricalDataForMetric(_metric: string, _category: string, _date: Date): {
     mean: number;
     stdDev: number;
     values: number[];
@@ -798,7 +788,7 @@ export class ContextAwareAlertSystem extends EventEmitter {
     this.alertPatterns.set(key, pattern);
   }
 
-  private getRecentNotificationsForChannel(channelId: string): number {
+  private getRecentNotificationsForChannel(_channelId: string): number {
     // Would track notifications in production
     return 0;
   }
@@ -812,7 +802,7 @@ export class ContextAwareAlertSystem extends EventEmitter {
   /**
    * Resolve an active alert
    */
-  resolveAlert(alertId: string, resolvedBy?: string): boolean {
+  resolveAlert(alertId: string, _resolvedBy?: string): boolean {
     const alert = this.activeAlerts.get(alertId);
     if (!alert) return false;
 

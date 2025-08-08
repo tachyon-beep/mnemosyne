@@ -136,7 +136,6 @@ export class AnalyticsEngine {
     }
 
     const validTimeRange = this.validateTimeRange(timeRange);
-    const startTime = Date.now();
     
     try {
       // Run analytics in parallel for efficiency
@@ -347,9 +346,8 @@ export class AnalyticsEngine {
       return cached;
     }
 
-    const [productivitySummary, topicFlowSummary] = await Promise.all([
-      this.conversationAnalytics.getProductivitySummary(timeRange),
-      this.conversationAnalytics.getTopicFlowSummary(timeRange)
+    const [productivitySummary] = await Promise.all([
+      this.conversationAnalytics.getProductivitySummary(timeRange)
     ]);
 
     const metrics = {

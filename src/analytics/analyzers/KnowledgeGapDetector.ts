@@ -1354,12 +1354,12 @@ export class KnowledgeGapDetector {
 
   // More implementation methods continue...
 
-  private buildLearningCurve(topic: string, messages: Array<Message & { conversationId: string }>): Promise<LearningCurve> {
+  private buildLearningCurve(_topic: string, _messages: Array<Message & { conversationId: string }>): Promise<LearningCurve> {
     // Implementation for building learning curves
     throw new Error('buildLearningCurve not implemented');
   }
 
-  private identifyDomains(messages: Array<Message & { conversationId: string }>): string[] {
+  private identifyDomains(_messages: Array<Message & { conversationId: string }>): string[] {
     // Implementation for identifying expertise domains
     return ['software development', 'data analysis', 'project management'];
   }
@@ -1369,7 +1369,7 @@ export class KnowledgeGapDetector {
     return messages.filter(m => m.content.toLowerCase().includes(domain.toLowerCase()));
   }
 
-  private assessDomainExpertise(domain: string, messages: Array<Message & { conversationId: string }>): Promise<ExpertiseDomain> {
+  private assessDomainExpertise(_domain: string, _messages: Array<Message & { conversationId: string }>): Promise<ExpertiseDomain> {
     // Implementation for assessing domain expertise
     throw new Error('assessDomainExpertise not implemented');
   }
@@ -1424,20 +1424,20 @@ export class KnowledgeGapDetector {
       }));
   }
 
-  private async identifySkillGaps(messages: Array<Message & { conversationId: string }>): Promise<DetectedKnowledgeGap[]> {
+  private async identifySkillGaps(_messages: Array<Message & { conversationId: string }>): Promise<DetectedKnowledgeGap[]> {
     // Implementation for identifying skill gaps
     return [];
   }
 
   private async findConceptualGaps(
-    messages: Array<Message & { conversationId: string }>,
-    topicCoverage: TopicCoverageAnalysis[]
+    _messages: Array<Message & { conversationId: string }>,
+    _topicCoverage: TopicCoverageAnalysis[]
   ): Promise<DetectedKnowledgeGap[]> {
     // Implementation for finding conceptual gaps
     return [];
   }
 
-  private async enrichGapAnalysis(gap: DetectedKnowledgeGap, messages: Array<Message & { conversationId: string }>): Promise<void> {
+  private async enrichGapAnalysis(_gap: DetectedKnowledgeGap, _messages: Array<Message & { conversationId: string }>): Promise<void> {
     // Enrich gap with additional analysis
   }
 
@@ -1506,16 +1506,16 @@ export class KnowledgeGapDetector {
     return 5; // Default complexity
   }
 
-  private generateLearningPath(content: string): string[] {
+  private generateLearningPath(_content: string): string[] {
     // Generate learning path based on content
     return ['research basics', 'find examples', 'practice implementation'];
   }
 
-  private generateTopicLearningPath(topic: string): string[] {
+  private generateTopicLearningPath(_topic: string): string[] {
     return ['understand fundamentals', 'explore use cases', 'hands-on practice'];
   }
 
-  private generateActions(content: string): string[] {
+  private generateActions(_content: string): string[] {
     return ['ask more specific questions', 'request examples', 'practice with real scenarios'];
   }
 
@@ -1557,7 +1557,7 @@ export class KnowledgeGapDetector {
     return Math.max(0, depthScore - gapPenalty);
   }
 
-  private findRelatedTopics(topic: string, messages: Array<Message & { conversationId: string }>): string[] {
+  private findRelatedTopics(_topic: string, _messages: Array<Message & { conversationId: string }>): string[] {
     // Find topics that appear in similar contexts
     return [];
   }
@@ -1573,7 +1573,7 @@ export class KnowledgeGapDetector {
     return prerequisites[topic.toLowerCase()] || [];
   }
 
-  private identifyDependentTopics(topic: string): string[] {
+  private identifyDependentTopics(_topic: string): string[] {
     // Identify topics that depend on this one
     return [];
   }

@@ -56,7 +56,7 @@ export class EntityExtractor {
   /**
    * Extract entities from text
    */
-  extractEntities(text: string, messageId?: string): ExtractedEntity[] {
+  extractEntities(text: string, _messageId?: string): ExtractedEntity[] {
     const entities: ExtractedEntity[] = [];
     const processed = new Set<string>();
 
@@ -235,7 +235,7 @@ export class EntityExtractor {
   /**
    * Find pattern matches in text
    */
-  private findMatches(text: string, pattern: RegExp, entityType: EntityType): Array<{
+  private findMatches(text: string, pattern: RegExp, _entityType: EntityType): Array<{
     text: string;
     startPosition: number;
     endPosition: number;
@@ -267,7 +267,7 @@ export class EntityExtractor {
   /**
    * Calculate confidence score for an extracted entity
    */
-  private calculateConfidence(text: string, type: EntityType, pattern: RegExp): number {
+  private calculateConfidence(text: string, type: EntityType, _pattern: RegExp): number {
     let confidence = 0.5; // Base confidence
 
     // Length-based adjustments

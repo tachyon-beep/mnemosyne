@@ -162,7 +162,7 @@ export class PatternDetectionService extends BaseRepository {
     
     // Build query to find messages with commitment patterns
     let whereClause = 'WHERE m.created_at < ? AND m.role = ?';
-    let params: any[] = [cutoffTimestamp, 'assistant'];
+    const params: any[] = [cutoffTimestamp, 'assistant'];
 
     if (conversationId) {
       whereClause += ' AND m.conversation_id = ?';
@@ -258,7 +258,7 @@ export class PatternDetectionService extends BaseRepository {
     } = options;
 
     let whereClause = 'WHERE m.role = ?';
-    let params: any[] = ['user'];
+    const params: any[] = ['user'];
 
     if (conversationId) {
       whereClause += ' AND m.conversation_id = ?';
@@ -433,7 +433,7 @@ export class PatternDetectionService extends BaseRepository {
 
     // Find all messages with commitment patterns
     let whereClause = 'WHERE m.role = ?';
-    let params: any[] = ['assistant'];
+    const params: any[] = ['assistant'];
 
     if (conversationId) {
       whereClause += ' AND m.conversation_id = ?';
@@ -665,10 +665,9 @@ export class PatternDetectionService extends BaseRepository {
     conversationId?: string
   ): Promise<Message[]> {
     const topicKeywords = topic.split(' ');
-    const questionIds = questions.map(q => q.id);
     
     let whereClause = 'WHERE m.role = ? AND messages_fts MATCH ?';
-    let params: any[] = ['assistant', topicKeywords.join(' OR ')];
+    const params: any[] = ['assistant', topicKeywords.join(' OR ')];
 
     if (conversationId) {
       whereClause += ' AND m.conversation_id = ?';

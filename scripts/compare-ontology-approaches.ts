@@ -27,6 +27,27 @@ interface ApproachComparison {
 }
 
 /**
+ * Cleanup function for test resources
+ */
+async function cleanupTestResources(databaseManager: DatabaseManager | null, testDbPath: string): Promise<void> {
+  try {
+    if (databaseManager) {
+      await databaseManager.close();
+    }
+  } catch (error) {
+    console.warn('⚠️  Warning: Could not close database connection:', error);
+  }
+  
+  try {
+    await fs.unlink(testDbPath);
+    await fs.unlink(`${testDbPath}-wal`).catch(() => {}); // WAL file
+    await fs.unlink(`${testDbPath}-shm`).catch(() => {}); // Shared memory file
+  } catch (error) {
+    // Ignore cleanup errors for non-existent files
+  }
+}
+
+/**
  * Main comparison function
  */
 async function compareOntologyApproaches(): Promise<void> {
@@ -34,17 +55,19 @@ async function compareOntologyApproaches(): Promise<void> {
   
   // Initialize database for testing
   const testDbPath = path.join(process.cwd(), 'test-ontology-performance.db');
-  const databaseManager = new DatabaseManager({
-    databasePath: testDbPath,
-    enableWAL: true,
-    enableForeignKeys: true,
-    cacheSize: 2000,
-    enableConnectionPool: true,
-    maxConnections: 5,
-    enableQueryOptimization: true
-  });
+  let databaseManager: DatabaseManager | null = null;
   
   try {
+    databaseManager = new DatabaseManager({
+      databasePath: testDbPath,
+      enableWAL: true,
+      enableForeignKeys: true,
+      cacheSize: 2000,
+      enableConnectionPool: true,
+      maxConnections: 5,
+      enableQueryOptimization: true
+    });
+    
     await databaseManager.initialize();
     
     // Run comprehensive benchmarks
@@ -101,16 +124,14 @@ async function compareOntologyApproaches(): Promise<void> {
     
   } catch (error) {
     console.error('❌ Error during analysis:', error);
+    console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace available');
+    
+    // Attempt cleanup before exit
+    await cleanupTestResources(databaseManager, testDbPath);
     process.exit(1);
   } finally {
-    await databaseManager.close();
-    
-    // Cleanup test database
-    try {
-      await fs.unlink(testDbPath);
-    } catch (error) {
-      // Ignore cleanup errors
-    }
+    // Ensure cleanup happens
+    await cleanupTestResources(databaseManager, testDbPath);
   }
 }
 

@@ -197,10 +197,20 @@ import { GetConversationsTool } from './GetConversationsTool.js';
 import { DeleteConversationTool } from './DeleteConversationTool.js';
 import { SemanticSearchTool } from './SemanticSearchTool.js';
 import { HybridSearchTool } from './HybridSearchTool.js';
+import { GetEntityHistoryTool } from './GetEntityHistoryTool.js';
+import { FindRelatedConversationsTool } from './FindRelatedConversationsTool.js';
+import { GetKnowledgeGraphTool } from './GetKnowledgeGraphTool.js';
+import { 
+  GetProactiveInsightsTool,
+  CheckForConflictsTool,
+  SuggestRelevantContextTool,
+  AutoTagConversationTool
+} from './proactive/index.js';
 // Import tools that are registered dynamically in the ToolRegistry
-import { GetRelevantSnippetsTool as _GetRelevantSnippetsTool } from './GetRelevantSnippetsTool.js';
-import { ConfigureLLMProviderTool as _ConfigureLLMProviderTool } from './ConfigureLLMProviderTool.js';
-import { GetProgressiveDetailTool as _GetProgressiveDetailTool } from './GetProgressiveDetailTool.js';
+// These imports are only used for side-effects in ToolRegistry
+// import { GetRelevantSnippetsTool } from './GetRelevantSnippetsTool.js';
+// import { ConfigureLLMProviderTool } from './ConfigureLLMProviderTool.js';
+// import { GetProgressiveDetailTool } from './GetProgressiveDetailTool.js';
 // Analytics tools imports - temporarily disabled for build
 // import { GetConversationAnalyticsTool } from './GetConversationAnalyticsTool.js';
 // import { AnalyzeProductivityPatternsTool } from './AnalyzeProductivityPatternsTool.js';
@@ -301,9 +311,6 @@ export class ToolRegistry {
 
     // Register knowledge graph tools if available
     if (this.dependencies.knowledgeGraphService) {
-      const { GetEntityHistoryTool } = require('./GetEntityHistoryTool.js');
-      const { FindRelatedConversationsTool } = require('./FindRelatedConversationsTool.js');
-      const { GetKnowledgeGraphTool } = require('./GetKnowledgeGraphTool.js');
       
       const getEntityHistoryTool = new GetEntityHistoryTool(this.dependencies.knowledgeGraphService);
       const findRelatedConversationsTool = new FindRelatedConversationsTool(this.dependencies.knowledgeGraphService);
@@ -315,12 +322,6 @@ export class ToolRegistry {
       
       // Register proactive assistance tools
       try {
-        const { 
-          GetProactiveInsightsTool,
-          CheckForConflictsTool,
-          SuggestRelevantContextTool,
-          AutoTagConversationTool
-        } = require('./proactive/index.js');
         
         const getProactiveInsightsTool = new GetProactiveInsightsTool(this.dependencies);
         const checkForConflictsTool = new CheckForConflictsTool(this.dependencies);  
@@ -541,8 +542,7 @@ export function createToolRegistryWithAnalytics(
  * Utility function to get all tool definitions for MCP
  */
 export function getAllToolDefinitions(): any[] {
-  // Import tool definitions from MCP types
-  const { AllTools } = require('../types/mcp');
+  // Return tool definitions from MCP types
   return AllTools;
 }
 

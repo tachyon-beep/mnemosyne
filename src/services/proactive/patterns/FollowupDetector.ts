@@ -15,7 +15,7 @@
 import { BaseRepository } from '../../../storage/repositories/BaseRepository.js';
 import { Message } from '../../../types/interfaces.js';
 import { Entity, EntityType } from '../../../storage/repositories/EntityRepository.js';
-import { EntityRelationship, RelationshipType } from '../../../entities/RelationshipDetector.js';
+import { EntityRelationship } from '../../../entities/RelationshipDetector.js';
 
 /**
  * Represents a detected commitment in conversation
@@ -330,7 +330,7 @@ export class FollowupDetector extends BaseRepository {
 
     // Find messages with temporal commitment patterns
     let whereClause = 'WHERE m.role = ?';
-    let params: any[] = ['assistant'];
+    const params: any[] = ['assistant'];
 
     if (conversationId) {
       whereClause += ' AND m.conversation_id = ?';
@@ -672,7 +672,7 @@ export class FollowupDetector extends BaseRepository {
   /**
    * Extract entities from commitment text (simplified implementation)
    */
-  private async extractEntitiesFromText(text: string): Promise<Entity[]> {
+  private async extractEntitiesFromText(_text: string): Promise<Entity[]> {
     // This would typically integrate with an NLP service or entity recognition
     // For now, return empty array - would be implemented with proper entity extraction
     return [];
@@ -822,7 +822,7 @@ export class FollowupDetector extends BaseRepository {
    */
   private async getAllCommitments(conversationId?: string): Promise<DetectedCommitment[]> {
     let whereClause = 'WHERE m.role = ?';
-    let params: any[] = ['assistant'];
+    const params: any[] = ['assistant'];
 
     if (conversationId) {
       whereClause += ' AND m.conversation_id = ?';
@@ -939,7 +939,7 @@ export class FollowupDetector extends BaseRepository {
   private async generateFollowupSuggestions(
     commitment: DetectedCommitment,
     relatedEntities: Entity[],
-    staleness: StaleAction['stalenessLevel']
+    _staleness: StaleAction['stalenessLevel']
   ): Promise<FollowupSuggestion[]> {
     // Use the main suggestFollowups method
     return this.suggestFollowups(commitment, { relatedEntities });

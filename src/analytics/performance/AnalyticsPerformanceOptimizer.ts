@@ -17,7 +17,7 @@ import { DecisionTracker } from '../analyzers/DecisionTracker.js';
 import { AnalyticsEngine } from '../services/AnalyticsEngine.js';
 import { Message, Conversation } from '../../types/interfaces.js';
 import { CacheKeyGenerator, CacheKeys } from '../../utils/CacheKeyGenerator.js';
-import { SizeEstimator, SizeUtils } from '../../utils/SizeEstimator.js';
+import { SizeEstimator } from '../../utils/SizeEstimator.js';
 import { 
   PredictiveCacheManager, 
   PredictiveCacheConfig, 
@@ -296,7 +296,6 @@ class ParallelAnalyticsProcessor {
     processor: (item: T) => Promise<R>,
     batchSize: number = 10
   ): Promise<R[]> {
-    const results: R[] = [];
     const batches = this.createBatches(items, batchSize);
     
     const processBatch = async (batch: T[]): Promise<R[]> => {
@@ -804,7 +803,7 @@ export class AnalyticsPerformanceOptimizer {
     );
 
     // Use optimized clustering
-    const clusters = OptimizedAlgorithms.optimizedClustering(
+    OptimizedAlgorithms.optimizedClustering(
       questions,
       (q1, q2) => this.calculateQuestionSimilarity(q1.content, q2.content),
       0.6,
@@ -1026,7 +1025,7 @@ export class AnalyticsPerformanceOptimizer {
   /**
    * Validate prediction accuracy by checking if predicted cache entries were actually requested
    */
-  async validatePredictionAccuracy(timeWindowHours: number = 24): Promise<{
+  async validatePredictionAccuracy(_timeWindowHours: number = 24): Promise<{
     totalPredictions: number;
     accuratePredictions: number;
     accuracy: number;
