@@ -1,0 +1,21 @@
+# Ignore built files
+dist/
+node_modules/
+coverage/
+*.min.js
+
+# Ignore test files
+__tests__/
+tests/
+*.test.ts
+*.test.js
+
+# Ignore config files
+jest.config.js
+globalSetup.js
+globalTeardown.js
+validation-demo.js
+
+# Ignore examples and scripts
+examples/
+scripts/

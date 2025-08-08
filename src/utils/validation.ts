@@ -612,14 +612,14 @@ export function validateGranularity(
   granularity?: string,
   timeRangeDays?: number
 ): string {
-  const validGranularities = ['hourly', 'daily', 'weekly', 'monthly'];
+  const validGranularities = ['hour', 'day', 'week', 'month'];
   
   if (granularity && !validGranularities.includes(granularity)) {
     throw new ValidationError(
       `Invalid granularity: ${granularity}`,
       'granularity',
       'INVALID_GRANULARITY',
-      'Granularity must be one of: hourly, daily, weekly, monthly',
+      'Granularity must be one of: hour, day, week, month',
       [
         `Provided: ${granularity}`,
         `Valid options: ${validGranularities.join(', ')}`,
@@ -631,48 +631,48 @@ export function validateGranularity(
   // Auto-select appropriate granularity based on time range
   if (!granularity && timeRangeDays) {
     if (timeRangeDays <= 2) {
-      granularity = 'hourly';
+      granularity = 'hour';
     } else if (timeRangeDays <= 31) {
-      granularity = 'daily';
+      granularity = 'day';
     } else if (timeRangeDays <= 90) {
-      granularity = 'weekly';
+      granularity = 'week';
     } else {
-      granularity = 'monthly';
+      granularity = 'month';
     }
   }
 
   // Validate granularity makes sense for time range
   if (granularity && timeRangeDays) {
-    if (granularity === 'hourly' && timeRangeDays > 7) {
+    if (granularity === 'hour' && timeRangeDays > 7) {
       throw new ValidationError(
-        `Hourly granularity not suitable for ${timeRangeDays} days`,
+        `Hour granularity not suitable for ${timeRangeDays} days`,
         'granularity',
         'GRANULARITY_TIME_MISMATCH',
-        'Hourly granularity is only suitable for time ranges up to 7 days',
+        'Hour granularity is only suitable for time ranges up to 7 days',
         [
           `Time range: ${timeRangeDays} days`,
-          'Use "daily" or "weekly" granularity for longer periods',
+          'Use "day" or "week" granularity for longer periods',
           'Or reduce the time range to 7 days or less'
         ]
       );
     }
 
-    if (granularity === 'monthly' && timeRangeDays < 30) {
+    if (granularity === 'month' && timeRangeDays < 30) {
       throw new ValidationError(
-        `Monthly granularity not suitable for ${timeRangeDays} days`,
+        `Month granularity not suitable for ${timeRangeDays} days`,
         'granularity',
         'GRANULARITY_TIME_MISMATCH',
-        'Monthly granularity requires at least 30 days of data',
+        'Month granularity requires at least 30 days of data',
         [
           `Time range: ${timeRangeDays} days`,
-          'Use "hourly" or "daily" granularity for shorter periods',
+          'Use "hour" or "day" granularity for shorter periods',
           'Or increase the time range to at least 30 days'
         ]
       );
     }
   }
 
-  return granularity || 'daily';
+  return granularity || 'day';
 }
 
 /**

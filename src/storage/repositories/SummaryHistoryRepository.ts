@@ -156,7 +156,7 @@ export class SummaryHistoryRepository extends BaseRepository implements ISummary
    */
   async getStats(providerId?: string): Promise<SummaryStats> {
     let whereClause = '';
-    let params: any[] = [];
+    const params: any[] = [];
 
     if (providerId) {
       if (!this.isValidUUID(providerId)) {

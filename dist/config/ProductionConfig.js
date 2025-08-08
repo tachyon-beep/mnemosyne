@@ -235,7 +235,7 @@ export function getProductionConfig() {
 export function validateConfiguration(config) {
     const warnings = [];
     const recommendations = [];
-    let isValid = true;
+    const isValid = true;
     // Check available memory
     const totalMemory = require('os').totalmem();
     const configuredMemory = config.memory.maxRssBytes;

@@ -1074,11 +1074,11 @@ export class KnowledgeGapDetector {
         return aspects;
     }
     // More implementation methods continue...
-    buildLearningCurve(topic, messages) {
+    buildLearningCurve(_topic, _messages) {
         // Implementation for building learning curves
         throw new Error('buildLearningCurve not implemented');
     }
-    identifyDomains(messages) {
+    identifyDomains(_messages) {
         // Implementation for identifying expertise domains
         return ['software development', 'data analysis', 'project management'];
     }
@@ -1086,7 +1086,7 @@ export class KnowledgeGapDetector {
         // Implementation for filtering messages by domain
         return messages.filter(m => m.content.toLowerCase().includes(domain.toLowerCase()));
     }
-    assessDomainExpertise(domain, messages) {
+    assessDomainExpertise(_domain, _messages) {
         // Implementation for assessing domain expertise
         throw new Error('assessDomainExpertise not implemented');
     }
@@ -1137,15 +1137,15 @@ export class KnowledgeGapDetector {
             estimatedLearningTime: this.estimateTopicLearningTime(topic.topic)
         }));
     }
-    async identifySkillGaps(messages) {
+    async identifySkillGaps(_messages) {
         // Implementation for identifying skill gaps
         return [];
     }
-    async findConceptualGaps(messages, topicCoverage) {
+    async findConceptualGaps(_messages, _topicCoverage) {
         // Implementation for finding conceptual gaps
         return [];
     }
-    async enrichGapAnalysis(gap, messages) {
+    async enrichGapAnalysis(_gap, _messages) {
         // Enrich gap with additional analysis
     }
     prioritizeGaps(gaps) {
@@ -1207,14 +1207,14 @@ export class KnowledgeGapDetector {
         }
         return 5; // Default complexity
     }
-    generateLearningPath(content) {
+    generateLearningPath(_content) {
         // Generate learning path based on content
         return ['research basics', 'find examples', 'practice implementation'];
     }
-    generateTopicLearningPath(topic) {
+    generateTopicLearningPath(_topic) {
         return ['understand fundamentals', 'explore use cases', 'hands-on practice'];
     }
-    generateActions(content) {
+    generateActions(_content) {
         return ['ask more specific questions', 'request examples', 'practice with real scenarios'];
     }
     generateTopicActions(topic) {
@@ -1246,7 +1246,7 @@ export class KnowledgeGapDetector {
         const gapPenalty = Math.min(30, gapCount * 5);
         return Math.max(0, depthScore - gapPenalty);
     }
-    findRelatedTopics(topic, messages) {
+    findRelatedTopics(_topic, _messages) {
         // Find topics that appear in similar contexts
         return [];
     }
@@ -1259,7 +1259,7 @@ export class KnowledgeGapDetector {
         };
         return prerequisites[topic.toLowerCase()] || [];
     }
-    identifyDependentTopics(topic) {
+    identifyDependentTopics(_topic) {
         // Identify topics that depend on this one
         return [];
     }

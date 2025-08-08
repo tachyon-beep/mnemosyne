@@ -26,7 +26,7 @@ export class EntityExtractor {
     /**
      * Extract entities from text
      */
-    extractEntities(text, messageId) {
+    extractEntities(text, _messageId) {
         const entities = [];
         const processed = new Set();
         // Extract entities using pattern matching
@@ -187,7 +187,7 @@ export class EntityExtractor {
     /**
      * Find pattern matches in text
      */
-    findMatches(text, pattern, entityType) {
+    findMatches(text, pattern, _entityType) {
         const matches = [];
         let match;
         // Reset regex lastIndex
@@ -210,7 +210,7 @@ export class EntityExtractor {
     /**
      * Calculate confidence score for an extracted entity
      */
-    calculateConfidence(text, type, pattern) {
+    calculateConfidence(text, type, _pattern) {
         let confidence = 0.5; // Base confidence
         // Length-based adjustments
         if (text.length >= 3 && text.length <= 50) {

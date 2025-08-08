@@ -133,7 +133,7 @@ export class SemanticSearchTool extends BaseTool {
             // If parsing fails, apply basic sanitization
             return query
                 .trim()
-                .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
+                .replace(/[\u0000-\u001F\u007F]/g, '') // Remove control characters
                 .substring(0, 1000); // Enforce max length
         }
     }

@@ -560,7 +560,7 @@ export class ProductionPerformanceManager {
     return decision;
   }
 
-  private async executeAlertAction(alert: PerformanceAlert, decision: AutomationDecision): Promise<void> {
+  private async executeAlertAction(alert: PerformanceAlert, _decision: AutomationDecision): Promise<void> {
     switch (alert.type) {
       case 'slow_query':
         // Would implement slow query optimization

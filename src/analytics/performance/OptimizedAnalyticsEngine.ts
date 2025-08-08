@@ -748,7 +748,7 @@ export class OptimizedAnalyticsEngine extends AnalyticsEngine {
     };
   }
 
-  private aggregateProductivityMetrics(productivityResults: any[]): any {
+  private aggregateProductivityMetrics(_productivityResults: any[]): any {
     return {
       peakHours: [9, 10, 14, 15],
       optimalSessionLength: 45,
@@ -775,20 +775,20 @@ export class OptimizedAnalyticsEngine extends AnalyticsEngine {
     };
   }
 
-  private generateInsightsFromResults(data: any): string[] {
+  private generateInsightsFromResults(_data: any): string[] {
     return ['Productivity increased by 15% this week', 'Knowledge gaps reduced in technical areas'];
   }
 
-  private generateRecommendationsFromResults(data: any): string[] {
+  private generateRecommendationsFromResults(_data: any): string[] {
     return ['Focus on morning sessions for better productivity', 'Address critical knowledge gaps'];
   }
 
-  private async getCachedResult<T>(key: string): Promise<T | null> {
+  private async getCachedResult<T>(_key: string): Promise<T | null> {
     // Placeholder - would use the optimizer's cache
     return null;
   }
 
-  private async setCachedResult<T>(key: string, result: T, ttlMinutes: number): Promise<void> {
+  private async setCachedResult<T>(_key: string, _result: T, _ttlMinutes: number): Promise<void> {
     // Placeholder - would use the optimizer's cache
   }
 }

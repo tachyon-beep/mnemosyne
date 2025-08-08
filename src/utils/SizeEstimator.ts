@@ -363,7 +363,7 @@ export class SizeEstimator {
   /**
    * Estimate function size
    */
-  private static estimateFunction(func: Function, options: Required<SizeOptions>, context: any): number {
+  private static estimateFunction(func: (...args: any[]) => any, options: Required<SizeOptions>, context: any): number {
     if (!options.includeFunctions) {
       return 0;
     }

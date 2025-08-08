@@ -330,7 +330,7 @@ export function validateConfiguration(config: ProductionConfig): {
 } {
   const warnings: string[] = [];
   const recommendations: string[] = [];
-  let isValid = true;
+  const isValid = true;
   
   // Check available memory
   const totalMemory = require('os').totalmem();

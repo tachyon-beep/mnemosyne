@@ -761,7 +761,7 @@ export class KnowledgeGapsRepository extends AnalyticsRepository {
         let totalDuplicates = 0;
         // Flatten all gaps into batch-ready format
         const allGapInputs = [];
-        for (const { conversationId, gaps, conversationMetadata } of conversationGaps) {
+        for (const { conversationId: _conversationId, gaps, conversationMetadata } of conversationGaps) {
             for (const gap of gaps) {
                 const gapInput = {
                     gapType: gap.type || 'question',

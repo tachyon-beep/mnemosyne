@@ -16,7 +16,6 @@
 import { DatabaseManager } from '../../storage/Database.js';
 import { AnalyticsEngine } from '../services/AnalyticsEngine.js';
 import { Message, Conversation } from '../../types/interfaces.js';
-import { CacheKeyGenerator } from '../../utils/CacheKeyGenerator.js';
 
 export interface UsagePattern {
   id: string;
@@ -665,7 +664,7 @@ class PredictionModelManager {
     return related.slice(0, 5);
   }
 
-  private findSimilarUsers(recentKeys: string[]): Array<{ userId: string; similarity: number }> {
+  private findSimilarUsers(_recentKeys: string[]): Array<{ userId: string; similarity: number }> {
     // Simplified user similarity - would use more sophisticated algorithms in production
     return [
       { userId: 'similar_user_1', similarity: 0.6 },
@@ -673,7 +672,7 @@ class PredictionModelManager {
     ];
   }
 
-  private getUserRecommendations(userId: string): Array<{ key: string; similarity: number }> {
+  private getUserRecommendations(_userId: string): Array<{ key: string; similarity: number }> {
     // Simplified recommendations
     return [
       { key: 'recommended_query_1', similarity: 0.8 },
@@ -814,7 +813,6 @@ class CacheWarmingEngine {
   }
 
   private async warmCachePrediction(prediction: CachePrediction): Promise<void> {
-    const startTime = Date.now();
     this.activeWarmingTasks.add(prediction.cacheKey);
 
     try {
@@ -1010,12 +1008,6 @@ class CacheWarmingEngine {
     // Simulate running analytics and caching results
     // In a real implementation, this would call the actual analytics engine
     
-    const simulatedResult = {
-      type: analysisType,
-      conversationCount: conversations.length,
-      timestamp: Date.now(),
-      cached: true
-    };
 
     // Simulate cache storage (would integrate with actual cache system)
     console.log(`[Predictive Cache] Warmed ${analysisType} analysis for ${conversations.length} conversations`);
@@ -1023,12 +1015,6 @@ class CacheWarmingEngine {
 
   private async simulateSearchAndCache(cacheKey: string, searchQuery: string): Promise<void> {
     // Simulate search execution and caching
-    const simulatedResult = {
-      query: searchQuery,
-      resultCount: Math.floor(Math.random() * 50) + 1,
-      timestamp: Date.now(),
-      cached: true
-    };
 
     console.log(`[Predictive Cache] Warmed search results for query: "${searchQuery}"`);
   }

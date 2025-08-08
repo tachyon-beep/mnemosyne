@@ -138,7 +138,7 @@ export declare class ContextAwareAlertSystem extends EventEmitter {
     /**
      * Resolve an active alert
      */
-    resolveAlert(alertId: string, resolvedBy?: string): boolean;
+    resolveAlert(alertId: string, _resolvedBy?: string): boolean;
     /**
      * Get comprehensive alert system status
      */

@@ -7,8 +7,8 @@
  */
 
 import { BaseRepository } from '../../../storage/repositories/BaseRepository.js';
-import { EntityRepository, Entity, EntityType } from '../../../storage/repositories/EntityRepository.js';
-import { KnowledgeGraphRepository, EntityMention, EntityRelationship } from '../../../storage/repositories/KnowledgeGraphRepository.js';
+import { EntityRepository, Entity } from '../../../storage/repositories/EntityRepository.js';
+import { KnowledgeGraphRepository } from '../../../storage/repositories/KnowledgeGraphRepository.js';
 import { DatabaseManager } from '../../../storage/Database.js';
 import { Message, Conversation } from '../../../types/interfaces.js';
 
@@ -477,7 +477,7 @@ export class ContextChangeDetector extends BaseRepository {
     const messageIds = messages.map(m => m.id);
 
     // Get all entity mentions for these messages
-    let allMentions: {
+    const allMentions: {
       entity_id: string;
       message_id: string;
       created_at: number;
@@ -740,7 +740,7 @@ export class ContextChangeDetector extends BaseRepository {
     const claimsByType = new Map<string, Array<{ claim: string; message: Message; confidence: number }>>();
 
     // Extract claims from all mentions
-    for (const [conversationId, mentions] of conversationGroups.entries()) {
+    for (const mentions of conversationGroups.values()) {
       for (const mention of mentions) {
         const message: Message = {
           id: mention.message_id,

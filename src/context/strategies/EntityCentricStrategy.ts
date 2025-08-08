@@ -326,7 +326,7 @@ export class EntityCentricStrategy extends AssemblyStrategy {
     const processedItems = new Set<string>();
 
     // Add items from entity groups
-    for (const [_entity, groupItems] of sortedEntityGroups) {
+    for (const [, groupItems] of sortedEntityGroups) {
       const unprocessedItems = groupItems.filter(item => 
         !processedItems.has(item.id)
       );

@@ -399,7 +399,7 @@ export class ProductionPerformanceManager {
         }
         return decision;
     }
-    async executeAlertAction(alert, decision) {
+    async executeAlertAction(alert, _decision) {
         switch (alert.type) {
             case 'slow_query':
                 // Would implement slow query optimization

@@ -1151,7 +1151,7 @@ export class ConversationFlowAnalyzer {
     fromTopic: Topic, 
     toTopic: Topic, 
     timeGap: number,
-    messages: Message[]
+    _messages: Message[]
   ): 'natural' | 'abrupt' | 'return' | 'tangent' {
     // Return transition: going back to a previously discussed topic
     if (fromTopic.timestamp > toTopic.timestamp) {

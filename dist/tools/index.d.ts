@@ -97,8 +97,8 @@ export declare class ToolRegistry {
     executeTool(name: ToolName, input: unknown, context?: Partial<ToolContext>): Promise<any>;
     /**
      * Create analytics dependencies for analytics tools
-     * Temporarily disabled for build
      */
+    private createAnalyticsDependencies;
     /**
      * Get tool definitions for MCP protocol
      */

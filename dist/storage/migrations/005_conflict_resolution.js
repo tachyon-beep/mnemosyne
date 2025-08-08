@@ -115,10 +115,10 @@ export const migration_005_conflict_resolution = {
          'entity_mentions', 
          NEW.id,
          'referential_integrity',
-         'Referenced entity_id ' || NEW.entity_id || ' does not exist',
+         'Referenced entity_id does not exist',
          'error'
        );
-       SELECT RAISE(ABORT, 'Entity mention references non-existent entity: ' || NEW.entity_id);
+       SELECT RAISE(ABORT, 'Entity mention references non-existent entity');
      END`,
         // Trigger: Prevent entity_relationships with non-existent entities
         `CREATE TRIGGER IF NOT EXISTS validate_relationship_entities_exist
@@ -132,7 +132,7 @@ export const migration_005_conflict_resolution = {
          'entity_relationships', 
          NEW.id,
          'referential_integrity',
-         'Relationship references non-existent entity(ies): source=' || NEW.source_entity_id || ', target=' || NEW.target_entity_id,
+         'Relationship references non-existent entity(ies)',
          'error'
        );
        SELECT RAISE(ABORT, 'Entity relationship references non-existent entity(ies)');
@@ -148,7 +148,7 @@ export const migration_005_conflict_resolution = {
          'entity_mentions', 
          NEW.id,
          'range',
-         'Invalid mention positions: start=' || NEW.start_position || ', end=' || NEW.end_position,
+         'Invalid mention positions: end position must be after start position',
          'error'
        );
        SELECT RAISE(ABORT, 'Invalid entity mention position range');

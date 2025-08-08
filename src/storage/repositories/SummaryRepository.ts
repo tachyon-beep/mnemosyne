@@ -121,7 +121,7 @@ export class SummaryRepository extends BaseRepository {
     const pagination = this.validatePagination(limit, offset);
     
     let whereClause = 'WHERE conversation_id = ?';
-    let params: any[] = [conversationId];
+    const params: any[] = [conversationId];
     
     if (level) {
       whereClause += ' AND level = ?';
@@ -217,7 +217,7 @@ export class SummaryRepository extends BaseRepository {
     const validatedLimit = Math.min(limit || 50, 100);
     
     let whereClause = '';
-    let params: any[] = [];
+    const params: any[] = [];
     
     if (minQualityScore !== undefined) {
       whereClause = 'WHERE quality_score >= ?';

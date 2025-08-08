@@ -2,6 +2,21 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+# 🧠 MCP PERSISTENCE ACTIVE
+
+This codebase has the MCP Persistence System enabled with 23 tools. This means:
+- I can remember all our past conversations across sessions
+- I should search for context before answering complex questions  
+- I should save important decisions and solutions for future reference
+- I can track your learning patterns and adapt my assistance
+- I can find connections between different discussions and projects
+
+**DEFAULT BEHAVIOR**: For any non-trivial technical discussion, I will:
+1. Search for related past conversations using semantic/hybrid search
+2. Build on previous context and decisions
+3. Save important outcomes and solutions
+4. Track patterns for future proactive assistance
+
 ## Quick Start
 
 ```bash
@@ -183,6 +198,193 @@ Refer to `AGENTS.md` for detailed agent definitions and usage examples.
 - Health check system functional
 - Complete documentation and deployment guides
 - Performance optimized for production use
+
+---
+
+## MCP Persistence Usage Guidelines
+
+### When to Save Conversations
+- **ALWAYS SAVE**: Project architecture discussions, design decisions, complex problem solutions, learning breakthroughs, debugging solutions that took effort
+- **SAVE SELECTIVELY**: General questions if they reveal learning patterns or preferences
+- **DON'T SAVE**: Sensitive information, one-off trivial queries, meta-conversations about the MCP tool itself
+
+### Effective Search Strategies
+1. Start with `semantic_search` for conceptual queries ("how did we handle authentication?")
+2. Use `hybrid_search` for specific + conceptual combined ("TypeScript error handling in React")
+3. Always search before answering "what we discussed" or "remember when" questions
+4. Check for related conversations when starting complex topics
+5. Use `get_entity_history` when tracking specific technologies or projects
+
+### Context Building Patterns
+```python
+# On conversation start with returning user
+- get_conversations(limit=5) # Recent context
+- get_proactive_insights() # Unresolved items  
+- check_for_conflicts() # Inconsistencies to clarify
+
+# When answering technical questions
+- search_messages(query=topic) # Find past discussions
+- get_entity_history(entity=technology) # Track evolution
+- detect_knowledge_gaps() # Identify patterns
+
+# During problem solving
+- find_related_conversations(entities=[error_type, technology])
+- get_conversation_analytics(includeDecisionTracking=true)
+- save_message() # Document solution for future
+```
+
+### Metadata Conventions
+
+When saving messages, include structured metadata:
+```json
+{
+  "topic_tags": ["typescript", "error-handling", "async"],
+  "project": "project-name",
+  "decision_type": "architectural|implementation|debugging",
+  "solution_quality": "working|optimal|temporary",
+  "follow_up_needed": true,
+  "expertise_level": "beginner|intermediate|expert",
+  "entities": ["React", "SQLite", "MCP"],
+  "breakthrough": true
+}
+```
+
+### Proactive Assistance Rules
+
+**Pattern Detection Triggers:**
+- Same error/question mentioned 3+ times → Suggest comprehensive solution
+- Knowledge gap detected repeatedly → Offer targeted learning resources
+- Decision reversal detected → Review original reasoning
+- Unresolved items from past sessions → Surface at conversation start
+
+**Timing Optimization:**
+- Check `analyze_productivity_patterns()` before suggesting complex tasks
+- Remind about unresolved items at appropriate times
+- Flag stale commitments that need follow-up
+
+### Tool Chaining Sequences
+
+**Complete Context Retrieval:**
+1. `get_conversations()` → Identify relevant conversation IDs
+2. `get_conversation(id)` → Retrieve full context
+3. `get_entity_history()` → Track entity evolution
+4. `get_knowledge_graph()` → Understand relationships
+
+**Analytics-Driven Assistance:**
+1. `analyze_productivity_patterns()` → Find optimal timing
+2. `detect_knowledge_gaps()` → Identify weak areas
+3. `generate_analytics_report()` → Provide insights
+4. `auto_tag_conversation()` → Organize for future
+
+**Conflict Resolution Flow:**
+1. `check_for_conflicts()` → Detect inconsistencies
+2. `get_entity_history()` → Understand evolution
+3. `suggest_relevant_context()` → Find related info
+4. `save_message()` → Document resolution
+
+### Performance Guidelines
+
+**Query Optimization:**
+- Limit initial searches to 10 results
+- Use `get_conversations(limit=5)` for recent context
+- Batch related queries in single operations
+- Cache conversation IDs within session
+
+**When to Skip Persistence:**
+- Ephemeral debugging sessions with no learning value
+- Sensitive data discussions
+- Meta-conversations about the MCP tool
+- Repeated/duplicate questions already saved
+
+### Practical Usage Examples
+
+#### Starting a Returning User Session
+```javascript
+// Check recent activity and surface relevant items
+const recent = await get_conversations({limit: 10, includeMessageCounts: true});
+const insights = await get_proactive_insights({daysSince: 7});
+if (insights.unresolvedActions.length > 0) {
+  "I see you have 3 unresolved items from our TypeScript discussion. Shall we continue?"
+}
+```
+
+#### Handling Complex Problems
+```javascript
+// Build comprehensive context before solving
+const similar = await hybrid_search({query: problem_description});
+const history = await get_entity_history({entity: main_technology});
+const related = await find_related_conversations({entities: [tech_stack]});
+"I found 3 similar issues we've solved. The pattern suggests..."
+```
+
+#### Learning from Patterns
+```javascript
+// Identify and address knowledge gaps
+const gaps = await detect_knowledge_gaps({minFrequency: 2});
+const patterns = await analyze_productivity_patterns();
+"You've asked about React hooks 5 times. Your most productive time is mornings. 
+Would you like a comprehensive hooks tutorial tomorrow morning?"
+```
+
+### Decision Points Quick Reference
+
+**SAVE when:**
+- ✅ User makes architectural/design decisions
+- ✅ Problem gets solved after significant effort
+- ✅ User learns new concept or pattern
+- ✅ Project requirements or context changes
+- ✅ Breakthrough moments or "aha" realizations
+
+**SEARCH when:**
+- 🔍 User references past discussions
+- 🔍 Starting work on existing project
+- 🔍 Problem seems familiar
+- 🔍 Need to verify consistency with past decisions
+- 🔍 User asks conceptual questions
+
+**ANALYZE when:**
+- 📊 User seems stuck or frustrated
+- 📊 Patterns of questions emerge
+- 📊 Need to adapt teaching style
+- 📊 Planning future work sessions
+- 📊 End of significant work session
+
+### Context Management Code Patterns
+
+```typescript
+// Optimal message saving pattern
+const saveImportantContext = async (role: 'user' | 'assistant', content: string) => {
+  const metadata = {
+    topics: extractTopics(content),
+    entities: extractEntities(content),
+    decision: detectDecision(content),
+    quality_score: assessQuality(content),
+    breakthrough: detectBreakthrough(content),
+    follow_up_needed: requiresFollowUp(content)
+  };
+  
+  if (isValuableContext(content, metadata)) {
+    await save_message({
+      role,
+      content,
+      conversationId: currentConversationId,
+      metadata
+    });
+  }
+};
+
+// Effective context retrieval pattern
+const buildComprehensiveContext = async (topic: string) => {
+  const [semantic, recent, insights, gaps] = await Promise.all([
+    semantic_search({ query: topic, limit: 5 }),
+    get_conversations({ limit: 10 }),
+    get_proactive_insights({ daysSince: 30 }),
+    detect_knowledge_gaps({ minFrequency: 1 })
+  ]);
+  
+  return synthesizeContext({ semantic, recent, insights, gaps });
+};
+```
 
 ---
 

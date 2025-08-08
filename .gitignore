@@ -36,6 +36,11 @@ pids/
 .claude/conversations.db*
 .claude/settings.local.json
 
+# MCP configuration files (may contain sensitive information)
+.mcp.json
+mcp.json
+*.mcp.json
+
 # Environment
 .env
 .env.local
@@ -65,6 +70,19 @@ tmp/
 temp/
 *.tmp
 
+# Linting and validation output files
+eslint_output*.txt
+lint_output*.txt
+lint_results.json
+*-validation-demo.*
+validation-demo.*
+simple-validation-demo.*
+
+# Temporary analysis and reports
+performance-analysis.md
+*-report.md
+*-summary.md
+
 # AI/ML model files (can be large)
 models/
 *.onnx
@@ -77,6 +95,7 @@ test-*.js
 debug-*.js
 minimal-test.js
 comprehensive-test.js
+test-concurrent-*.db
 
 # OS generated files
 Thumbs.db

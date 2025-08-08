@@ -233,8 +233,8 @@ export class EntityRepository extends BaseRepository {
     const limit = options.limit ?? 20;
     const offset = options.offset ?? 0;
     
-    let whereConditions: string[] = [];
-    let params: any[] = [];
+    const whereConditions: string[] = [];
+    const params: any[] = [];
 
     if (options.query) {
       // Use FTS5 for text search

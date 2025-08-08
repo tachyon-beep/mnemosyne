@@ -415,7 +415,7 @@ export class ConversationRepository extends BaseRepository {
    */
   async findOldest(filters?: { startDate?: string; endDate?: string }): Promise<Conversation | null> {
     let whereClause = '';
-    let params: any[] = [];
+    const params: any[] = [];
 
     if (filters?.startDate) {
       const startTimestamp = new Date(filters.startDate).getTime();
@@ -463,7 +463,7 @@ export class ConversationRepository extends BaseRepository {
    */
   async findNewest(filters?: { startDate?: string; endDate?: string }): Promise<Conversation | null> {
     let whereClause = '';
-    let params: any[] = [];
+    const params: any[] = [];
 
     if (filters?.startDate) {
       const startTimestamp = new Date(filters.startDate).getTime();
@@ -517,7 +517,7 @@ export class ConversationRepository extends BaseRepository {
   } = {}): PaginatedResult<Conversation> {
     const pagination = this.validatePagination(options.limit, options.offset);
     let whereClause = '';
-    let params: any[] = [];
+    const params: any[] = [];
 
     if (options.startDate) {
       whereClause += 'WHERE created_at >= ?';

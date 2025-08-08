@@ -220,7 +220,7 @@ export class ContextChangeDetector extends BaseRepository {
             return patterns;
         const messageIds = messages.map(m => m.id);
         // Get all entity mentions for these messages
-        let allMentions = [];
+        const allMentions = [];
         if (messageIds.length > 0) {
             try {
                 // Handle large message sets by batching queries (SQLite has a limit on IN clause size)
@@ -396,7 +396,7 @@ export class ContextChangeDetector extends BaseRepository {
         ];
         const claimsByType = new Map();
         // Extract claims from all mentions
-        for (const [conversationId, mentions] of conversationGroups.entries()) {
+        for (const mentions of conversationGroups.values()) {
             for (const mention of mentions) {
                 const message = {
                     id: mention.message_id,

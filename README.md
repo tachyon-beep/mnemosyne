@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/mcp-persistence-server.svg)](https://www.npmjs.com/package/mcp-persistence-server)
 
-A production-ready, high-performance MCP-compliant persistence server for Claude Desktop. Features conversation history storage, advanced search capabilities, knowledge graph relationships, and intelligent context management.
+A production-ready, high-performance MCP-compliant persistence server for Claude Desktop with **23 operational tools** across **all 5 development phases complete**. Features conversation history storage, advanced search capabilities, knowledge graph relationships, intelligent context management, and comprehensive analytics.
 
 ## 🌟 Features
 
@@ -98,7 +98,7 @@ Add to your Claude Desktop MCP settings:
 
 ## 📖 Available Tools
 
-The server provides 18 MCP-compliant tools organized into logical groups:
+The server provides 23 MCP-compliant tools organized into logical groups:
 
 ### 📝 Core Persistence Tools
 - **`save_message`**: Save messages to conversation history with threading support
@@ -120,6 +120,13 @@ The server provides 18 MCP-compliant tools organized into logical groups:
 - **`suggest_relevant_context`**: AI-powered context suggestions for enhanced responses
 - **`auto_tag_conversation`**: Intelligent conversation categorization and tagging
 - **`configure_llm_provider`**: Configure AI providers (Ollama, OpenAI) for enhanced features
+
+### 📊 Analytics & Reporting Tools (Phase 5)
+- **`get_conversation_analytics`**: Detailed conversation metrics and insights
+- **`analyze_productivity_patterns`**: Track productivity trends across sessions
+- **`detect_knowledge_gaps`**: Identify unresolved questions and learning opportunities
+- **`track_decision_effectiveness`**: Monitor decision quality and outcomes
+- **`generate_analytics_report`**: Comprehensive analytics reports with visualizations
 
 ### 🕸️ Knowledge Graph Tools
 - **`find_related_conversations`**: Discover conversations related to specific entities

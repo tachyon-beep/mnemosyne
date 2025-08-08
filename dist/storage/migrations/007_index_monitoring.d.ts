@@ -10,4 +10,4 @@
  */
 import { Migration } from './Migration.js';
 export declare const indexMonitoringMigration: Migration;
-//# sourceMappingURL=008_index_monitoring.d.ts.map
+//# sourceMappingURL=007_index_monitoring.d.ts.map

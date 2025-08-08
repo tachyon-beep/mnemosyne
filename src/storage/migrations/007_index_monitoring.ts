@@ -1,6 +1,6 @@
 /**
  * Migration 008: Index Usage Monitoring and Performance Tracking
- *
+ * 
  * Adds comprehensive index monitoring and performance tracking tables:
  * - Index usage statistics and effectiveness tracking
  * - Query plan analysis and performance history
@@ -8,12 +8,16 @@
  * - Performance alerts and notification system
  * - Automated maintenance scheduling
  */
-export const indexMonitoringMigration = {
-    version: 8,
-    description: 'Add comprehensive index usage monitoring and performance tracking system',
-    up: [
-        // 1. Index Usage Monitoring Table - Track real index usage and effectiveness
-        `CREATE TABLE index_usage_monitoring (
+
+import { Migration } from './Migration.js';
+
+export const indexMonitoringMigration: Migration = {
+  version: 7,
+  description: 'Add comprehensive index usage monitoring and performance tracking system',
+  
+  up: [
+    // 1. Index Usage Monitoring Table - Track real index usage and effectiveness
+    `CREATE TABLE index_usage_monitoring (
       id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
       index_name TEXT NOT NULL,
       table_name TEXT NOT NULL,
@@ -35,8 +39,9 @@ export const indexMonitoringMigration = {
       -- Constraints
       UNIQUE(index_name)
     )`,
-        // 2. Query Plan Analysis Table - Store EXPLAIN QUERY PLAN results
-        `CREATE TABLE query_plan_analysis (
+
+    // 2. Query Plan Analysis Table - Store EXPLAIN QUERY PLAN results
+    `CREATE TABLE query_plan_analysis (
       id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
       query_id TEXT NOT NULL,
       sql_pattern TEXT NOT NULL, -- Normalized SQL pattern
@@ -61,8 +66,9 @@ export const indexMonitoringMigration = {
       
       created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
     )`,
-        // 3. Index Optimization Log - Track optimization actions and results
-        `CREATE TABLE index_optimization_log (
+
+    // 3. Index Optimization Log - Track optimization actions and results
+    `CREATE TABLE index_optimization_log (
       id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
       index_name TEXT NOT NULL,
       table_name TEXT NOT NULL,
@@ -93,8 +99,9 @@ export const indexMonitoringMigration = {
       created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
       updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
     )`,
-        // 4. Performance Alerts Table - Track system alerts and responses
-        `CREATE TABLE performance_alerts (
+
+    // 4. Performance Alerts Table - Track system alerts and responses
+    `CREATE TABLE performance_alerts (
       id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
       alert_type TEXT NOT NULL CHECK(alert_type IN ('slow_query', 'unused_index', 'index_degradation', 'write_impact', 'storage_growth', 'memory_pressure')),
       severity TEXT NOT NULL CHECK(severity IN ('critical', 'high', 'medium', 'low')),
@@ -134,8 +141,9 @@ export const indexMonitoringMigration = {
       created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
       updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
     )`,
-        // 5. Performance Metrics History - Time-series performance data
-        `CREATE TABLE performance_metrics_history (
+
+    // 5. Performance Metrics History - Time-series performance data
+    `CREATE TABLE performance_metrics_history (
       id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
       metric_type TEXT NOT NULL CHECK(metric_type IN ('query_performance', 'index_usage', 'system_load', 'storage_usage', 'cache_performance')),
       
@@ -160,8 +168,9 @@ export const indexMonitoringMigration = {
       
       recorded_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
     )`,
-        // 6. Automated Maintenance Schedule - Track scheduled maintenance tasks
-        `CREATE TABLE automated_maintenance_schedule (
+
+    // 6. Automated Maintenance Schedule - Track scheduled maintenance tasks
+    `CREATE TABLE automated_maintenance_schedule (
       id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
       task_type TEXT NOT NULL CHECK(task_type IN ('reindex', 'analyze', 'vacuum', 'optimize', 'cleanup')),
       target_name TEXT NOT NULL, -- index name, table name, or 'database'
@@ -200,8 +209,9 @@ export const indexMonitoringMigration = {
       created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
       updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
     )`,
-        // 7. System Configuration - Store monitoring and optimization settings
-        `CREATE TABLE performance_configuration (
+
+    // 7. System Configuration - Store monitoring and optimization settings
+    `CREATE TABLE performance_configuration (
       id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
       config_category TEXT NOT NULL CHECK(config_category IN ('monitoring', 'optimization', 'alerts', 'maintenance')),
       config_key TEXT NOT NULL,
@@ -223,52 +233,70 @@ export const indexMonitoringMigration = {
       -- Constraints
       UNIQUE(config_category, config_key)
     )`,
-        // Create indexes for performance_metrics_history table
-        `CREATE INDEX idx_metrics_history_type_target 
+
+    // Create indexes for performance_metrics_history table
+    `CREATE INDEX idx_metrics_history_type_target 
      ON performance_metrics_history(metric_type, target_name, recorded_at DESC)`,
-        `CREATE INDEX idx_metrics_history_time 
+    
+    `CREATE INDEX idx_metrics_history_time 
      ON performance_metrics_history(recorded_at DESC)`,
-        // Create optimized indexes for monitoring queries
-        // Index usage monitoring indexes
-        `CREATE INDEX idx_index_usage_table_health 
+
+    // Create optimized indexes for monitoring queries
+    
+    // Index usage monitoring indexes
+    `CREATE INDEX idx_index_usage_table_health 
      ON index_usage_monitoring(table_name, health_score ASC, usage_count DESC)`,
-        `CREATE INDEX idx_index_usage_effectiveness_usage 
+    
+    `CREATE INDEX idx_index_usage_effectiveness_usage 
      ON index_usage_monitoring(effectiveness_score DESC, usage_count DESC)`,
-        `CREATE INDEX idx_index_usage_last_used 
+    
+    `CREATE INDEX idx_index_usage_last_used 
      ON index_usage_monitoring(last_used DESC) 
      WHERE last_used IS NOT NULL`,
-        // Query plan analysis indexes
-        `CREATE INDEX idx_query_plan_pattern_time 
+    
+    // Query plan analysis indexes
+    `CREATE INDEX idx_query_plan_pattern_time 
      ON query_plan_analysis(sql_pattern, created_at DESC)`,
-        `CREATE INDEX idx_query_plan_slow_queries 
+    
+    `CREATE INDEX idx_query_plan_slow_queries 
      ON query_plan_analysis(execution_time DESC, created_at DESC) 
      WHERE execution_time > 1000`,
-        `CREATE INDEX idx_query_plan_optimization_potential 
+    
+    `CREATE INDEX idx_query_plan_optimization_potential 
      ON query_plan_analysis(optimization_potential DESC, execution_time DESC)`,
-        // Performance alerts indexes
-        `CREATE INDEX idx_performance_alerts_severity_unresolved 
+    
+    // Performance alerts indexes
+    `CREATE INDEX idx_performance_alerts_severity_unresolved 
      ON performance_alerts(severity, created_at DESC) 
      WHERE resolved = FALSE`,
-        `CREATE INDEX idx_performance_alerts_type_status 
+    
+    `CREATE INDEX idx_performance_alerts_type_status 
      ON performance_alerts(alert_type, severity, created_at DESC)`,
-        `CREATE INDEX idx_performance_alerts_escalation 
+    
+    `CREATE INDEX idx_performance_alerts_escalation 
      ON performance_alerts(escalated, escalation_level, created_at DESC) 
      WHERE escalated = TRUE`,
-        // Optimization log indexes
-        `CREATE INDEX idx_optimization_log_table_action 
+    
+    // Optimization log indexes
+    `CREATE INDEX idx_optimization_log_table_action 
      ON index_optimization_log(table_name, action_type, status, created_at DESC)`,
-        `CREATE INDEX idx_optimization_log_automated_success 
+    
+    `CREATE INDEX idx_optimization_log_automated_success 
      ON index_optimization_log(automated, status, actual_impact DESC) 
      WHERE automated = TRUE`,
-        // Maintenance schedule indexes
-        `CREATE INDEX idx_maintenance_schedule_status_time 
+    
+    // Maintenance schedule indexes
+    `CREATE INDEX idx_maintenance_schedule_status_time 
      ON automated_maintenance_schedule(status, scheduled_at ASC)`,
-        `CREATE INDEX idx_maintenance_schedule_priority_target 
+    
+    `CREATE INDEX idx_maintenance_schedule_priority_target 
      ON automated_maintenance_schedule(priority, target_name, scheduled_at ASC) 
      WHERE status IN ('scheduled', 'running')`,
-        // Create views for common monitoring queries
-        // View: Current index health overview
-        `CREATE VIEW v_index_health_overview AS
+
+    // Create views for common monitoring queries
+    
+    // View: Current index health overview
+    `CREATE VIEW v_index_health_overview AS
      SELECT 
        ium.index_name,
        ium.table_name,
@@ -290,8 +318,9 @@ export const indexMonitoringMigration = {
        END as usage_status
      FROM index_usage_monitoring ium
      ORDER BY ium.health_score ASC, ium.usage_count DESC`,
-        // View: Active performance issues
-        `CREATE VIEW v_active_performance_issues AS
+
+    // View: Active performance issues
+    `CREATE VIEW v_active_performance_issues AS
      SELECT 
        pa.id,
        pa.alert_type,
@@ -311,8 +340,9 @@ export const indexMonitoringMigration = {
      FROM performance_alerts pa
      WHERE pa.resolved = FALSE
      ORDER BY priority_order ASC, pa.created_at DESC`,
-        // View: Optimization opportunities
-        `CREATE VIEW v_optimization_opportunities AS
+
+    // View: Optimization opportunities
+    `CREATE VIEW v_optimization_opportunities AS
      SELECT 
        qpa.sql_pattern,
        COUNT(*) as frequency,
@@ -327,8 +357,9 @@ export const indexMonitoringMigration = {
      GROUP BY qpa.sql_pattern
      HAVING frequency > 5 OR avg_execution_time > 500
      ORDER BY avg_optimization_potential DESC, frequency DESC`,
-        // View: Maintenance task summary
-        `CREATE VIEW v_maintenance_task_summary AS
+
+    // View: Maintenance task summary
+    `CREATE VIEW v_maintenance_task_summary AS
      SELECT 
        ams.task_type,
        ams.priority,
@@ -343,8 +374,9 @@ export const indexMonitoringMigration = {
      WHERE ams.created_at > (unixepoch() * 1000) - (30 * 24 * 60 * 60 * 1000)
      GROUP BY ams.task_type, ams.priority
      ORDER BY ams.priority, ams.task_type`,
-        // Initialize default configuration
-        `INSERT INTO performance_configuration 
+
+    // Initialize default configuration
+    `INSERT INTO performance_configuration 
      (config_category, config_key, config_value, value_type, description) VALUES
      ('monitoring', 'enabled', 'true', 'boolean', 'Enable performance monitoring'),
      ('monitoring', 'interval_minutes', '15', 'number', 'Monitoring check interval in minutes'),
@@ -355,37 +387,39 @@ export const indexMonitoringMigration = {
      ('alerts', 'email_notifications', 'false', 'boolean', 'Send email notifications for alerts'),
      ('alerts', 'critical_alert_threshold', '3', 'number', 'Number of critical alerts before escalation'),
      ('maintenance', 'maintenance_window_hours', '[2,3,4]', 'json', 'Allowed maintenance hours (24h format)')`
-    ],
-    down: [
-        // Drop views first
-        'DROP VIEW IF EXISTS v_maintenance_task_summary',
-        'DROP VIEW IF EXISTS v_optimization_opportunities',
-        'DROP VIEW IF EXISTS v_active_performance_issues',
-        'DROP VIEW IF EXISTS v_index_health_overview',
-        // Drop indexes
-        'DROP INDEX IF EXISTS idx_metrics_history_time',
-        'DROP INDEX IF EXISTS idx_metrics_history_type_target',
-        'DROP INDEX IF EXISTS idx_maintenance_schedule_priority_target',
-        'DROP INDEX IF EXISTS idx_maintenance_schedule_status_time',
-        'DROP INDEX IF EXISTS idx_optimization_log_automated_success',
-        'DROP INDEX IF EXISTS idx_optimization_log_table_action',
-        'DROP INDEX IF EXISTS idx_performance_alerts_escalation',
-        'DROP INDEX IF EXISTS idx_performance_alerts_type_status',
-        'DROP INDEX IF EXISTS idx_performance_alerts_severity_unresolved',
-        'DROP INDEX IF EXISTS idx_query_plan_optimization_potential',
-        'DROP INDEX IF EXISTS idx_query_plan_slow_queries',
-        'DROP INDEX IF EXISTS idx_query_plan_pattern_time',
-        'DROP INDEX IF EXISTS idx_index_usage_last_used',
-        'DROP INDEX IF EXISTS idx_index_usage_effectiveness_usage',
-        'DROP INDEX IF EXISTS idx_index_usage_table_health',
-        // Drop tables in reverse dependency order
-        'DROP TABLE IF EXISTS performance_configuration',
-        'DROP TABLE IF EXISTS automated_maintenance_schedule',
-        'DROP TABLE IF EXISTS performance_metrics_history',
-        'DROP TABLE IF EXISTS performance_alerts',
-        'DROP TABLE IF EXISTS index_optimization_log',
-        'DROP TABLE IF EXISTS query_plan_analysis',
-        'DROP TABLE IF EXISTS index_usage_monitoring'
-    ]
+  ],
+
+  down: [
+    // Drop views first
+    'DROP VIEW IF EXISTS v_maintenance_task_summary',
+    'DROP VIEW IF EXISTS v_optimization_opportunities',
+    'DROP VIEW IF EXISTS v_active_performance_issues',
+    'DROP VIEW IF EXISTS v_index_health_overview',
+
+    // Drop indexes
+    'DROP INDEX IF EXISTS idx_metrics_history_time',
+    'DROP INDEX IF EXISTS idx_metrics_history_type_target',
+    'DROP INDEX IF EXISTS idx_maintenance_schedule_priority_target',
+    'DROP INDEX IF EXISTS idx_maintenance_schedule_status_time',
+    'DROP INDEX IF EXISTS idx_optimization_log_automated_success',
+    'DROP INDEX IF EXISTS idx_optimization_log_table_action',
+    'DROP INDEX IF EXISTS idx_performance_alerts_escalation',
+    'DROP INDEX IF EXISTS idx_performance_alerts_type_status',
+    'DROP INDEX IF EXISTS idx_performance_alerts_severity_unresolved',
+    'DROP INDEX IF EXISTS idx_query_plan_optimization_potential',
+    'DROP INDEX IF EXISTS idx_query_plan_slow_queries',
+    'DROP INDEX IF EXISTS idx_query_plan_pattern_time',
+    'DROP INDEX IF EXISTS idx_index_usage_last_used',
+    'DROP INDEX IF EXISTS idx_index_usage_effectiveness_usage',
+    'DROP INDEX IF EXISTS idx_index_usage_table_health',
+
+    // Drop tables in reverse dependency order
+    'DROP TABLE IF EXISTS performance_configuration',
+    'DROP TABLE IF EXISTS automated_maintenance_schedule',
+    'DROP TABLE IF EXISTS performance_metrics_history',
+    'DROP TABLE IF EXISTS performance_alerts',
+    'DROP TABLE IF EXISTS index_optimization_log',
+    'DROP TABLE IF EXISTS query_plan_analysis',
+    'DROP TABLE IF EXISTS index_usage_monitoring'
+  ]
 };
-//# sourceMappingURL=008_index_monitoring.js.map

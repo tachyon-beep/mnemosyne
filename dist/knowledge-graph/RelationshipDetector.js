@@ -220,7 +220,7 @@ export class RelationshipDetector {
     /**
      * Calculate base confidence for relationship
      */
-    calculateBaseConfidence(cooccurrence, pattern) {
+    calculateBaseConfidence(cooccurrence, _pattern) {
         let confidence = 0.3; // Base confidence
         // Distance-based adjustments
         const normalizedDistance = cooccurrence.distance / this.config.maxEntityDistance;
@@ -240,7 +240,7 @@ export class RelationshipDetector {
     /**
      * Adjust confidence based on contextual factors
      */
-    adjustConfidenceByContext(baseConfidence, cooccurrence, pattern) {
+    adjustConfidenceByContext(baseConfidence, cooccurrence, _pattern) {
         let confidence = baseConfidence;
         // Context quality indicators
         const context = cooccurrence.context.toLowerCase();

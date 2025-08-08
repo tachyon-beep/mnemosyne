@@ -39,7 +39,7 @@ export declare class EntityExtractor {
     /**
      * Extract entities from text
      */
-    extractEntities(text: string, messageId?: string): ExtractedEntity[];
+    extractEntities(text: string, _messageId?: string): ExtractedEntity[];
     /**
      * Initialize entity recognition patterns
      * Based on EntityCentricStrategy patterns but extended for knowledge graph

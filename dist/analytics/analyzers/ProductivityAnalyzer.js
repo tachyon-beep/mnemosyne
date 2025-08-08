@@ -976,7 +976,7 @@ export class ProductivityAnalyzer {
             optimalFlowState
         };
     }
-    detectPeakPeriod(messages, outputMetrics) {
+    detectPeakPeriod(messages, _outputMetrics) {
         if (messages.length < 4)
             return undefined;
         const windowSize = Math.max(3, Math.floor(messages.length / 4));
@@ -1031,7 +1031,7 @@ export class ProductivityAnalyzer {
             confidenceLevel: Math.min(0.9, conversations.length / 10)
         };
     }
-    detectHourlyPatterns(conversations) {
+    detectHourlyPatterns(_conversations) {
         // Implementation would analyze patterns specific to this hour
         return {
             commonApproaches: ['focused questioning', 'systematic exploration'],
@@ -1051,7 +1051,7 @@ export class ProductivityAnalyzer {
         }
         return 'general question';
     }
-    calculateQuestionInsightScore(question, allMessages, productivity) {
+    calculateQuestionInsightScore(question, allMessages, _productivity) {
         // Look for insights in the following messages
         const questionIndex = allMessages.indexOf(question);
         const followingMessages = allMessages.slice(questionIndex + 1, questionIndex + 3);
@@ -1102,21 +1102,21 @@ export class ProductivityAnalyzer {
             .filter(m => this.BREAKTHROUGH_KEYWORDS.some(keyword => m.content.toLowerCase().includes(keyword)))
             .map(m => ({ message: m, timestamp: m.createdAt }));
     }
-    extractBreakthroughPattern(breakthrough, messages) {
+    extractBreakthroughPattern(_breakthrough, _messages) {
         // Analyze the context around breakthrough to identify pattern
         return 'systematic questioning'; // Simplified
     }
-    getBreakthroughContext(breakthrough, messages) {
+    getBreakthroughContext(breakthrough, _messages) {
         return breakthrough.message.content.slice(0, 200);
     }
-    getBreakthroughOutcome(breakthrough, messages) {
+    getBreakthroughOutcome(_breakthrough, _messages) {
         // Look at messages following the breakthrough
         return 'problem resolved'; // Simplified
     }
-    identifyPreconditions(breakthrough, messages) {
+    identifyPreconditions(_breakthrough, _messages) {
         return ['focused questioning', 'sufficient background'];
     }
-    assessBreakthroughSuccess(breakthrough, messages, productivity) {
+    assessBreakthroughSuccess(_breakthrough, _messages, productivity) {
         return productivity.effectivenessScore > 70;
     }
     generatePatternDescription(pattern, preconditions) {

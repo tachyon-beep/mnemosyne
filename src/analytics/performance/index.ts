@@ -149,14 +149,15 @@ export function createPerformanceMonitoringSetup(
       monitoring: {
         enabled: true,
         intervalMinutes: 15,
-        alertThresholds: {
-          slowQueryMs: (config.monitoring?.alertThresholds?.slowQueryMs ?? 1000),
-          unusedIndexDays: (config.monitoring?.alertThresholds?.unusedIndexDays ?? 30),
-          writeImpactThreshold: (config.monitoring?.alertThresholds?.writeImpactThreshold ?? 0.5),
-          memoryUsageThresholdMB: (config.monitoring?.alertThresholds?.memoryUsageThresholdMB ?? 500)
-        },
         retentionDays: 30,
-        ...config.monitoring
+        ...config.monitoring,
+        alertThresholds: {
+          slowQueryMs: config.monitoring?.alertThresholds?.slowQueryMs ?? 1000,
+          unusedIndexDays: config.monitoring?.alertThresholds?.unusedIndexDays ?? 30,
+          writeImpactThreshold: config.monitoring?.alertThresholds?.writeImpactThreshold ?? 0.5,
+          memoryUsageThresholdMB: config.monitoring?.alertThresholds?.memoryUsageThresholdMB ?? 500,
+          ...config.monitoring?.alertThresholds
+        }
       },
       optimization: {
         autoOptimizeEnabled: false, // Conservative default
@@ -168,11 +169,12 @@ export function createPerformanceMonitoringSetup(
       },
       alerts: {
         emailNotifications: false,
+        ...config.alerts,
         escalationThresholds: {
-          criticalAlertCount: (config.alerts?.escalationThresholds?.criticalAlertCount ?? 3),
-          highAlertDurationMinutes: (config.alerts?.escalationThresholds?.highAlertDurationMinutes ?? 60)
-        },
-        ...config.alerts
+          criticalAlertCount: config.alerts?.escalationThresholds?.criticalAlertCount ?? 3,
+          highAlertDurationMinutes: config.alerts?.escalationThresholds?.highAlertDurationMinutes ?? 60,
+          ...config.alerts?.escalationThresholds
+        }
       }
     }
   );

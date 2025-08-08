@@ -233,7 +233,6 @@ export class IndexUsageMonitor {
     // Analyze current index usage
     const indexStats = await this.getIndexUsageStats();
     const slowQueries = await this.getSlowQueries();
-    const writeMetrics = await this.getWritePerformanceMetrics();
     
     // 1. Recommend dropping unused indexes
     const unusedIndexes = await this.getUnusedIndexes();
@@ -880,7 +879,7 @@ export class IndexUsageMonitor {
     return result?.tbl_name || 'unknown';
   }
 
-  private async getIndexSize(indexName: string): Promise<number> {
+  private async getIndexSize(_indexName: string): Promise<number> {
     // Simplified size estimation - in production would use PRAGMA index_info
     return 1024; // 1KB default estimate
   }

@@ -11,7 +11,7 @@
  */
 
 import { DatabaseManager } from '../../storage/Database.js';
-import { IndexUsageMonitor, IndexUsageStats, QueryPlanAnalysis, IndexOptimizationRecommendation, PerformanceAlert } from './IndexUsageMonitor.js';
+import { IndexUsageMonitor, IndexUsageStats, IndexOptimizationRecommendation, PerformanceAlert } from './IndexUsageMonitor.js';
 
 export interface DashboardMetrics {
   timestamp: number;
@@ -114,7 +114,6 @@ export class IndexMonitoringDashboard {
    */
   async getCurrentMetrics(): Promise<DashboardMetrics> {
     const performanceReport = await this.monitor.generatePerformanceReport();
-    const db = this.databaseManager.getConnection();
     
     // Calculate overview metrics
     const totalSize = await this.getDatabaseSize();
@@ -166,7 +165,7 @@ export class IndexMonitoringDashboard {
     const indexStats = await this.monitor.getIndexUsageStats();
     const healthReports: IndexHealthReport[] = [];
     
-    for (const [indexName, stats] of indexStats) {
+    for (const stats of indexStats.values()) {
       const healthReport = this.analyzeIndexHealth(stats);
       healthReports.push(healthReport);
     }
@@ -502,7 +501,7 @@ export class IndexMonitoringDashboard {
     };
   }
 
-  private suggestIndexesForPattern(pattern: any): Array<{
+  private suggestIndexesForPattern(_pattern: any): Array<{
     indexName: string;
     sql: string;
     expectedImprovement: number;

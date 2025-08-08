@@ -1022,7 +1022,7 @@ export class KnowledgeGapsRepository extends AnalyticsRepository {
     // Flatten all gaps into batch-ready format
     const allGapInputs: KnowledgeGapInput[] = [];
     
-    for (const { conversationId, gaps, conversationMetadata } of conversationGaps) {
+    for (const { conversationId: _conversationId, gaps, conversationMetadata } of conversationGaps) {
       for (const gap of gaps) {
         const gapInput: KnowledgeGapInput = {
           gapType: gap.type || 'question',

@@ -43,7 +43,6 @@ export class IndexMonitoringDashboard {
      */
     async getCurrentMetrics() {
         const performanceReport = await this.monitor.generatePerformanceReport();
-        const db = this.databaseManager.getConnection();
         // Calculate overview metrics
         const totalSize = await this.getDatabaseSize();
         const indexSize = await this.getIndexStorageSize();
@@ -87,7 +86,7 @@ export class IndexMonitoringDashboard {
     async getIndexHealthReport() {
         const indexStats = await this.monitor.getIndexUsageStats();
         const healthReports = [];
-        for (const [indexName, stats] of indexStats) {
+        for (const stats of indexStats.values()) {
             const healthReport = this.analyzeIndexHealth(stats);
             healthReports.push(healthReport);
         }
@@ -365,7 +364,7 @@ export class IndexMonitoringDashboard {
             suggestedIndexes: this.suggestIndexesForPattern(pattern)
         };
     }
-    suggestIndexesForPattern(pattern) {
+    suggestIndexesForPattern(_pattern) {
         // Simplified suggestion logic - production would be more sophisticated
         return [];
     }

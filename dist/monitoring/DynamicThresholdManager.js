@@ -367,7 +367,7 @@ export class DynamicThresholdManager extends EventEmitter {
         // Group training data by threshold values
         const thresholdGroups = new Map();
         for (const data of this.trainingData) {
-            for (const [thresholdId, value] of Object.entries(data.thresholds)) {
+            for (const [thresholdId] of Object.entries(data.thresholds)) {
                 if (!thresholdGroups.has(thresholdId)) {
                     thresholdGroups.set(thresholdId, []);
                 }
