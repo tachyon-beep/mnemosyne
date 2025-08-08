@@ -153,13 +153,7 @@ export class EnhancedPerformanceMonitor extends EventEmitter {
         const config = this.systemProfiler.getPerformanceConfig();
         console.log(`🎯 Applying ${profile.overallPerformanceClass} performance configuration`);
         // Configure memory manager based on system capabilities
-        const memoryConfig = {
-            heapWarningThreshold: config.memory.maxHeapUsage * 0.8,
-            heapCriticalThreshold: config.memory.maxHeapUsage * 0.95,
-            maxRssBytes: profile.memory.recommendedHeapSize,
-            gcThreshold: config.memory.gcThreshold,
-            monitoringInterval: config.monitoring.metricsCollectionInterval
-        };
+        // Note: Memory configuration would be applied to memory manager in production
         // Update monitoring intervals based on system capability
         if (profile.overallPerformanceClass === 'exceptional' || profile.overallPerformanceClass === 'high') {
             // More frequent monitoring for high-performance systems
@@ -208,7 +202,7 @@ export class EnhancedPerformanceMonitor extends EventEmitter {
             const db = this.dbManager.getConnection();
             // Test basic connectivity with timing
             const startTime = Date.now();
-            const testResult = db.prepare('SELECT 1 as test').get();
+            db.prepare('SELECT 1 as test').get();
             const queryDuration = Date.now() - startTime;
             // Record metric with context
             this.recordEnhancedMetric('database', 'connectivity_test', queryDuration, 'ms');
@@ -298,7 +292,7 @@ export class EnhancedPerformanceMonitor extends EventEmitter {
             const db = this.dbManager.getConnection();
             // Test FTS functionality
             const startTime = Date.now();
-            const ftsTest = db.prepare(`
+            db.prepare(`
         SELECT COUNT(*) as count FROM messages_fts 
         WHERE messages_fts MATCH 'test' 
         LIMIT 1
@@ -639,7 +633,7 @@ export class EnhancedPerformanceMonitor extends EventEmitter {
         // Simplified calculation - would be more sophisticated in production
         let total = 0;
         const windowMs = 5 * 60 * 1000; // 5 minutes
-        for (const metrics of this.metrics.values()) {
+        for (const _metrics of this.metrics.values()) {
             total += this.getRecentMetrics('database', 'query', windowMs).length;
             total += this.getRecentMetrics('search', 'search', windowMs).length;
         }

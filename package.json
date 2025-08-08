@@ -1,6 +1,6 @@
 {
   "name": "mcp-persistence-server",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "Production-ready MCP persistence server with conversation history, advanced search, and knowledge graph capabilities for Claude Desktop",
   "main": "dist/index.js",
   "bin": {
@@ -55,18 +55,23 @@
     "fts5",
     "ai-assistant",
     "context-management",
-    "privacy-first"
+    "privacy-first",
+    "analytics",
+    "productivity-tracking",
+    "decision-tracking",
+    "local-ai",
+    "transformers"
   ],
   "author": "MCP Community",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YOUR_USERNAME/mcp-persistence-server.git"
+    "url": "git+https://github.com/mcp-community/mcp-persistence-server.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/mcp-persistence-server/issues"
+    "url": "https://github.com/mcp-community/mcp-persistence-server/issues"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/mcp-persistence-server#readme",
+  "homepage": "https://github.com/mcp-community/mcp-persistence-server#readme",
   "dependencies": {
     "@huggingface/transformers": "^3.7.0",
     "@modelcontextprotocol/sdk": "^0.5.0",
@@ -94,6 +99,7 @@
   },
   "files": [
     "dist/**/*",
+    "migrations/**/*",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"

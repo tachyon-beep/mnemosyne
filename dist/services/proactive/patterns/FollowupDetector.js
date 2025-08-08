@@ -136,7 +136,7 @@ export class FollowupDetector extends BaseRepository {
         const { includePast = false, includeCompleted = false, maxDaysAhead = 30 } = options;
         // Find messages with temporal commitment patterns
         let whereClause = 'WHERE m.role = ?';
-        let params = ['assistant'];
+        const params = ['assistant'];
         if (conversationId) {
             whereClause += ' AND m.conversation_id = ?';
             params.push(conversationId);
@@ -375,7 +375,7 @@ export class FollowupDetector extends BaseRepository {
     /**
      * Extract entities from commitment text (simplified implementation)
      */
-    async extractEntitiesFromText(text) {
+    async extractEntitiesFromText(_text) {
         // This would typically integrate with an NLP service or entity recognition
         // For now, return empty array - would be implemented with proper entity extraction
         return [];
@@ -473,7 +473,7 @@ export class FollowupDetector extends BaseRepository {
      */
     async getAllCommitments(conversationId) {
         let whereClause = 'WHERE m.role = ?';
-        let params = ['assistant'];
+        const params = ['assistant'];
         if (conversationId) {
             whereClause += ' AND m.conversation_id = ?';
             params.push(conversationId);
@@ -554,7 +554,7 @@ export class FollowupDetector extends BaseRepository {
     /**
      * Generate follow-up suggestions based on commitment
      */
-    async generateFollowupSuggestions(commitment, relatedEntities, staleness) {
+    async generateFollowupSuggestions(commitment, relatedEntities, _staleness) {
         // Use the main suggestFollowups method
         return this.suggestFollowups(commitment, { relatedEntities });
     }

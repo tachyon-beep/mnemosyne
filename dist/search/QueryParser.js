@@ -189,7 +189,7 @@ export class QueryParser {
         const dangerousPatterns = [
             /^\s*$/, // Empty or whitespace-only
             /^[\s"'*(){}[\]\\]*$/, // Only special characters
-            /[\x00-\x1F]/, // Control characters
+            /[\u0000-\u001F]/, // Control characters
         ];
         for (const pattern of dangerousPatterns) {
             if (pattern.test(query)) {

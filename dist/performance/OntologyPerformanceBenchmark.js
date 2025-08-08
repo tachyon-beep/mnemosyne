@@ -143,7 +143,6 @@ export class OntologyPerformanceBenchmark {
      * Benchmark current pragmatic approach
      */
     async benchmarkCurrentApproach(scale) {
-        const scaleConfig = this.getScaleConfig(scale);
         const startMemory = process.memoryUsage().heapUsed / BENCHMARK_CONSTANTS.BYTES_TO_MB;
         // Entity lookup performance
         await this.benchmarkOperation('entity_lookup_current', 'current', scale, async () => {
@@ -158,7 +157,7 @@ export class OntologyPerformanceBenchmark {
         await this.benchmarkOperation('graph_traversal_current', 'current', scale, async () => {
             const startTime = performance.now();
             // Current recursive CTE approach
-            const result = await this.databaseManager.executeOptimized(`
+            await this.databaseManager.executeOptimized(`
           WITH RECURSIVE entity_graph(entity_id, target_id, path, degree, strength) AS (
             SELECT 
               r.source_entity_id,
@@ -231,7 +230,7 @@ export class OntologyPerformanceBenchmark {
             // Simulate formal ontology validation overhead
             await this.simulateOntologyValidation();
             // Same query but with additional validation overhead
-            const result = await this.databaseManager.executeOptimized(`
+            await this.databaseManager.executeOptimized(`
           WITH RECURSIVE 
           type_hierarchy AS (
             SELECT 'person' as entity_type, 'agent' as parent_type, 1 as level
@@ -298,7 +297,7 @@ export class OntologyPerformanceBenchmark {
         await this.benchmarkOperation('graph_traversal_enhanced', 'enhanced', scale, async () => {
             const startTime = performance.now();
             // Use materialized connection summary for faster traversal
-            const result = await this.databaseManager.executeOptimized(`
+            await this.databaseManager.executeOptimized(`
           WITH RECURSIVE entity_graph AS (
             SELECT 
               r.source_entity_id,
@@ -531,7 +530,7 @@ export class OntologyPerformanceBenchmark {
     /**
      * Cleanup test data
      */
-    async cleanupTestData(scale) {
+    async cleanupTestData(_scale) {
         await this.databaseManager.getConnection().prepare('DELETE FROM entity_relationships WHERE id LIKE ?').run('test_rel_%');
         await this.databaseManager.getConnection().prepare('DELETE FROM entities WHERE id LIKE ?').run('test_entity_%');
     }

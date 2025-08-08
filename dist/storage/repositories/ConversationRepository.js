@@ -256,7 +256,7 @@ export class ConversationRepository extends BaseRepository {
      */
     async findOldest(filters) {
         let whereClause = '';
-        let params = [];
+        const params = [];
         if (filters?.startDate) {
             const startTimestamp = new Date(filters.startDate).getTime();
             whereClause += 'WHERE created_at >= ?';
@@ -288,7 +288,7 @@ export class ConversationRepository extends BaseRepository {
      */
     async findNewest(filters) {
         let whereClause = '';
-        let params = [];
+        const params = [];
         if (filters?.startDate) {
             const startTimestamp = new Date(filters.startDate).getTime();
             whereClause += 'WHERE created_at >= ?';
@@ -321,7 +321,7 @@ export class ConversationRepository extends BaseRepository {
     getConversations(options = {}) {
         const pagination = this.validatePagination(options.limit, options.offset);
         let whereClause = '';
-        let params = [];
+        const params = [];
         if (options.startDate) {
             whereClause += 'WHERE created_at >= ?';
             params.push(options.startDate.getTime());

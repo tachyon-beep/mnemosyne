@@ -497,14 +497,14 @@ class PredictionModelManager {
             .map(d => ({ key: d.target, relevance: 0.7 }));
         return related.slice(0, 5);
     }
-    findSimilarUsers(recentKeys) {
+    findSimilarUsers(_recentKeys) {
         // Simplified user similarity - would use more sophisticated algorithms in production
         return [
             { userId: 'similar_user_1', similarity: 0.6 },
             { userId: 'similar_user_2', similarity: 0.4 }
         ];
     }
-    getUserRecommendations(userId) {
+    getUserRecommendations(_userId) {
         // Simplified recommendations
         return [
             { key: 'recommended_query_1', similarity: 0.8 },
@@ -613,7 +613,6 @@ class CacheWarmingEngine {
         };
     }
     async warmCachePrediction(prediction) {
-        const startTime = Date.now();
         this.activeWarmingTasks.add(prediction.cacheKey);
         try {
             // Determine warming strategy based on cache key
@@ -776,23 +775,11 @@ class CacheWarmingEngine {
     async simulateAnalysisAndCache(cacheKey, conversations, analysisType) {
         // Simulate running analytics and caching results
         // In a real implementation, this would call the actual analytics engine
-        const simulatedResult = {
-            type: analysisType,
-            conversationCount: conversations.length,
-            timestamp: Date.now(),
-            cached: true
-        };
         // Simulate cache storage (would integrate with actual cache system)
         console.log(`[Predictive Cache] Warmed ${analysisType} analysis for ${conversations.length} conversations`);
     }
     async simulateSearchAndCache(cacheKey, searchQuery) {
         // Simulate search execution and caching
-        const simulatedResult = {
-            query: searchQuery,
-            resultCount: Math.floor(Math.random() * 50) + 1,
-            timestamp: Date.now(),
-            cached: true
-        };
         console.log(`[Predictive Cache] Warmed search results for query: "${searchQuery}"`);
     }
     async simulateGenericQueryAndCache(cacheKey, queryInfo) {

@@ -207,7 +207,6 @@ class ParallelAnalyticsProcessor {
         // For now, we'll use Promise-based concurrency
     }
     async processInParallel(items, processor, batchSize = 10) {
-        const results = [];
         const batches = this.createBatches(items, batchSize);
         const processBatch = async (batch) => {
             return Promise.all(batch.map(processor));
@@ -597,7 +596,7 @@ export class AnalyticsPerformanceOptimizer {
             m.content.includes('?') &&
             m.content.trim().length > 10);
         // Use optimized clustering
-        const clusters = OptimizedAlgorithms.optimizedClustering(questions, (q1, q2) => this.calculateQuestionSimilarity(q1.content, q2.content), 0.6, 50);
+        OptimizedAlgorithms.optimizedClustering(questions, (q1, q2) => this.calculateQuestionSimilarity(q1.content, q2.content), 0.6, 50);
         // Process gaps with the detector
         const gaps = await detector.detectGaps(conversations);
         // Cache results
@@ -751,7 +750,7 @@ export class AnalyticsPerformanceOptimizer {
     /**
      * Validate prediction accuracy by checking if predicted cache entries were actually requested
      */
-    async validatePredictionAccuracy(timeWindowHours = 24) {
+    async validatePredictionAccuracy(_timeWindowHours = 24) {
         if (!this.predictiveCacheManager) {
             return {
                 totalPredictions: 0,

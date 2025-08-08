@@ -136,7 +136,7 @@ export declare class AnalyticsPerformanceOptimizer {
     /**
      * Validate prediction accuracy by checking if predicted cache entries were actually requested
      */
-    validatePredictionAccuracy(timeWindowHours?: number): Promise<{
+    validatePredictionAccuracy(_timeWindowHours?: number): Promise<{
         totalPredictions: number;
         accuratePredictions: number;
         accuracy: number;

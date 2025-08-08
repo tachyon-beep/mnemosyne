@@ -68,7 +68,7 @@ export class SummaryRepository extends BaseRepository {
         }
         const pagination = this.validatePagination(limit, offset);
         let whereClause = 'WHERE conversation_id = ?';
-        let params = [conversationId];
+        const params = [conversationId];
         if (level) {
             whereClause += ' AND level = ?';
             params.push(level);
@@ -111,7 +111,7 @@ export class SummaryRepository extends BaseRepository {
     async findRecent(limit, minQualityScore) {
         const validatedLimit = Math.min(limit || 50, 100);
         let whereClause = '';
-        let params = [];
+        const params = [];
         if (minQualityScore !== undefined) {
             whereClause = 'WHERE quality_score >= ?';
             params.push(minQualityScore);

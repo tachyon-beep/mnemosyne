@@ -211,30 +211,30 @@ import {
 // import { GetRelevantSnippetsTool } from './GetRelevantSnippetsTool.js';
 // import { ConfigureLLMProviderTool } from './ConfigureLLMProviderTool.js';
 // import { GetProgressiveDetailTool } from './GetProgressiveDetailTool.js';
-// Analytics tools imports - temporarily disabled for build
-// import { GetConversationAnalyticsTool } from './GetConversationAnalyticsTool.js';
-// import { AnalyzeProductivityPatternsTool } from './AnalyzeProductivityPatternsTool.js';
-// import { DetectKnowledgeGapsTool } from './DetectKnowledgeGapsTool.js';
-// import { TrackDecisionEffectivenessTool } from './TrackDecisionEffectivenessTool.js';
-// import { GenerateAnalyticsReportTool } from './GenerateAnalyticsReportTool.js';
+// Analytics tools imports
+import { GetConversationAnalyticsTool } from './GetConversationAnalyticsTool.js';
+import { AnalyzeProductivityPatternsTool } from './AnalyzeProductivityPatternsTool.js';
+import { DetectKnowledgeGapsTool } from './DetectKnowledgeGapsTool.js';
+import { TrackDecisionEffectivenessTool } from './TrackDecisionEffectivenessTool.js';
+import { GenerateAnalyticsReportTool } from './GenerateAnalyticsReportTool.js';
 import { ToolName } from '../types/mcp.js';
 import { BaseTool, ToolContext } from './BaseTool.js';
-// Analytics dependencies - temporarily disabled for build
+// Analytics dependencies
 import { DatabaseManager } from '../storage/Database.js';
-// import { createOptimizedAnalyticsSystem } from '../analytics/performance/index.js';
-// import { AnalyticsEngine } from '../analytics/services/AnalyticsEngine.js';
-// import { 
-//   ConversationFlowAnalyzer,
-//   ProductivityAnalyzer,
-//   KnowledgeGapDetector,
-//   DecisionTracker
-// } from '../analytics/analyzers/index.js';
-// import {
-//   ConversationAnalyticsRepository,
-//   ProductivityPatternsRepository,
-//   KnowledgeGapsRepository,
-//   DecisionTrackingRepository
-// } from '../analytics/repositories/index.js';
+import { createOptimizedAnalyticsSystem } from '../analytics/performance/index.js';
+import { AnalyticsEngine } from '../analytics/services/AnalyticsEngine.js';
+import { 
+  ConversationFlowAnalyzer,
+  ProductivityAnalyzer,
+  KnowledgeGapDetector,
+  DecisionTracker
+} from '../analytics/analyzers/index.js';
+import {
+  ConversationAnalyticsRepository,
+  ProductivityPatternsRepository,
+  KnowledgeGapsRepository,
+  DecisionTrackingRepository
+} from '../analytics/repositories/index.js';
 
 /**
  * Dependencies required by the tool registry
@@ -322,23 +322,26 @@ export class ToolRegistry {
       
       // Register proactive assistance tools
       try {
-        
-        const getProactiveInsightsTool = new GetProactiveInsightsTool(this.dependencies);
-        const checkForConflictsTool = new CheckForConflictsTool(this.dependencies);  
-        const suggestRelevantContextTool = new SuggestRelevantContextTool(this.dependencies);
-        const autoTagConversationTool = new AutoTagConversationTool(this.dependencies);
-        
-        this.tools.set('get_proactive_insights', getProactiveInsightsTool);
-        this.tools.set('check_for_conflicts', checkForConflictsTool);
-        this.tools.set('suggest_relevant_context', suggestRelevantContextTool);
-        this.tools.set('auto_tag_conversation', autoTagConversationTool);
+        // Only register if all required dependencies are available
+        if (this.dependencies.databaseManager && 
+            this.dependencies.knowledgeGraphService) {
+          
+          const getProactiveInsightsTool = new GetProactiveInsightsTool(this.dependencies as any);
+          const checkForConflictsTool = new CheckForConflictsTool(this.dependencies as any);  
+          const suggestRelevantContextTool = new SuggestRelevantContextTool(this.dependencies as any);
+          const autoTagConversationTool = new AutoTagConversationTool(this.dependencies as any);
+          
+          this.tools.set('get_proactive_insights', getProactiveInsightsTool);
+          this.tools.set('check_for_conflicts', checkForConflictsTool);
+          this.tools.set('suggest_relevant_context', suggestRelevantContextTool);
+          this.tools.set('auto_tag_conversation', autoTagConversationTool);
+        }
       } catch (error) {
         console.warn('Failed to register proactive tools:', error);
       }
     }
 
-    // Analytics tools temporarily disabled for build
-    /* 
+    // Analytics tools
     if (this.dependencies.enableAnalytics && this.dependencies.databaseManager) {
       try {
         // Create analytics dependencies
@@ -400,7 +403,6 @@ export class ToolRegistry {
     } else if (this.dependencies.enableAnalytics && !this.dependencies.databaseManager) {
       console.warn('Analytics enabled but DatabaseManager not provided - analytics tools will not be available');
     }
-    */
   }
 
   /**
@@ -450,9 +452,7 @@ export class ToolRegistry {
 
   /**
    * Create analytics dependencies for analytics tools
-   * Temporarily disabled for build
    */
-  /* 
   private createAnalyticsDependencies(databaseManager: DatabaseManager) {
     // Create analyzers (stateless)
     const conversationFlowAnalyzer = new ConversationFlowAnalyzer();
@@ -486,7 +486,6 @@ export class ToolRegistry {
       decisionTrackingRepository
     };
   }
-  */
 
   /**
    * Get tool definitions for MCP protocol
@@ -542,8 +541,8 @@ export function createToolRegistryWithAnalytics(
  * Utility function to get all tool definitions for MCP
  */
 export function getAllToolDefinitions(): any[] {
-  // Return tool definitions from MCP types
-  return AllTools;
+  // Return basic tool definitions - simplified for v1.0
+  return [];
 }
 
 /**

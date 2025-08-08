@@ -114,7 +114,7 @@ export class SummaryHistoryRepository extends BaseRepository {
      */
     async getStats(providerId) {
         let whereClause = '';
-        let params = [];
+        const params = [];
         if (providerId) {
             if (!this.isValidUUID(providerId)) {
                 throw new Error('Invalid provider ID');

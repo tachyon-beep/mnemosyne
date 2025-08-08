@@ -976,7 +976,7 @@ export class ConversationFlowAnalyzer {
         }
         return null;
     }
-    classifyTransition(fromTopic, toTopic, timeGap, messages) {
+    classifyTransition(fromTopic, toTopic, timeGap, _messages) {
         // Return transition: going back to a previously discussed topic
         if (fromTopic.timestamp > toTopic.timestamp) {
             return 'return';

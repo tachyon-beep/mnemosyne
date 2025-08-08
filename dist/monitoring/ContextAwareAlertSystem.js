@@ -434,7 +434,7 @@ export class ContextAwareAlertSystem extends EventEmitter {
     /**
      * Format alert message for specific channel
      */
-    formatAlertForChannel(alert, channel) {
+    formatAlertForChannel(alert, _channel) {
         let message = `[${alert.adjustedSeverity.toUpperCase()}] ${alert.message}`;
         if (alert.rootCauseAnalysis.confidence > 0.6) {
             message += `\n🔍 Suspected cause: ${alert.rootCauseAnalysis.suspectedCause} (${Math.round(alert.rootCauseAnalysis.confidence * 100)}% confidence)`;
@@ -550,7 +550,7 @@ export class ContextAwareAlertSystem extends EventEmitter {
         const toKey = `${toCategory}:${toMetric}`;
         return cascadePatterns.some(pattern => fromKey.includes(pattern.from) && toKey.includes(pattern.to));
     }
-    getHistoricalDataForMetric(metric, category, date) {
+    getHistoricalDataForMetric(_metric, _category, _date) {
         // In a real implementation, this would query historical data
         // For now, return reasonable defaults
         return {
@@ -589,7 +589,7 @@ export class ContextAwareAlertSystem extends EventEmitter {
         pattern.seasonality.daily[now.getDay()]++;
         this.alertPatterns.set(key, pattern);
     }
-    getRecentNotificationsForChannel(channelId) {
+    getRecentNotificationsForChannel(_channelId) {
         // Would track notifications in production
         return 0;
     }
@@ -601,7 +601,7 @@ export class ContextAwareAlertSystem extends EventEmitter {
     /**
      * Resolve an active alert
      */
-    resolveAlert(alertId, resolvedBy) {
+    resolveAlert(alertId, _resolvedBy) {
         const alert = this.activeAlerts.get(alertId);
         if (!alert)
             return false;

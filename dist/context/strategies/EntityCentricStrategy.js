@@ -232,7 +232,7 @@ export class EntityCentricStrategy extends AssemblyStrategy {
         });
         const processedItems = new Set();
         // Add items from entity groups
-        for (const [_entity, groupItems] of sortedEntityGroups) {
+        for (const [, groupItems] of sortedEntityGroups) {
             const unprocessedItems = groupItems.filter(item => !processedItems.has(item.id));
             // Sort items within group by relevance
             unprocessedItems.sort((a, b) => b.relevanceScore - a.relevanceScore);

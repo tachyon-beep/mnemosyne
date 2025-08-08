@@ -26,7 +26,7 @@ export class EntityLinker {
     async linkEntity(text, type, context) {
         const normalizedText = this.normalizeText(text);
         // 1. Try exact match first
-        let exactMatch = await this.entityRepository.findByNormalizedName(normalizedText, type);
+        const exactMatch = await this.entityRepository.findByNormalizedName(normalizedText, type);
         if (exactMatch) {
             return {
                 linkedEntity: exactMatch,

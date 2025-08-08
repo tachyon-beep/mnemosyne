@@ -775,7 +775,7 @@ export class EmbeddingManager {
         }
         // Security: Remove potentially dangerous characters
         let normalized = text
-            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+            .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '') // Remove control characters
             .replace(/[\uFFF0-\uFFFF]/g, '') // Remove non-characters
             .trim()
             .replace(/\s+/g, ' '); // Normalize whitespace

@@ -116,8 +116,8 @@ export class EntityRepository extends BaseRepository {
     async search(options = {}) {
         const limit = options.limit ?? 20;
         const offset = options.offset ?? 0;
-        let whereConditions = [];
-        let params = [];
+        const whereConditions = [];
+        const params = [];
         if (options.query) {
             // Use FTS5 for text search
             whereConditions.push(`

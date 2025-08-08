@@ -88,7 +88,7 @@ export declare class KnowledgeGraphService {
     /**
      * Process a message to extract entities and detect relationships
      */
-    processMessage(messageId: string, conversationId: string, content: string, createdAt: number): Promise<MessageProcessingResult>;
+    processMessage(messageId: string, conversationId: string, content: string, _createdAt: number): Promise<MessageProcessingResult>;
     /**
      * Get entity history across conversations
      */

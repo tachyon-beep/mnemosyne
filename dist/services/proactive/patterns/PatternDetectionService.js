@@ -45,7 +45,7 @@ export class PatternDetectionService extends BaseRepository {
         const cutoffTimestamp = Date.now() - (daysSince * 24 * 60 * 60 * 1000);
         // Build query to find messages with commitment patterns
         let whereClause = 'WHERE m.created_at < ? AND m.role = ?';
-        let params = [cutoffTimestamp, 'assistant'];
+        const params = [cutoffTimestamp, 'assistant'];
         if (conversationId) {
             whereClause += ' AND m.conversation_id = ?';
             params.push(conversationId);
@@ -97,7 +97,7 @@ export class PatternDetectionService extends BaseRepository {
     async findRecurringQuestions(options = {}) {
         const { conversationId, minFrequency = 2, minDaysBetween = 1, limit = 20 } = options;
         let whereClause = 'WHERE m.role = ?';
-        let params = ['user'];
+        const params = ['user'];
         if (conversationId) {
             whereClause += ' AND m.conversation_id = ?';
             params.push(conversationId);
@@ -207,7 +207,7 @@ export class PatternDetectionService extends BaseRepository {
         const { conversationId, includeResolved = false, limit = 30 } = options;
         // Find all messages with commitment patterns
         let whereClause = 'WHERE m.role = ?';
-        let params = ['assistant'];
+        const params = ['assistant'];
         if (conversationId) {
             whereClause += ' AND m.conversation_id = ?';
             params.push(conversationId);
@@ -363,9 +363,8 @@ export class PatternDetectionService extends BaseRepository {
      */
     async findAnswersForTopic(topic, questions, conversationId) {
         const topicKeywords = topic.split(' ');
-        const questionIds = questions.map(q => q.id);
         let whereClause = 'WHERE m.role = ? AND messages_fts MATCH ?';
-        let params = ['assistant', topicKeywords.join(' OR ')];
+        const params = ['assistant', topicKeywords.join(' OR ')];
         if (conversationId) {
             whereClause += ' AND m.conversation_id = ?';
             params.push(conversationId);

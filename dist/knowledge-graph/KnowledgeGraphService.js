@@ -38,7 +38,7 @@ export class KnowledgeGraphService {
     /**
      * Process a message to extract entities and detect relationships
      */
-    async processMessage(messageId, conversationId, content, createdAt) {
+    async processMessage(messageId, conversationId, content, _createdAt) {
         const startTime = Date.now();
         try {
             // Extract entities from message content
@@ -148,7 +148,7 @@ export class KnowledgeGraphService {
      * Find conversations related to specific entities
      */
     async findRelatedConversations(entityNames, options = {}) {
-        const { minRelationshipStrength = 0.3, limit = 50 } = options;
+        const { minRelationshipStrength = 0.3 } = options;
         // Find entities by names
         const entities = await Promise.all(entityNames.map(name => this.repository.findEntityByName(name.toLowerCase().trim())));
         const validEntities = entities.filter(e => e !== null);
