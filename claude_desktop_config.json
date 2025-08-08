@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "mcp-persistence": {
+      "command": "node",
+      "args": ["/home/john/mnemosyne/dist/index.js"],
+      "env": {
+        "PERSISTENCE_DB_PATH": "/home/john/.claude/persistence/conversations.db",
+        "PERSISTENCE_LOG_LEVEL": "info",
+        "PERSISTENCE_MAX_DB_SIZE_MB": "5000",
+        "PERSISTENCE_DEBUG": "false",
+        "ENABLE_ANALYTICS": "true",
+        "ENABLE_INCREMENTAL_PROCESSING": "true",
+        "CACHE_EXPIRATION_MINUTES": "60",
+        "BATCH_PROCESSING_SIZE": "50",
+        "MAX_PROCESSING_TIME_MS": "30000"
+      }
+    }
+  }
+}

@@ -41,7 +41,7 @@ export const optimizedAnalyticsIndexes = {
         // Expression index for productivity trend calculation
         `CREATE INDEX idx_productivity_patterns_trend_calc 
      ON productivity_patterns(window_type, window_start, 
-       (peak_productivity_score - avg_productivity_score) AS trend_indicator)`,
+       peak_productivity_score, avg_productivity_score)`,
         // === KNOWLEDGE GAPS OPTIMIZATIONS ===
         // Multi-column index for active gap analysis
         `CREATE INDEX idx_knowledge_gaps_active_analysis 
@@ -49,11 +49,11 @@ export const optimizedAnalyticsIndexes = {
         // Partial index for critical unresolved gaps
         `CREATE INDEX idx_knowledge_gaps_critical_unresolved 
      ON knowledge_gaps(frequency DESC, exploration_depth ASC, last_occurrence DESC) 
-     WHERE resolved = FALSE AND frequency >= 3`,
+     WHERE resolved = 0 AND frequency >= 3`,
         // Text search index for content clustering
         `CREATE INDEX idx_knowledge_gaps_content_similarity 
      ON knowledge_gaps(normalized_content, gap_type) 
-     WHERE resolved = FALSE`,
+     WHERE resolved = 0`,
         // Index for learning curve analysis
         `CREATE INDEX idx_knowledge_gaps_learning_progression 
      ON knowledge_gaps(exploration_depth, learning_curve_gradient, 
@@ -65,7 +65,7 @@ export const optimizedAnalyticsIndexes = {
         // Timeline analysis index
         `CREATE INDEX idx_decision_tracking_timeline_analysis 
      ON decision_tracking(decision_made_at DESC, decision_type, 
-       (outcome_assessed_at - decision_made_at) AS resolution_time) 
+       outcome_assessed_at) 
      WHERE outcome_assessed_at IS NOT NULL`,
         // Quality metrics composite index
         `CREATE INDEX idx_decision_tracking_quality_composite 
@@ -84,7 +84,7 @@ export const optimizedAnalyticsIndexes = {
         `CREATE INDEX idx_decision_tracking_complexity_calc 
      ON decision_tracking(decision_type, 
        (alternatives_considered + stakeholder_count + 
-        CASE WHEN risk_assessed THEN 2 ELSE 0 END) AS complexity_score)`,
+        CASE WHEN risk_assessed THEN 2 ELSE 0 END))`,
         // === TOPIC EVOLUTION OPTIMIZATIONS ===
         // Learning progression index
         `CREATE INDEX idx_topic_evolution_learning_progression 
@@ -103,7 +103,7 @@ export const optimizedAnalyticsIndexes = {
         // Expression index for topic momentum
         `CREATE INDEX idx_topic_evolution_momentum_calc 
      ON topic_evolution(normalized_topic, 
-       (total_mentions * understanding_level / 100.0) AS momentum_score)`,
+       total_mentions, understanding_level)`,
         // === INSIGHTS OPTIMIZATIONS ===
         // High-value insights index
         `CREATE INDEX idx_insights_high_value 
@@ -122,12 +122,10 @@ export const optimizedAnalyticsIndexes = {
         // === CROSS-TABLE ANALYTICAL INDEXES ===
         // Performance correlation index (conversations + analytics)
         `CREATE INDEX idx_conversations_analytics_correlation 
-     ON conversations(created_at, id) 
-     WHERE id IN (SELECT DISTINCT conversation_id FROM conversation_analytics)`,
+     ON conversations(created_at, id)`,
         // Message count optimization for analytics
         `CREATE INDEX idx_messages_analytics_optimization 
-     ON messages(conversation_id, created_at, role) 
-     WHERE conversation_id IN (SELECT DISTINCT conversation_id FROM conversation_analytics)`,
+     ON messages(conversation_id, created_at, role)`,
         // === MATERIALIZED VIEWS FOR COMMON QUERIES ===
         // Recent analytics summary view
         `CREATE VIEW v_recent_analytics_summary AS
