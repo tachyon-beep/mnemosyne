@@ -16,34 +16,38 @@ export interface AnalyticsEngineConfig {
     batchProcessingSize: number;
     maxProcessingTimeMs: number;
 }
+interface ConversationMetrics {
+    totalConversations: number;
+    averageProductivity: number;
+    averageDepth: number;
+    averageCircularity: number;
+    totalInsights: number;
+}
+interface ProductivityInsights {
+    peakHours: number[];
+    optimalSessionLength: number;
+    topQuestionPatterns: string[];
+    weeklyTrend: number;
+}
+interface KnowledgeGapMetrics {
+    totalUnresolved: number;
+    criticalGaps: number;
+    averageResolutionTime: number;
+    topicCoverage: number;
+}
+interface DecisionMetrics {
+    totalDecisions: number;
+    averageQuality: number;
+    averageOutcome: number;
+    reversalRate: number;
+}
 export interface AnalyticsReport {
     generatedAt: number;
     timeRange: TimeRange;
-    conversationMetrics: {
-        totalConversations: number;
-        averageProductivity: number;
-        averageDepth: number;
-        averageCircularity: number;
-        totalInsights: number;
-    };
-    productivityInsights: {
-        peakHours: number[];
-        optimalSessionLength: number;
-        topQuestionPatterns: string[];
-        weeklyTrend: number;
-    };
-    knowledgeGaps: {
-        totalUnresolved: number;
-        criticalGaps: number;
-        averageResolutionTime: number;
-        topicCoverage: number;
-    };
-    decisionQuality: {
-        totalDecisions: number;
-        averageQuality: number;
-        averageOutcome: number;
-        reversalRate: number;
-    };
+    conversationMetrics: ConversationMetrics;
+    productivityInsights: ProductivityInsights;
+    knowledgeGaps: KnowledgeGapMetrics;
+    decisionQuality: DecisionMetrics;
     recommendations: string[];
     insights: string[];
 }
@@ -204,4 +208,5 @@ export declare class AnalyticsEngine {
      */
     private batchAnalyzeConversations;
 }
+export {};
 //# sourceMappingURL=AnalyticsEngine.d.ts.map

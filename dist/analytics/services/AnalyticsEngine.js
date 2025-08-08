@@ -65,7 +65,7 @@ export class AnalyticsEngine {
         const startTime = Date.now();
         try {
             // Run analytics in parallel for efficiency
-            const [conversationMetricsRaw, productivityInsightsRaw, knowledgeGapMetricsRaw, decisionMetricsRaw] = await Promise.all([
+            const results = await Promise.all([
                 this.getConversationMetrics(validTimeRange).catch(() => ({
                     totalConversations: 0,
                     averageProductivity: 0,
@@ -92,7 +92,8 @@ export class AnalyticsEngine {
                     reversalRate: 0
                 }))
             ]);
-            // Ensure proper typing by extracting values
+            const [conversationMetricsRaw, productivityInsightsRaw, knowledgeGapMetricsRaw, decisionMetricsRaw] = results;
+            // Values are guaranteed to be defined due to catch handlers
             const conversationMetrics = conversationMetricsRaw;
             const productivityInsights = productivityInsightsRaw;
             const knowledgeGapMetrics = knowledgeGapMetricsRaw;

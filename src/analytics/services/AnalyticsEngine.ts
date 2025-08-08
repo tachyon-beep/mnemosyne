@@ -32,38 +32,44 @@ export interface AnalyticsEngineConfig {
   maxProcessingTimeMs: number;
 }
 
+// Define metric types for better type safety
+interface ConversationMetrics {
+  totalConversations: number;
+  averageProductivity: number;
+  averageDepth: number;
+  averageCircularity: number;
+  totalInsights: number;
+}
+
+interface ProductivityInsights {
+  peakHours: number[];
+  optimalSessionLength: number;
+  topQuestionPatterns: string[];
+  weeklyTrend: number;
+}
+
+interface KnowledgeGapMetrics {
+  totalUnresolved: number;
+  criticalGaps: number;
+  averageResolutionTime: number;
+  topicCoverage: number;
+}
+
+interface DecisionMetrics {
+  totalDecisions: number;
+  averageQuality: number;
+  averageOutcome: number;
+  reversalRate: number;
+}
+
 export interface AnalyticsReport {
   generatedAt: number;
   timeRange: TimeRange;
   
-  conversationMetrics: {
-    totalConversations: number;
-    averageProductivity: number;
-    averageDepth: number;
-    averageCircularity: number;
-    totalInsights: number;
-  };
-  
-  productivityInsights: {
-    peakHours: number[];
-    optimalSessionLength: number;
-    topQuestionPatterns: string[];
-    weeklyTrend: number;
-  };
-  
-  knowledgeGaps: {
-    totalUnresolved: number;
-    criticalGaps: number;
-    averageResolutionTime: number;
-    topicCoverage: number;
-  };
-  
-  decisionQuality: {
-    totalDecisions: number;
-    averageQuality: number;
-    averageOutcome: number;
-    reversalRate: number;
-  };
+  conversationMetrics: ConversationMetrics;
+  productivityInsights: ProductivityInsights;
+  knowledgeGaps: KnowledgeGapMetrics;
+  decisionQuality: DecisionMetrics;
   
   recommendations: string[];
   insights: string[];
@@ -134,44 +140,46 @@ export class AnalyticsEngine {
     
     try {
       // Run analytics in parallel for efficiency
-      const [
-        conversationMetricsRaw,
-        productivityInsightsRaw,
-        knowledgeGapMetricsRaw,
-        decisionMetricsRaw
-      ] = await Promise.all([
-        this.getConversationMetrics(validTimeRange).catch(() => ({
+      const results = await Promise.all([
+        this.getConversationMetrics(validTimeRange).catch((): ConversationMetrics => ({
           totalConversations: 0,
           averageProductivity: 0,
           averageDepth: 0,
           averageCircularity: 0,
           totalInsights: 0
         })),
-        this.getProductivityInsights(validTimeRange).catch(() => ({
+        this.getProductivityInsights(validTimeRange).catch((): ProductivityInsights => ({
           peakHours: [],
           optimalSessionLength: 60,
           topQuestionPatterns: [],
           weeklyTrend: 0
         })),
-        this.getKnowledgeGapMetrics(validTimeRange).catch(() => ({
+        this.getKnowledgeGapMetrics(validTimeRange).catch((): KnowledgeGapMetrics => ({
           totalUnresolved: 0,
           criticalGaps: 0,
           averageResolutionTime: 0,
           topicCoverage: 0
         })),
-        this.getDecisionMetrics(validTimeRange).catch(() => ({
+        this.getDecisionMetrics(validTimeRange).catch((): DecisionMetrics => ({
           totalDecisions: 0,
           averageQuality: 0,
           averageOutcome: 0,
           reversalRate: 0
         }))
       ]);
+      
+      const [
+        conversationMetricsRaw,
+        productivityInsightsRaw,
+        knowledgeGapMetricsRaw,
+        decisionMetricsRaw
+      ] = results;
 
-      // Ensure proper typing by extracting values
-      const conversationMetrics = conversationMetricsRaw!;
-      const productivityInsights = productivityInsightsRaw!;
-      const knowledgeGapMetrics = knowledgeGapMetricsRaw!;
-      const decisionMetrics = decisionMetricsRaw!;
+      // Values are guaranteed to be defined due to catch handlers
+      const conversationMetrics: ConversationMetrics = conversationMetricsRaw;
+      const productivityInsights: ProductivityInsights = productivityInsightsRaw;
+      const knowledgeGapMetrics: KnowledgeGapMetrics = knowledgeGapMetricsRaw;
+      const decisionMetrics: DecisionMetrics = decisionMetricsRaw;
 
       // Generate insights and recommendations
       const insights = this.generateInsights({
@@ -331,9 +339,9 @@ export class AnalyticsEngine {
   /**
    * Get conversation metrics
    */
-  private async getConversationMetrics(timeRange: TimeRange) {
+  private async getConversationMetrics(timeRange: TimeRange): Promise<ConversationMetrics> {
     const cacheKey = `conversation_metrics_${timeRange.start}_${timeRange.end}`;
-    const cached = this.getFromCache(cacheKey);
+    const cached = this.getFromCache<ConversationMetrics>(cacheKey);
     
     if (cached) {
       return cached;
@@ -359,9 +367,9 @@ export class AnalyticsEngine {
   /**
    * Get productivity insights with real calculation
    */
-  private async getProductivityInsights(timeRange: TimeRange) {
+  private async getProductivityInsights(timeRange: TimeRange): Promise<ProductivityInsights> {
     const cacheKey = `productivity_insights_${timeRange.start}_${timeRange.end}`;
-    const cached = this.getFromCache(cacheKey);
+    const cached = this.getFromCache<ProductivityInsights>(cacheKey);
     
     if (cached) {
       return cached;
@@ -389,9 +397,9 @@ export class AnalyticsEngine {
   /**
    * Get knowledge gap metrics
    */
-  private async getKnowledgeGapMetrics(timeRange: TimeRange) {
+  private async getKnowledgeGapMetrics(timeRange: TimeRange): Promise<KnowledgeGapMetrics> {
     const cacheKey = `knowledge_gaps_${timeRange.start}_${timeRange.end}`;
-    const cached = this.getFromCache(cacheKey);
+    const cached = this.getFromCache<KnowledgeGapMetrics>(cacheKey);
     
     if (cached) {
       return cached;
@@ -418,9 +426,9 @@ export class AnalyticsEngine {
   /**
    * Get decision quality metrics
    */
-  private async getDecisionMetrics(timeRange: TimeRange) {
+  private async getDecisionMetrics(timeRange: TimeRange): Promise<DecisionMetrics> {
     const cacheKey = `decision_metrics_${timeRange.start}_${timeRange.end}`;
-    const cached = this.getFromCache(cacheKey);
+    const cached = this.getFromCache<DecisionMetrics>(cacheKey);
     
     if (cached) {
       return cached;
