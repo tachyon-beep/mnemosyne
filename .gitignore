@@ -36,6 +36,11 @@ pids/
 .claude/conversations.db*
 .claude/settings.local.json
 
+# MCP configuration files (may contain sensitive information)
+.mcp.json
+mcp.json
+*.mcp.json
+
 # Environment
 .env
 .env.local
